@@ -1,7 +1,14 @@
 import { memo } from 'react';
-import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
-import { useAudioGraphStore, type UiTokensNodeData } from '../store';
+import type { Node, NodeProps } from '@xyflow/react';
+import { useAudioGraphStore } from '../store';
+import {
+    NodeHandleRow,
+    NodeShell,
+    NodeValueBadge,
+    NodeWidget,
+} from '../components/NodeShell';
 import { getInputParamHandleId } from '../nodeHelpers';
+import type { UiTokensNodeData } from '../types';
 import { normalizeUiTokenParams } from '../uiTokens';
 
 const UiTokensNode = memo(({ id, data, selected }: NodeProps<Node<UiTokensNodeData>>) => {
@@ -17,48 +24,40 @@ const UiTokensNode = memo(({ id, data, selected }: NodeProps<Node<UiTokensNodeDa
     };
 
     return (
-        <div className={`audio-node ui-tokens-node ${selected ? 'selected' : ''}`}>
-            <div className="node-header">
-                <div className="header-title">
-                    <span className="node-icon">⏱️</span>
-                    <span className="node-title">{uiTokensData.label || 'UI Tokens'}</span>
-                </div>
-            </div>
+        <NodeShell
+            nodeType="uiTokens"
+            title={uiTokensData.label?.trim() || 'UI Tokens'}
+            selected={selected}
+            badge={params.length > 0 ? <NodeValueBadge>{`${params.length} outs`}</NodeValueBadge> : undefined}
+        >
+            {params.map((param, index) => (
+                <NodeHandleRow
+                    key={`${param.id}-${index}`}
+                    direction="source"
+                    label={param.label || param.name || `Token ${index + 1}`}
+                    handleId={getInputParamHandleId(param)}
+                    handleKind="control"
+                />
+            ))}
 
-            <div className="node-content">
-                {params.map((param, index) => {
-                    const tokenLabel = (param.label || param.name || `Token ${index + 1}`).toUpperCase();
-
-                    return (
-                        <div key={param.id} className="node-control ui-token-row">
-                            <div className="ui-token-row-inner">
-                                <label className="ui-token-label">{tokenLabel}</label>
-                                <button
-                                    type="button"
-                                    className="ui-token-trigger"
-                                    onClick={() => triggerToken(param.id)}
-                                    aria-label={`Trigger ${param.label || param.name || param.id}`}
-                                    data-testid={`ui-token-trigger-${param.id}`}
-                                >
-                                    ▶
-                                </button>
-                            </div>
-                            <Handle
-                                type="source"
-                                position={Position.Right}
-                                id={getInputParamHandleId(param)}
-                                className="handle handle-out handle-param"
-                            />
-                        </div>
-                    );
-                })}
-                {!params.length && (
-                    <div className="node-control text-no-outputs">
-                        No outputs
-                    </div>
-                )}
-            </div>
-        </div>
+            {params.length > 0 ? (
+                <NodeWidget title="Trigger Tokens">
+                    {params.map((param) => (
+                        <button
+                            key={param.id}
+                            type="button"
+                            className="ui-token-trigger-row"
+                            onClick={() => triggerToken(param.id)}
+                            aria-label={`Trigger ${param.label || param.name || param.id}`}
+                            data-testid={`ui-token-trigger-${param.id}`}
+                        >
+                            <span>{param.label || param.name || param.id}</span>
+                            <span className="ui-token-trigger-row-icon" aria-hidden="true">+1</span>
+                        </button>
+                    ))}
+                </NodeWidget>
+            ) : null}
+        </NodeShell>
     );
 });
 

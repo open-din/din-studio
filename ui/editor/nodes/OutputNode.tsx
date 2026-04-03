@@ -57,8 +57,6 @@ const OutputNode = memo(({ id, data, selected }: NodeProps) => {
             className={outputData.playing ? 'playing' : ''}
             badge={<NodeValueBadge>sink</NodeValueBadge>}
         >
-            <NodeHandleRow direction="source" label="No signal outputs" />
-
             <NodeWidget
                 title={(
                     <>
@@ -88,7 +86,7 @@ const OutputNode = memo(({ id, data, selected }: NodeProps) => {
                 label="master"
                 handleId="masterGain"
                 handleKind="control"
-                trailing={masterGainConnection.connected ? (
+                control={masterGainConnection.connected ? (
                     <NodeValueBadge live>{formatConnectedValue(masterGainConnection.value, (value) => `${Math.round(value * 100)}%`)}</NodeValueBadge>
                 ) : (
                     <NodeNumberField

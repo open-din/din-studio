@@ -75,20 +75,20 @@ export function EditorShell({
     return (
         <div className="ui-shell relative h-full w-full overflow-hidden text-[var(--text)] flex flex-row">
             {/* Left Sidebar */}
-            <aside 
-                className={`flex flex-none border-r border-[var(--panel-border)] bg-[var(--panel-bg)] z-10 relative ${transitionClass}`}
+            <aside
+                className={`flex flex-none bg-[var(--panel-bg)] z-10 relative ${transitionClass}`}
                 style={{ width: leftPanelCollapsed ? SHELL_LAYOUT.railWidth : leftPanelWidth + SHELL_LAYOUT.railWidth }}
             >
-                <div 
-                    className="border-r border-[var(--panel-border)] bg-[var(--panel-muted)]/20 overflow-hidden"
+                <div
+                    className="border-b border-[var(--panel-border)] bg-[var(--panel-muted)]/20 overflow-hidden"
                     style={{ width: SHELL_LAYOUT.railWidth }}
                 >
                     {rail}
                 </div>
-                <div 
-                    className={`min-w-0 overflow-hidden ${transitionClass}`} 
-                    style={{ 
-                        width: leftPanelCollapsed ? 0 : leftPanelWidth, 
+                <div
+                    className={`min-w-0 overflow-hidden ${transitionClass}`}
+                    style={{
+                        width: leftPanelCollapsed ? 0 : leftPanelWidth,
                         opacity: leftPanelCollapsed ? 0 : 1,
                         visibility: leftPanelCollapsed ? 'hidden' : 'visible'
                     }}
@@ -97,7 +97,7 @@ export function EditorShell({
                 </div>
                 {/* Drag handle */}
                 {!leftPanelCollapsed && (
-                    <div 
+                    <div
                         className="absolute right-[-4px] top-0 bottom-0 w-2 cursor-col-resize z-50 hover:bg-[var(--accent)]/50 transition-colors"
                         onMouseDown={startLeftResize}
                         aria-hidden="true"
@@ -110,7 +110,7 @@ export function EditorShell({
                 <div className="flex-1 relative min-h-0 bg-[var(--canvas-bg)]">
                     {canvas}
                 </div>
-                
+
                 {/* Bottom Drawer */}
                 <div className="flex-none pointer-events-auto w-full z-10 relative">
                     {bottomDrawer}
@@ -118,13 +118,13 @@ export function EditorShell({
             </main>
 
             {/* Right Sidebar */}
-            <aside 
-                className={`flex-none border-l border-[var(--panel-border)] bg-[var(--panel-bg)] z-10 overflow-hidden relative ${transitionClass}`}
+            <aside
+                className={`flex-none bg-[var(--panel-bg)] z-10 overflow-hidden relative ${transitionClass}`}
                 style={{ width: rightPanelCollapsed ? 0 : rightPanelWidth, opacity: rightPanelCollapsed ? 0 : 1 }}
             >
                 {/* Drag handle */}
                 {!rightPanelCollapsed && (
-                    <div 
+                    <div
                         className="absolute left-[-2px] top-0 bottom-0 w-2 cursor-col-resize z-50 hover:bg-[var(--accent)]/50 transition-colors"
                         onMouseDown={startRightResize}
                         aria-hidden="true"

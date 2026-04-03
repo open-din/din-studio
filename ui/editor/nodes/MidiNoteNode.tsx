@@ -1,8 +1,18 @@
 import { memo, useEffect, useMemo, useRef } from 'react';
-import { Handle, Position, type NodeProps } from '@xyflow/react';
+import type { NodeProps } from '@xyflow/react';
 import { useMidi, useMidiNote } from '@open-din/react/midi';
 import { normalizeMidiNoteNodeData } from '../nodeHelpers';
-import { useAudioGraphStore, type MidiInMapping, type MidiNoteNodeData } from '../store';
+import {
+    NodeHandleRow,
+    NodeNumberField,
+    NodeSelectField,
+    NodeShell,
+    NodeValueBadge,
+    NodeWidget,
+    NodeWidgetTitle,
+} from '../components/NodeShell';
+import { useAudioGraphStore } from '../store';
+import type { MidiInMapping, MidiNoteNodeData } from '../types';
 import { buildInputOptions, getChannelFilterValue, getStatusBadge } from './midiNodeUtils';
 
 const createMappingId = (inputId: string, channel: number) => `${inputId}:${channel}`;
@@ -25,7 +35,7 @@ const resolveInputLabel = (
     if (inputId === 'all') return 'All Inputs';
     return availableInputs.find((input) => input.id === inputId)?.name
         ?? mappings.find((mapping) => mapping.inputId === inputId)?.inputName
-        ?? inputId;
+        ?? `Missing: ${inputId}`;
 };
 
 const describeSelection = (
@@ -37,10 +47,7 @@ const getMostRecentMapping = (mappings: MidiInMapping[]) =>
     [...mappings].sort((left, right) => right.lastSeenAt - left.lastSeenAt)[0] ?? null;
 
 const MidiNoteNode = memo(({ id, data, selected }: NodeProps) => {
-    const midiData = useMemo(
-        () => normalizeMidiNoteNodeData(data as MidiNoteNodeData),
-        [data]
-    );
+    const midiData = useMemo(() => normalizeMidiNoteNodeData(data as MidiNoteNodeData), [data]);
     const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);
     const midi = useMidi();
     const midiNote = useMidiNote({
@@ -76,10 +83,7 @@ const MidiNoteNode = memo(({ id, data, selected }: NodeProps) => {
         patch: Partial<MidiNoteNodeData>,
         options?: { syncActiveMappingFromSelection?: boolean; history?: 'auto' | 'skip'; mergeKey?: string }
     ) => {
-        const merged = {
-            ...midiData,
-            ...patch,
-        } as MidiNoteNodeData;
+        const merged = { ...midiData, ...patch } as MidiNoteNodeData;
 
         if (options?.syncActiveMappingFromSelection && !('activeMappingId' in patch)) {
             merged.activeMappingId = findMappingIdForSelection(
@@ -138,12 +142,10 @@ const MidiNoteNode = memo(({ id, data, selected }: NodeProps) => {
             activeMappingId: mappingId,
             inputId: event.inputId,
             channel: event.channel,
-        }, {
-            history: 'skip',
-        });
+        }, { history: 'skip' });
     }, [id, midi.inputs, midi.lastInputEvent, midiData.mappingEnabled, midiData.mappings]);
 
-    const badge = getStatusBadge(midi.status, midiNote.gate);
+    const status = getStatusBadge(midi.status, midiNote.gate);
     const activeSourceLabel = activeMapping
         ? `${activeMapping.inputName} / Ch ${activeMapping.channel}`
         : `Manual / ${describeSelection(midiData, midi.inputs)}`;
@@ -172,191 +174,142 @@ const MidiNoteNode = memo(({ id, data, selected }: NodeProps) => {
     };
 
     return (
-        <div className={`audio-node midi-note-node ${selected ? 'selected' : ''}`}>
-            <div className="node-header" style={{ background: '#4dd4a0', color: '#093d2c' }}>
-                <span className="node-icon">🎹</span>
-                <span className="node-title">{midiData.label}</span>
-            </div>
+        <NodeShell
+            nodeType="midiNote"
+            title={midiData.label?.trim() || 'Midi In'}
+            selected={selected}
+            badge={<NodeValueBadge live={status === 'Receiving'}>{status}</NodeValueBadge>}
+        >
+            <NodeHandleRow direction="source" label="trigger" handleId="trigger" handleKind="trigger" />
+            <NodeHandleRow direction="source" label="frequency" handleId="frequency" handleKind="control" />
+            <NodeHandleRow direction="source" label="note" handleId="note" handleKind="control" />
+            <NodeHandleRow direction="source" label="gate" handleId="gate" handleKind="trigger" />
+            <NodeHandleRow direction="source" label="velocity" handleId="velocity" handleKind="control" />
 
-            <div className="node-content">
-                <div className="node-control">
-                    <label>Status</label>
-                    <span className="value">{badge}</span>
-                </div>
-                <div className="node-control">
-                    <label>Access</label>
-                    {midi.status === 'granted' ? (
-                        <span className="value">Connected</span>
-                    ) : (
-                        <button type="button" onClick={() => void midi.requestAccess()}>
-                            Connect MIDI
-                        </button>
-                    )}
-                </div>
-                <div className="node-control">
-                    <label>Map</label>
-                    <button
-                        type="button"
-                        aria-pressed={midiData.mappingEnabled}
-                        onClick={() => commitPatch({ mappingEnabled: !midiData.mappingEnabled })}
-                    >
-                        {midiData.mappingEnabled ? 'Map On' : 'Map Off'}
+            <NodeWidget title={<NodeWidgetTitle icon="midiNote">Input + mapping</NodeWidgetTitle>}>
+                {midi.status !== 'granted' ? (
+                    <button type="button" className="ui-token-trigger-row" onClick={() => void midi.requestAccess()}>
+                        <span>Connect MIDI</span>
+                        <span className="ui-token-trigger-row-icon" aria-hidden="true">MIDI</span>
                     </button>
+                ) : null}
+
+                <button
+                    type="button"
+                    className={`node-shell__transport-button ${midiData.mappingEnabled ? 'is-live' : ''}`}
+                    aria-pressed={midiData.mappingEnabled}
+                    onClick={() => commitPatch({ mappingEnabled: !midiData.mappingEnabled })}
+                >
+                    <span>{midiData.mappingEnabled ? 'Map On' : 'Map Off'}</span>
+                </button>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <NodeValueBadge>{activeSourceLabel}</NodeValueBadge>
+                    <NodeValueBadge live={midiNote.gate}>{midiNote.note ?? '-'}</NodeValueBadge>
+                    <NodeValueBadge>{midiNote.velocity.toFixed(2)}</NodeValueBadge>
                 </div>
-                <div className="node-control">
-                    <label>Active Source</label>
-                    <span className="value">{activeSourceLabel}</span>
-                </div>
-                <div className="node-control">
-                    <label>Mapped Sources</label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+
+                <div className="node-shell__widget-field">
+                    <span className="node-shell__widget-field-label">Mapped Sources</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {sortedMappings.length === 0 ? (
-                            <span className="value">{midiData.mappingEnabled ? 'Listening for MIDI...' : 'No mapped sources'}</span>
+                            <NodeValueBadge>{midiData.mappingEnabled ? 'Listening for MIDI...' : 'No mapped sources'}</NodeValueBadge>
                         ) : (
                             sortedMappings.map((mapping) => {
                                 const isActive = mapping.mappingId === midiData.activeMappingId;
                                 const isConnected = connectedInputIds.has(mapping.inputId);
                                 return (
-                                    <div
-                                        key={mapping.mappingId}
-                                        style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: '1fr auto',
-                                            gap: 6,
-                                            alignItems: 'stretch',
-                                        }}
-                                    >
+                                    <div key={mapping.mappingId} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
                                         <button
                                             type="button"
+                                            className="ui-token-trigger-row"
                                             aria-pressed={isActive}
                                             onClick={() => handleActivateMapping(mapping.mappingId)}
-                                            style={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'flex-start',
-                                                gap: 4,
-                                                padding: '8px 10px',
-                                                borderRadius: 8,
-                                                border: `1px solid ${isActive ? '#4dd4a0' : '#3b4a57'}`,
-                                                background: isActive ? 'rgba(77, 212, 160, 0.16)' : 'rgba(9, 17, 26, 0.45)',
-                                                color: 'inherit',
-                                                textAlign: 'left',
-                                            }}
                                         >
                                             <span>{mapping.inputName} / Ch {mapping.channel}</span>
-                                            <span className="value">
-                                                {isActive ? 'Active' : 'Mapped'} / {isConnected ? 'Connected' : 'Disconnected'}
-                                            </span>
-                                            <span className="value">
-                                                Note {mapping.lastNote} / Vel {mapping.lastVelocity.toFixed(2)}
+                                            <span className="ui-token-trigger-row-icon" aria-hidden="true">
+                                                {isActive ? 'LIVE' : 'MAP'}
                                             </span>
                                         </button>
                                         <button
                                             type="button"
+                                            className="node-shell__transport-button"
                                             aria-label={`Remove ${mapping.inputName} channel ${mapping.channel}`}
                                             onClick={() => handleRemoveMapping(mapping.mappingId)}
-                                            style={{ padding: '8px 10px' }}
                                         >
-                                            Remove
+                                            <span>DEL</span>
                                         </button>
+                                        <NodeValueBadge>{isActive ? 'Active' : 'Mapped'} / {isConnected ? 'Connected' : 'Disconnected'}</NodeValueBadge>
+                                        <NodeValueBadge>Note {mapping.lastNote} / Vel {mapping.lastVelocity.toFixed(2)}</NodeValueBadge>
                                     </div>
                                 );
                             })
                         )}
                     </div>
                 </div>
-                <div className="node-control">
-                    <label>Input Device</label>
-                    <select
+
+                <div className="node-shell__widget-field">
+                    <span className="node-shell__widget-field-label">Input Device</span>
+                    <NodeSelectField
                         value={midiData.inputId}
-                        onChange={(event) => commitPatch({
-                            inputId: event.target.value as MidiNoteNodeData['inputId'],
-                        }, { syncActiveMappingFromSelection: true })}
+                        onChange={(value) => commitPatch({ inputId: value as MidiNoteNodeData['inputId'] }, { syncActiveMappingFromSelection: true })}
                     >
                         {inputOptions.map((option) => (
                             <option key={option.value} value={option.value} disabled={option.disabled}>
                                 {option.label}
                             </option>
                         ))}
-                    </select>
+                    </NodeSelectField>
                 </div>
-                <div className="node-control">
-                    <label>Channel</label>
-                    <select
+
+                <div className="node-shell__widget-field">
+                    <span className="node-shell__widget-field-label">Channel</span>
+                    <NodeSelectField
                         value={getChannelFilterValue(midiData.channel)}
-                        onChange={(event) => commitPatch({
-                            channel: event.target.value === 'all' ? 'all' : Number(event.target.value),
+                        onChange={(value) => commitPatch({
+                            channel: value === 'all' ? 'all' : Number(value),
                         }, { syncActiveMappingFromSelection: true })}
                     >
                         <option value="all">All</option>
                         {Array.from({ length: 16 }, (_, index) => (
                             <option key={index + 1} value={index + 1}>{index + 1}</option>
                         ))}
-                    </select>
+                    </NodeSelectField>
                 </div>
-                <div className="node-control">
-                    <label>Filter</label>
-                    <select
+
+                <div className="node-shell__widget-field">
+                    <span className="node-shell__widget-field-label">Filter</span>
+                    <NodeSelectField
                         value={midiData.noteMode}
-                        onChange={(event) => commitPatch({ noteMode: event.target.value as MidiNoteNodeData['noteMode'] })}
+                        onChange={(value) => commitPatch({ noteMode: value as MidiNoteNodeData['noteMode'] })}
                     >
                         <option value="all">All Notes</option>
                         <option value="single">Single Note</option>
                         <option value="range">Range</option>
-                    </select>
+                    </NodeSelectField>
                 </div>
-                {midiData.noteMode === 'single' && (
-                    <div className="node-control">
-                        <label>Note</label>
-                        <input
-                            type="number"
-                            min="0"
-                            max="127"
-                            value={midiData.note}
-                            onChange={(event) => commitPatch({ note: Number(event.target.value) })}
-                        />
+
+                {midiData.noteMode === 'single' ? (
+                    <div className="node-shell__widget-field">
+                        <span className="node-shell__widget-field-label">Note</span>
+                        <NodeNumberField min={0} max={127} step={1} value={midiData.note} onChange={(value) => commitPatch({ note: value })} />
                     </div>
-                )}
-                {midiData.noteMode === 'range' && (
+                ) : null}
+
+                {midiData.noteMode === 'range' ? (
                     <>
-                        <div className="node-control">
-                            <label>Note Min</label>
-                            <input
-                                type="number"
-                                min="0"
-                                max="127"
-                                value={midiData.noteMin}
-                                onChange={(event) => commitPatch({ noteMin: Number(event.target.value) })}
-                            />
+                        <div className="node-shell__widget-field">
+                            <span className="node-shell__widget-field-label">Note Min</span>
+                            <NodeNumberField min={0} max={127} step={1} value={midiData.noteMin} onChange={(value) => commitPatch({ noteMin: value })} />
                         </div>
-                        <div className="node-control">
-                            <label>Note Max</label>
-                            <input
-                                type="number"
-                                min="0"
-                                max="127"
-                                value={midiData.noteMax}
-                                onChange={(event) => commitPatch({ noteMax: Number(event.target.value) })}
-                            />
+                        <div className="node-shell__widget-field">
+                            <span className="node-shell__widget-field-label">Note Max</span>
+                            <NodeNumberField min={0} max={127} step={1} value={midiData.noteMax} onChange={(value) => commitPatch({ noteMax: value })} />
                         </div>
                     </>
-                )}
-                <div className="node-control">
-                    <label>Last Note</label>
-                    <span className="value">{midiNote.note ?? '-'}</span>
-                </div>
-                <div className="node-control">
-                    <label>Velocity</label>
-                    <span className="value">{midiNote.velocity.toFixed(2)}</span>
-                </div>
-            </div>
-
-            <Handle type="source" position={Position.Right} id="trigger" style={{ top: '22%', background: '#ff4466' }} />
-            <Handle type="source" position={Position.Right} id="frequency" style={{ top: '38%', background: '#ff9f43' }} />
-            <Handle type="source" position={Position.Right} id="note" style={{ top: '54%', background: '#ffd166' }} />
-            <Handle type="source" position={Position.Right} id="gate" style={{ top: '70%', background: '#44cc44' }} />
-            <Handle type="source" position={Position.Right} id="velocity" style={{ top: '86%', background: '#4488ff' }} />
-        </div>
+                ) : null}
+            </NodeWidget>
+        </NodeShell>
     );
 });
 

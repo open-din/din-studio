@@ -129,7 +129,21 @@ const midiHookState = vi.hoisted(() => ({
 }));
 
 vi.mock('@xyflow/react', () => ({
-    Handle: ({ id }: { id?: string }) => <div data-testid={`handle-${id ?? 'default'}`} />,
+    Handle: ({
+        id,
+        type,
+        position,
+    }: {
+        id?: string;
+        type?: string;
+        position?: string;
+    }) => (
+        <div
+            data-testid={`handle-${id ?? 'default'}`}
+            data-handle-type={type}
+            data-position={position}
+        />
+    ),
     Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
     ReactFlowProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     useNodeId: () => 'node-under-test',
@@ -255,19 +269,19 @@ describe('editor node UIs', () => {
         );
 
         expect(screen.getByTestId('handle-param:cutoff')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('Oscillator')).toBeInTheDocument();
+        expect(screen.getByText('Oscillator')).toBeInTheDocument();
         expect(screen.getByText('Output')).toBeInTheDocument();
         expect(screen.getByText('Step Sequencer')).toBeInTheDocument();
-        expect(screen.getByText('Playing step 3 / 4')).toBeInTheDocument();
+        expect(screen.getByText('step 3 / 4')).toBeInTheDocument();
         expect(screen.getByText('Piano Roll')).toBeInTheDocument();
         expect(screen.getByText('ROUTING')).toBeInTheDocument();
         expect(screen.getAllByText('MIDI').length).toBeGreaterThan(0);
         expect(screen.getByRole('button', { name: 'Start output' })).toBeInTheDocument();
         expect(screen.getByText('pattern')).toBeInTheDocument();
         expect(screen.getByText('notes')).toBeInTheDocument();
-        expect(screen.getAllByText('Steps').length).toBeGreaterThan(1);
-        expect(screen.getByText('Octaves')).toBeInTheDocument();
-        expect(screen.getByText('Base')).toBeInTheDocument();
+        expect(screen.getAllByLabelText('Steps').length).toBeGreaterThan(1);
+        expect(screen.getByLabelText('Octaves')).toBeInTheDocument();
+        expect(screen.getByLabelText('Base note')).toBeInTheDocument();
         expect(screen.getByTestId('handle-delayTime')).toBeInTheDocument();
         expect(screen.getByTestId('handle-feedback')).toBeInTheDocument();
         expect(screen.getByTestId('handle-decay')).toBeInTheDocument();
@@ -277,6 +291,43 @@ describe('editor node UIs', () => {
         expect(screen.getByText('Math')).toBeInTheDocument();
         expect(screen.getByText('Switch')).toBeInTheDocument();
         expect(screen.getAllByTestId(/handle-/).length).toBeGreaterThan(5);
+    });
+
+    it('keeps handles on left and right borders only, with sources on the right and targets on the left', () => {
+        cleanup();
+
+        render(
+            <div>
+                <OscNode
+                    {...({
+                        dragging: false,
+                        selected: false,
+                        zIndex: 0,
+                        selectable: true,
+                        draggable: true,
+                        isConnectable: true,
+                        positionAbsoluteX: 0,
+                        positionAbsoluteY: 0,
+                        xPos: 0,
+                        yPos: 0,
+                    } as any)}
+                    id="osc-layout"
+                    data={{ type: 'osc', frequency: 440, detune: 0, waveform: 'sine', label: 'Oscillator' }}
+                />
+            </div>
+        );
+
+        const sourceHandle = screen.getByTestId('handle-out');
+        const targetHandles = [screen.getByTestId('handle-frequency'), screen.getByTestId('handle-detune')];
+
+        expect(sourceHandle).toHaveAttribute('data-handle-type', 'source');
+        expect(sourceHandle).toHaveAttribute('data-position', 'right');
+        targetHandles.forEach((handle) => {
+            expect(handle).toHaveAttribute('data-handle-type', 'target');
+            expect(handle).toHaveAttribute('data-position', 'left');
+        });
+        expect(document.querySelector('[data-position="top"]')).toBeNull();
+        expect(document.querySelector('[data-position="bottom"]')).toBeNull();
     });
 
     it('keeps only the frequency output on NoteNode', () => {
@@ -436,12 +487,12 @@ describe('editor node UIs', () => {
             />
         );
 
-        expect(screen.queryByTitle('Gain level')).not.toBeInTheDocument();
+        expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
         expect(screen.getByText('0.72')).toBeInTheDocument();
-        expect(screen.getByText('Use the incoming modulation value shown on the gain row to tune the connected source.')).toBeInTheDocument();
+        expect(screen.queryByText(/incoming modulation value/i)).not.toBeInTheDocument();
     });
 
-    it('renders extended MVP feedback and routing node controls with stable handles', () => {
+    it('renders extended MVP feedback and routing node controls with stable handles', async () => {
         const sharedProps = {
             dragging: false,
             selected: false,
@@ -481,6 +532,10 @@ describe('editor node UIs', () => {
                 <EventTriggerNode {...(sharedProps as any)} id="event-trigger-1" data={{ type: 'eventTrigger', token: 0, mode: 'change', cooldownMs: 40, velocity: 1, duration: 0.1, note: 60, trackId: 'event', label: 'Event Trigger' }} />
             </div>
         );
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Select cached impulse response')).toBeInTheDocument();
+        });
 
         expect(screen.getByTestId('handle-threshold')).toBeInTheDocument();
         expect(screen.getByTestId('handle-knee')).toBeInTheDocument();
@@ -582,7 +637,7 @@ describe('editor node UIs', () => {
                 impulseSrc: 'blob:asset-plate.wav',
             })
         );
-        expect(screen.getByText('Impulse File')).toBeInTheDocument();
+        expect(screen.getByText('plate.wav')).toBeInTheDocument();
     });
 
     it('selects a cached sample from the sampler dropdown search', async () => {
@@ -975,8 +1030,8 @@ describe('editor node UIs', () => {
             </div>
         );
 
-        expect(screen.getByText('Missing: missing-output')).toBeInTheDocument();
-        expect(screen.getByText('Missing: missing-cc-output')).toBeInTheDocument();
+        expect(screen.getAllByText('Missing: missing-output').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Missing: missing-cc-output').length).toBeGreaterThan(0);
         expect(screen.getByText('523 Hz')).toBeInTheDocument();
         expect(screen.getByText('0.72')).toBeInTheDocument();
         expect(screen.getByTestId('handle-trigger')).toBeInTheDocument();
@@ -985,5 +1040,47 @@ describe('editor node UIs', () => {
         expect(screen.getAllByTestId('handle-frequency').length).toBeGreaterThan(0);
         expect(screen.getAllByTestId('handle-velocity').length).toBeGreaterThan(0);
         expect(screen.getAllByTestId('handle-value').length).toBeGreaterThan(0);
+    });
+
+    it('sizes sequencer instruments for mouse editing and marks the active column', () => {
+        cleanup();
+
+        const sharedProps = {
+            dragging: false,
+            selected: false,
+            zIndex: 0,
+            selectable: true,
+            draggable: true,
+            isConnectable: true,
+            positionAbsoluteX: 0,
+            positionAbsoluteY: 0,
+            xPos: 0,
+            yPos: 0,
+        } as const;
+
+        const { container } = render(
+            <div>
+                <StepSequencerNode
+                    {...(sharedProps as any)}
+                    id="seq-size"
+                    data={{ type: 'stepSequencer', steps: 32, pattern: Array(32).fill(0.5), activeSteps: Array(32).fill(true), label: 'Step Sequencer' }}
+                />
+                <PianoRollNode
+                    {...(sharedProps as any)}
+                    id="piano-size"
+                    data={{ type: 'pianoRoll', steps: 32, octaves: 4, baseNote: 48, notes: [{ pitch: 60, step: 2, duration: 2, velocity: 0.8 }], label: 'Piano Roll' }}
+                />
+            </div>
+        );
+
+        const sequencerRoot = container.querySelector('.sequencer-node') as HTMLElement | null;
+        const pianoRoot = container.querySelector('.piano-roll-node') as HTMLElement | null;
+
+        expect(sequencerRoot?.style.width).toBe('1000px');
+        expect(pianoRoot?.style.width).toBe('928px');
+        expect(container.querySelectorAll('.step-column.current-step-column').length).toBeGreaterThan(0);
+        expect(container.querySelectorAll('.piano-cell.current').length).toBeGreaterThan(0);
+        expect(container.querySelectorAll('.sequencer-pad').length).toBe(32);
+        expect(container.querySelectorAll('.piano-grid-row').length).toBe(48);
     });
 });

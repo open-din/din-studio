@@ -1,13 +1,26 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
-import { useAudioGraphStore, type SamplerNodeData } from '../store';
-import { audioEngine } from '../AudioEngine';
+import type { Node, NodeProps } from '@xyflow/react';
 import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../audioLibrary';
+import { audioEngine } from '../AudioEngine';
+import {
+    NodeCheckboxField,
+    NodeHandleRow,
+    NodeNumberField,
+    NodeShell,
+    NodeTextField,
+    NodeValueBadge,
+    NodeWidget,
+    NodeWidgetTitle,
+} from '../components/NodeShell';
 import { formatConnectedValue, useTargetHandleConnection } from '../paramConnections';
-import '../editor.css';
+import { useAudioGraphStore } from '../store';
+import type { SamplerNodeData } from '../types';
+
+const formatPlaybackRate = (value: number | null) => (value === null ? '--' : `${value.toFixed(2)}x`);
+const formatDetune = (value: number | null) => (value === null ? '--' : `${Math.round(value)} c`);
 
 export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ id, data, selected }) => {
-    const updateNodeData = useAudioGraphStore((s) => s.updateNodeData);
+    const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);
     const playbackRateConnection = useTargetHandleConnection(id, 'playbackRate');
     const detuneConnection = useTargetHandleConnection(id, 'detune');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -16,7 +29,6 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
     const [libraryQuery, setLibraryQuery] = useState('');
     const [libraryError, setLibraryError] = useState<string | null>(null);
     const externalAssetPath = typeof data.assetPath === 'string' ? data.assetPath.trim() : '';
-
     const selectedSampleId = typeof data.sampleId === 'string' ? data.sampleId : '';
 
     const refreshAssets = useCallback(() => {
@@ -29,6 +41,16 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
         refreshAssets();
         return subscribeAssets(refreshAssets);
     }, [refreshAssets]);
+
+    useEffect(() => {
+        setIsPlaying(false);
+    }, [data.src]);
+
+    useEffect(() => {
+        return audioEngine.onSamplerEnd(id, () => {
+            setIsPlaying(false);
+        });
+    }, [id]);
 
     const filteredAssets = useMemo(() => {
         const query = libraryQuery.trim().toLowerCase();
@@ -55,7 +77,7 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
 
         const objectUrl = await getAssetObjectUrl(assetId);
         if (!objectUrl) {
-            setLibraryError('Failed to read cached asset.');
+            setLibraryError('Cache unavailable');
             updateNodeData(id, { loaded: false });
             return;
         }
@@ -70,16 +92,16 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
         });
         setLibraryError(null);
         audioEngine.loadSamplerBuffer(id, objectUrl);
-    }, [data.fileName, id, libraryAssets, updateNodeData]);
+    }, [data.fileName, externalAssetPath, id, libraryAssets, updateNodeData]);
 
-    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
         if (!file) return;
 
         addAssetFromFile(file, { kind: 'sample' })
             .then((asset) => applyAssetSelection(asset.id, asset.name, asset))
             .catch(() => {
-                setLibraryError('Failed to cache file.');
+                setLibraryError('Upload failed');
                 updateNodeData(id, { loaded: false });
             })
             .finally(() => {
@@ -103,55 +125,40 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
         if (isPlaying) {
             audioEngine.stopSampler(id);
             setIsPlaying(false);
-        } else {
-            audioEngine.playSampler(id, data);
-            setIsPlaying(true);
+            return;
         }
-    }, [id, data, isPlaying]);
 
-    const handleLoop = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        updateNodeData(id, { loop: e.target.checked });
+        audioEngine.playSampler(id, data);
+        setIsPlaying(true);
+    }, [data, id, isPlaying]);
+
+    const handleLoop = useCallback((checked: boolean) => {
+        updateNodeData(id, { loop: checked });
     }, [id, updateNodeData]);
 
-    const handlePlaybackRate = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const rate = parseFloat(e.target.value);
-        updateNodeData(id, { playbackRate: rate });
-        audioEngine.updateSamplerParam(id, 'playbackRate', rate);
+    const handlePlaybackRate = useCallback((value: number) => {
+        updateNodeData(id, { playbackRate: value });
+        audioEngine.updateSamplerParam(id, 'playbackRate', value);
     }, [id, updateNodeData]);
 
-    const handleDetune = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const detune = parseFloat(e.target.value);
-        updateNodeData(id, { detune });
-        audioEngine.updateSamplerParam(id, 'detune', detune);
+    const handleDetune = useCallback((value: number) => {
+        updateNodeData(id, { detune: value });
+        audioEngine.updateSamplerParam(id, 'detune', value);
     }, [id, updateNodeData]);
 
-    useEffect(() => {
-        setIsPlaying(false);
-    }, [data.src]);
-
-    useEffect(() => {
-        const unsubscribe = audioEngine.onSamplerEnd(id, () => {
-            setIsPlaying(false);
-        });
-        return unsubscribe;
-    }, [id]);
-
-    const fileLabel = data.fileName || (data.src ? 'Loaded' : 'No file selected');
+    const hasSample = Boolean(data.src);
+    const fileLabel = data.fileName || (hasSample ? 'Loaded sample' : 'No sample');
 
     return (
-        <div className={`audio-node sampler-node ${selected ? 'selected' : ''}`}>
-            <div className="node-header" style={{ background: '#44ccff', justifyContent: 'space-between', position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="node-icon">🎹</span>
-                    <span className="node-title">{data.label}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span className="handle-label-static" style={{ fontSize: '9px', color: '#fff', marginRight: '8px', textTransform: 'uppercase' }}>Out</span>
-                    <Handle type="source" position={Position.Right} id="out" className="handle handle-out handle-audio" />
-                </div>
-            </div>
+        <NodeShell
+            nodeType="sampler"
+            title={data.label?.trim() || 'Sampler'}
+            selected={selected}
+            badge={<NodeValueBadge>{hasSample ? 'sample' : 'empty'}</NodeValueBadge>}
+        >
+            <NodeHandleRow direction="source" label="out" handleId="out" handleKind="audio" />
 
-            <div className="node-content">
+            <NodeWidget title={<NodeWidgetTitle icon="pianoRoll">Sample + playback</NodeWidgetTitle>}>
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -161,35 +168,21 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
                     title="Select audio file"
                 />
 
-                <div className="node-control">
-                    <label>Audio File</label>
-                    <button
-                        onClick={handleBrowseClick}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            borderRadius: '4px',
-                            border: '1px dashed #555',
-                            background: '#2a2a3e',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '11px',
-                        }}
-                    >
-                        📁 Upload...
-                    </button>
-                </div>
+                <button type="button" className="ui-token-trigger-row" onClick={handleBrowseClick}>
+                    <span>Browse sample</span>
+                    <span className="ui-token-trigger-row-icon" aria-hidden="true">FILE</span>
+                </button>
 
-                <div className="node-control">
-                    <label>Library</label>
-                    <input
-                        type="text"
+                <div className="node-shell__widget-field">
+                    <span className="node-shell__widget-field-label">Library</span>
+                    <NodeTextField
                         value={libraryQuery}
-                        onChange={(event) => setLibraryQuery(event.target.value)}
+                        onChange={setLibraryQuery}
                         placeholder="Search assets"
                         title="Search audio assets"
                     />
                     <select
+                        className="node-shell__field"
                         value={selectedSampleId}
                         onChange={handleLibrarySelect}
                         title="Select cached sample"
@@ -201,102 +194,70 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
                     </select>
                 </div>
 
-                <div className="node-control" style={{ fontSize: '10px', color: data.src ? '#44cc44' : '#888' }}>
-                    {data.src ? `✅ ${fileLabel}` : '⚪ No file selected'}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <NodeValueBadge live={hasSample}>{fileLabel}</NodeValueBadge>
+                    {externalAssetPath && !hasSample ? <NodeValueBadge>{externalAssetPath}</NodeValueBadge> : null}
+                    {libraryError ? <NodeValueBadge>{libraryError}</NodeValueBadge> : null}
                 </div>
 
-                {!data.src && externalAssetPath && (
-                    <div className="node-control" style={{ fontSize: '10px', color: '#ffcc66' }}>
-                        External patch asset: {externalAssetPath}
-                    </div>
-                )}
-
-                {libraryError && (
-                    <div className="node-control" style={{ fontSize: '10px', color: '#ff6b6b' }}>
-                        {libraryError}
-                    </div>
-                )}
-
-                <div className="node-control">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <button
+                        type="button"
+                        className={`node-shell__transport-button ${isPlaying ? 'is-live' : ''}`}
                         onClick={handlePlayClick}
                         disabled={!data.src}
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            borderRadius: '4px',
-                            border: 'none',
-                            background: isPlaying ? '#ff4466' : (data.src ? '#22cc66' : '#444'),
-                            color: '#fff',
-                            cursor: data.src ? 'pointer' : 'not-allowed',
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                        }}
+                        aria-label={isPlaying ? 'Stop sample' : 'Play sample'}
                     >
-                        {isPlaying ? '⏹ Stop' : '▶ Play'}
+                        <span>{isPlaying ? 'STOP' : 'PLAY'}</span>
                     </button>
+                    <NodeCheckboxField checked={data.loop} onChange={handleLoop} label="Loop" />
                 </div>
+            </NodeWidget>
 
-                <div className="node-control">
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input
-                            type="checkbox"
-                            checked={data.loop}
-                            onChange={handleLoop}
-                        />
-                        Loop
-                    </label>
-                </div>
-
-                <div className="node-control">
-                    <label>Speed</label>
-                    {playbackRateConnection.connected ? (
-                        <div className="node-connected-value">
-                            {formatConnectedValue(playbackRateConnection.value, (value) => `${value.toFixed(2)}x`)}
-                        </div>
-                    ) : (
-                        <input
-                            type="range"
-                            min="0.25"
-                            max="4"
-                            step="0.01"
-                            value={data.playbackRate}
-                            onChange={handlePlaybackRate}
-                            title="Playback rate"
-                        />
-                    )}
-                    <Handle type="target" position={Position.Left} id="playbackRate" className="handle handle-in handle-param" />
-                </div>
-
-                <div className="node-control">
-                    <label>Detune</label>
-                    {detuneConnection.connected ? (
-                        <div className="node-connected-value">
-                            {formatConnectedValue(detuneConnection.value, (value) => `${Math.round(value)}¢`)}
-                        </div>
-                    ) : (
-                        <input
-                            type="range"
-                            min="-1200"
-                            max="1200"
-                            step="10"
-                            value={data.detune}
-                            onChange={handleDetune}
-                            title="Detune in cents"
-                        />
-                    )}
-                    <Handle type="target" position={Position.Left} id="detune" className="handle handle-in handle-param" />
-                </div>
-            </div>
-
-            <Handle
-                type="target"
-                position={Position.Left}
-                id="trigger"
-                className="handle handle-in handle-trigger"
-                style={{ top: '50%' }}
+            <NodeHandleRow
+                direction="target"
+                label="trigger"
+                handleId="trigger"
+                handleKind="trigger"
+                control={<NodeValueBadge live={isPlaying}>{isPlaying ? 'playing' : 'armed'}</NodeValueBadge>}
             />
-        </div>
+            <NodeHandleRow
+                direction="target"
+                label="speed"
+                handleId="playbackRate"
+                handleKind="control"
+                control={playbackRateConnection.connected ? (
+                    <NodeValueBadge live>{formatConnectedValue(playbackRateConnection.value, (value) => formatPlaybackRate(value))}</NodeValueBadge>
+                ) : (
+                    <NodeNumberField
+                        className="node-shell__row-field"
+                        min={0.25}
+                        max={4}
+                        step={0.01}
+                        value={data.playbackRate}
+                        onChange={handlePlaybackRate}
+                    />
+                )}
+            />
+            <NodeHandleRow
+                direction="target"
+                label="detune"
+                handleId="detune"
+                handleKind="control"
+                control={detuneConnection.connected ? (
+                    <NodeValueBadge live>{formatConnectedValue(detuneConnection.value, (value) => formatDetune(value))}</NodeValueBadge>
+                ) : (
+                    <NodeNumberField
+                        className="node-shell__row-field"
+                        min={-1200}
+                        max={1200}
+                        step={10}
+                        value={data.detune}
+                        onChange={handleDetune}
+                    />
+                )}
+            />
+        </NodeShell>
     );
 });
 

@@ -1,4 +1,4 @@
-import type { ChangeEvent, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import type { CSSProperties, ChangeEvent, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { Position } from '@xyflow/react';
 import type { EditorNodeType, PaletteCategory } from '../nodeCatalog';
 import { getNodeCatalogEntry } from '../nodeCatalog';
@@ -6,7 +6,7 @@ import { CustomHandle } from './CustomHandle';
 import { EditorIcon } from './EditorIcons';
 
 type NodeCategoryLabel = PaletteCategory | 'MIDI';
-type NodeHandleKind = 'audio' | 'control' | 'trigger';
+export type NodeHandleKind = 'audio' | 'control' | 'trigger';
 
 const CATEGORY_LABELS: Record<NodeCategoryLabel, string> = {
     Sources: 'SOURCE',
@@ -47,12 +47,13 @@ interface NodeShellProps {
     selected?: boolean;
     badge?: ReactNode;
     className?: string;
+    style?: CSSProperties;
     children: ReactNode;
 }
 
-export function NodeShell({ nodeType, title, selected = false, badge, className = '', children }: NodeShellProps) {
+export function NodeShell({ nodeType, title, selected = false, badge, className = '', style, children }: NodeShellProps) {
     return (
-        <div className={`audio-node node-shell ${nodeType}-node ${selected ? 'selected' : ''} ${className}`.trim()}>
+        <div className={`audio-node node-shell ${nodeType}-node ${selected ? 'selected' : ''} ${className}`.trim()} style={style}>
             <div className="node-header node-shell__header">
                 <div className="node-shell__header-group">
                     <span className="node-shell__header-dots" aria-hidden="true">
@@ -79,6 +80,7 @@ interface NodeHandleRowProps {
     handleId?: string;
     handleKind?: NodeHandleKind;
     trailing?: ReactNode;
+    control?: ReactNode;
     className?: string;
 }
 
@@ -88,30 +90,35 @@ export function NodeHandleRow({
     handleId,
     handleKind = 'audio',
     trailing,
+    control,
     className = '',
 }: NodeHandleRowProps) {
     const isSource = direction === 'source';
+    const hasControl = !isSource && Boolean(control);
 
     return (
-        <div className={`node-shell__row node-shell__row--${direction} ${className}`.trim()}>
-            {!isSource && handleId ? (
-                <CustomHandle
-                    type="target"
-                    position={Position.Left}
-                    id={handleId}
-                    className={getHandleClassName(handleKind, 'target')}
-                />
-            ) : null}
-            <span className={`node-shell__row-label ${isSource ? 'node-shell__row-label--source' : ''}`}>{label}</span>
-            {trailing ? <div className="node-shell__row-trailing">{trailing}</div> : null}
-            {isSource && handleId ? (
-                <CustomHandle
-                    type="source"
-                    position={Position.Right}
-                    id={handleId}
-                    className={getHandleClassName(handleKind, 'source')}
-                />
-            ) : null}
+        <div className={`node-shell__row node-shell__row--${direction} ${hasControl ? 'node-shell__row--with-control' : ''} ${className}`.trim()}>
+            <div className="node-shell__row-main">
+                {!isSource && handleId ? (
+                    <CustomHandle
+                        type="target"
+                        position={Position.Left}
+                        id={handleId}
+                        className={getHandleClassName(handleKind, 'target')}
+                    />
+                ) : null}
+                <span className={`node-shell__row-label ${isSource ? 'node-shell__row-label--source' : ''}`}>{label}</span>
+                {trailing ? <div className="node-shell__row-trailing">{trailing}</div> : null}
+                {isSource && handleId ? (
+                    <CustomHandle
+                        type="source"
+                        position={Position.Right}
+                        id={handleId}
+                        className={getHandleClassName(handleKind, 'source')}
+                    />
+                ) : null}
+            </div>
+            {hasControl ? <div className="node-shell__row-control">{control}</div> : null}
         </div>
     );
 }
@@ -201,6 +208,68 @@ export function NodeSelectField({ onChange, children, className = '', ...props }
             </select>
             <EditorIcon name="chevronDown" className="node-shell__select-icon" />
         </span>
+    );
+}
+
+interface NodeTextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+    value: string;
+    onChange: (value: string) => void;
+}
+
+export function NodeTextField({ value, onChange, className = '', ...props }: NodeTextFieldProps) {
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+        onChange(event.target.value);
+    };
+
+    return (
+        <input
+            {...props}
+            type="text"
+            value={value}
+            onChange={handleChange}
+            className={`node-shell__field ${className}`.trim()}
+        />
+    );
+}
+
+interface NodeTextAreaFieldProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value'> {
+    value: string;
+    onChange: (value: string) => void;
+}
+
+export function NodeTextAreaField({ value, onChange, className = '', ...props }: NodeTextAreaFieldProps) {
+    const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+        onChange(event.target.value);
+    };
+
+    return (
+        <textarea
+            {...props}
+            value={value}
+            onChange={handleChange}
+            className={`node-shell__field node-shell__textarea ${className}`.trim()}
+        />
+    );
+}
+
+interface NodeCheckboxFieldProps {
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+    label?: ReactNode;
+    className?: string;
+}
+
+export function NodeCheckboxField({ checked, onChange, label, className = '' }: NodeCheckboxFieldProps) {
+    return (
+        <label className={`node-shell__checkbox ${className}`.trim()}>
+            <input
+                type="checkbox"
+                checked={checked}
+                onChange={(event) => onChange(event.target.checked)}
+                className="node-shell__checkbox-input"
+            />
+            {label ? <span>{label}</span> : null}
+        </label>
     );
 }
 

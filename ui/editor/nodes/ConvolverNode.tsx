@@ -1,18 +1,27 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { useAudioGraphStore, type ConvolverNodeData } from '../store';
-import { audioEngine } from '../AudioEngine';
+import type { NodeProps } from '@xyflow/react';
 import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../audioLibrary';
+import { audioEngine } from '../AudioEngine';
+import {
+    NodeCheckboxField,
+    NodeHandleRow,
+    NodeShell,
+    NodeTextField,
+    NodeValueBadge,
+    NodeWidget,
+    NodeWidgetTitle,
+} from '../components/NodeShell';
+import { useAudioGraphStore } from '../store';
+import type { ConvolverNodeData } from '../types';
 
 const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
     const convolverData = data as ConvolverNodeData;
-    const updateNodeData = useAudioGraphStore((s) => s.updateNodeData);
+    const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [libraryAssets, setLibraryAssets] = useState<AudioLibraryAsset[]>([]);
     const [libraryQuery, setLibraryQuery] = useState('');
     const externalAssetPath = typeof convolverData.assetPath === 'string' ? convolverData.assetPath.trim() : '';
-
     const selectedImpulseId = typeof convolverData.impulseId === 'string' ? convolverData.impulseId : '';
 
     const refreshAssets = useCallback(() => {
@@ -55,7 +64,7 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
 
         const objectUrl = await getAssetObjectUrl(assetId);
         if (!objectUrl) {
-            setUploadError('Failed to read cached asset.');
+            setUploadError('Cache unavailable');
             return;
         }
 
@@ -67,11 +76,7 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
             impulseSrc: objectUrl,
             impulseFileName: asset?.fileName || asset?.name || fallbackName || convolverData.impulseFileName || 'Impulse',
         });
-    }, [applyImpulseUpdate, convolverData.impulseFileName, libraryAssets]);
-
-    const handleNormalizeChange = useCallback((normalize: boolean) => {
-        applyImpulseUpdate({ normalize });
-    }, [applyImpulseUpdate]);
+    }, [applyImpulseUpdate, convolverData.impulseFileName, externalAssetPath, libraryAssets]);
 
     const handleBrowseClick = useCallback(() => {
         fileInputRef.current?.click();
@@ -85,7 +90,7 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
         addAssetFromFile(file, { kind: 'impulse' })
             .then((asset) => applyImpulseAsset(asset.id, asset.name, asset))
             .catch(() => {
-                setUploadError('Failed to cache audio file.');
+                setUploadError('Upload failed');
             })
             .finally(() => {
                 if (fileInputRef.current) {
@@ -98,33 +103,19 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
         void applyImpulseAsset(event.target.value);
     }, [applyImpulseAsset]);
 
-    const handleClearFile = useCallback(() => {
-        setUploadError(null);
-        applyImpulseUpdate({
-            assetPath: '',
-            impulseId: '',
-            impulseSrc: '',
-            impulseFileName: '',
-        });
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    }, [applyImpulseUpdate]);
-
     const hasImpulse = Boolean(convolverData.impulseSrc);
-    const fileLabel = convolverData.impulseFileName || (hasImpulse ? 'Impulse loaded' : 'No file selected');
+    const fileLabel = convolverData.impulseFileName || (hasImpulse ? 'Impulse loaded' : 'No impulse');
 
     return (
-        <div className={`audio-node convolver-node ${selected ? 'selected' : ''}`}>
-            <div className="node-header" style={{ justifyContent: 'space-between', position: 'relative', background: '#8844ff' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Handle type="target" position={Position.Left} id="in" className="handle handle-in handle-audio" style={{ left: '0px' }} />
-                    <span className="node-icon">🧱</span>
-                    <span className="node-title">Convolver</span>
-                </div>
-                <Handle type="source" position={Position.Right} id="out" className="handle handle-out handle-audio" style={{ right: '0px' }} />
-            </div>
-            <div className="node-content">
+        <NodeShell
+            nodeType="convolver"
+            title={convolverData.label?.trim() || 'Convolver'}
+            selected={selected}
+            badge={<NodeValueBadge>{hasImpulse ? 'impulse' : 'empty'}</NodeValueBadge>}
+        >
+            <NodeHandleRow direction="source" label="out" handleId="out" handleKind="audio" />
+
+            <NodeWidget title={<NodeWidgetTitle icon="convolver">Impulse + normalize</NodeWidgetTitle>}>
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -133,34 +124,22 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
                     style={{ display: 'none' }}
                     title="Select impulse response audio file"
                 />
-                <div className="node-control">
-                    <label>Impulse File</label>
-                    <button
-                        onClick={handleBrowseClick}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            borderRadius: '4px',
-                            border: '1px dashed #555',
-                            background: '#2a2a3e',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '11px',
-                        }}
-                    >
-                        📁 Upload...
-                    </button>
-                </div>
-                <div className="node-control">
-                    <label>Library</label>
-                    <input
-                        type="text"
+
+                <button type="button" className="ui-token-trigger-row" onClick={handleBrowseClick}>
+                    <span>Browse impulse</span>
+                    <span className="ui-token-trigger-row-icon" aria-hidden="true">FILE</span>
+                </button>
+
+                <div className="node-shell__widget-field">
+                    <span className="node-shell__widget-field-label">Library</span>
+                    <NodeTextField
                         value={libraryQuery}
-                        onChange={(event) => setLibraryQuery(event.target.value)}
+                        onChange={setLibraryQuery}
                         placeholder="Search assets"
                         title="Search impulse assets"
                     />
                     <select
+                        className="node-shell__field"
                         value={selectedImpulseId}
                         onChange={handleLibrarySelect}
                         title="Select cached impulse response"
@@ -171,46 +150,22 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
                         ))}
                     </select>
                 </div>
-                <div className="node-control" style={{ fontSize: '10px', color: hasImpulse ? '#44cc44' : '#888' }}>
-                    {hasImpulse ? `✅ ${fileLabel}` : '⚪ No file selected'}
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <NodeValueBadge live={hasImpulse}>{fileLabel}</NodeValueBadge>
+                    {externalAssetPath && !hasImpulse ? <NodeValueBadge>{externalAssetPath}</NodeValueBadge> : null}
+                    {uploadError ? <NodeValueBadge>{uploadError}</NodeValueBadge> : null}
                 </div>
-                {!hasImpulse && externalAssetPath && (
-                    <div className="node-control" style={{ fontSize: '10px', color: '#ffcc66' }}>
-                        External patch asset: {externalAssetPath}
-                    </div>
-                )}
-                {uploadError && (
-                    <div className="node-control" style={{ fontSize: '10px', color: '#ff6b6b' }}>
-                        {uploadError}
-                    </div>
-                )}
-                {hasImpulse && (
-                    <div className="node-control">
-                        <button
-                            onClick={handleClearFile}
-                            style={{
-                                width: '100%',
-                                padding: '6px',
-                                borderRadius: '4px',
-                                border: '1px solid #555',
-                                background: '#2a2a3e',
-                                color: '#ddd',
-                                cursor: 'pointer',
-                                fontSize: '10px',
-                            }}
-                        >
-                            Clear file
-                        </button>
-                    </div>
-                )}
-                <div className="node-control">
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input type="checkbox" checked={convolverData.normalize} onChange={(e) => handleNormalizeChange(e.target.checked)} />
-                        Normalize
-                    </label>
-                </div>
-            </div>
-        </div>
+
+                <NodeCheckboxField
+                    checked={convolverData.normalize}
+                    onChange={(checked) => applyImpulseUpdate({ normalize: checked })}
+                    label="Normalize"
+                />
+            </NodeWidget>
+
+            <NodeHandleRow direction="target" label="in" handleId="in" handleKind="audio" />
+        </NodeShell>
     );
 });
 

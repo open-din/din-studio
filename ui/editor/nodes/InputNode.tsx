@@ -1,43 +1,29 @@
 import { memo } from 'react';
-import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
-import { type InputNodeData } from '../store';
+import type { Node, NodeProps } from '@xyflow/react';
+import { NodeHandleRow, NodeShell, NodeValueBadge } from '../components/NodeShell';
 import { getInputParamHandleId } from '../nodeHelpers';
+import type { InputNodeData } from '../types';
 
 const InputNode = memo(({ data, selected }: NodeProps<Node<InputNodeData>>) => {
     const inputData = data;
 
     return (
-        <div className={`audio-node input-node ${selected ? 'selected' : ''}`}>
-            <div className="node-header">
-                <div className="header-title">
-                    <span className="node-icon">⏱️</span>
-                    <span className="node-title">{inputData.label || 'Params'}</span>
-                </div>
-            </div>
-
-            <div className="node-content">
-                {/* Parameters */}
-                {(inputData.params || []).map((param, index) => (
-                    <div key={param.id || index} className="node-control input-param-row" style={{ justifyContent: 'center' }}>
-                        <div className="input-param-row" style={{ width: '100%' }}>
-                            <label className="input-param-label">{param.label || param.name}</label>
-                            <Handle
-                                type="source"
-                                position={Position.Right}
-                                id={getInputParamHandleId(param)}
-                                className="handle handle-out handle-param"
-                            />
-                        </div>
-                    </div>
-                ))}
-
-                {!inputData.params?.length && (
-                    <div className="node-control text-no-outputs">
-                        No outputs
-                    </div>
-                )}
-            </div>
-        </div>
+        <NodeShell
+            nodeType="input"
+            title={inputData.label?.trim() || 'Params'}
+            selected={selected}
+            badge={inputData.params.length > 0 ? <NodeValueBadge>{`${inputData.params.length} outs`}</NodeValueBadge> : undefined}
+        >
+            {inputData.params.map((param, index) => (
+                <NodeHandleRow
+                    key={`${param.id}-${index}`}
+                    direction="source"
+                    label={param.label || param.name}
+                    handleId={getInputParamHandleId(param)}
+                    handleKind="control"
+                />
+            ))}
+        </NodeShell>
     );
 });
 

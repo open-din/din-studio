@@ -1,7 +1,8 @@
 /* Node-based Editor Styles */
 
 :root {
-    --pin-size: 8px;
+    --pin-size: 12px;
+    --pin-hit-size: 24px;
     --node-header-pad-x: 12px;
     --node-header-pad-y: 8px;
     --node-content-pad-x: 12px;
@@ -25,7 +26,7 @@
     font-size: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
     min-width: 150px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .react-flow__node.selected {
@@ -64,13 +65,14 @@
     border-radius: 16px;
     border-color: color-mix(in oklab, var(--node-border) 92%, white 8%);
     background: color-mix(in oklab, var(--panel-bg) 86%, var(--node-bg));
-    overflow: hidden;
+    overflow: visible;
 }
 
 .node-shell__body {
     display: flex;
     flex-direction: column;
-    padding: 6px 0 10px;
+    gap: 8px;
+    padding: 8px 0 12px;
 }
 
 :is(
@@ -320,25 +322,43 @@
 .node-shell__row {
     position: relative;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 4px;
     min-height: var(--node-shell-row-height);
-    padding: 0 18px;
+    padding: 0 16px;
     font-family: "JetBrains Mono", ui-monospace, monospace;
     font-size: 11px;
     line-height: 16px;
     color: color-mix(in oklab, var(--text) 84%, white 16%);
 }
 
-.node-shell__row--source {
+.node-shell__row-main {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: var(--node-shell-row-height);
+    gap: 8px;
+}
+
+.node-shell__row--source .node-shell__row-main {
     justify-content: flex-end;
+    padding-right: 4px;
+}
+
+.node-shell__row--target .node-shell__row-main {
+    justify-content: flex-start;
+    padding-left: 4px;
 }
 
 .node-shell__row-label {
+    display: inline-flex;
+    align-items: center;
     color: color-mix(in oklab, var(--text) 88%, white 12%);
 }
 
 .node-shell__row-label--source {
-    margin-right: 20px;
+    margin-right: 18px;
 }
 
 .node-shell__row-trailing {
@@ -346,9 +366,15 @@
     min-width: 0;
 }
 
+.node-shell__row-control {
+    width: 100%;
+    padding-left: 26px;
+}
+
 .node-shell__row-field,
 .node-shell__row-field-wrap {
-    width: 112px;
+    width: 136px;
+    max-width: 100%;
 }
 
 .node-shell__widget {
@@ -390,6 +416,21 @@
     gap: 8px;
 }
 
+.node-shell__widget-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.node-shell__widget-field-label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    line-height: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+}
+
 .node-shell__widget-footer {
     margin-top: 8px;
     font-family: "JetBrains Mono", ui-monospace, monospace;
@@ -400,7 +441,7 @@
 
 .node-shell__field {
     width: 100%;
-    height: 28px;
+    min-height: 32px;
     border-radius: 8px;
     border: 1px solid color-mix(in oklab, var(--control-border) 88%, white 12%);
     background: color-mix(in oklab, var(--panel-bg) 84%, var(--panel-muted));
@@ -416,6 +457,28 @@
 .node-shell__field:focus {
     border-color: color-mix(in oklab, var(--node-family-accent) 72%, white 28%);
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--node-family-accent) 18%, transparent);
+}
+
+.node-shell__textarea {
+    min-height: 72px;
+    padding-block: 8px;
+    resize: vertical;
+}
+
+.node-shell__checkbox {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+}
+
+.node-shell__checkbox-input {
+    width: 14px;
+    height: 14px;
+    accent-color: color-mix(in oklab, var(--node-family-accent) 82%, white 18%);
 }
 
 .node-shell__select-wrap {
@@ -634,31 +697,38 @@
 .react-flow__handle {
     width: var(--pin-size);
     height: var(--pin-size);
-    border: none;
+    border: 2px solid color-mix(in oklab, var(--panel-bg) 88%, white 12%);
     border-radius: 50%;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 10;
     background: var(--control-border);
     transform-origin: center;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 0 4px var(--app-bg);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--app-bg) 88%, transparent), 0 0 18px color-mix(in oklab, currentColor 28%, transparent);
+}
+
+.react-flow__handle::before {
+    content: "";
+    position: absolute;
+    inset: calc((var(--pin-hit-size) - var(--pin-size)) / -2);
+    border-radius: 999px;
 }
 
 /* Audio Handles (Green) */
 .handle-audio {
     background: var(--semantic-flow-audio) !important;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 0 4px var(--app-bg) !important;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--app-bg) 88%, transparent), 0 0 16px color-mix(in oklab, var(--semantic-flow-audio) 65%, transparent) !important;
 }
 
 /* Parameter Handles (Blue) */
 .handle-param {
     background: var(--semantic-flow-control) !important;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 0 4px var(--app-bg) !important;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--app-bg) 88%, transparent), 0 0 16px color-mix(in oklab, var(--semantic-flow-control) 65%, transparent) !important;
 }
 
 /* Trigger Handles */
 .handle-trigger {
     background: var(--semantic-flow-trigger) !important;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 0 4px var(--app-bg) !important;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--app-bg) 88%, transparent), 0 0 16px color-mix(in oklab, var(--semantic-flow-trigger) 65%, transparent) !important;
 }
 
 .handle-in {
@@ -696,7 +766,7 @@
 /* Handle Hover */
 .react-flow__handle:hover {
     transform: scale(1.5);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3), 0 0 0 4px var(--app-bg) !important;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--panel-bg) 88%, white 12%), 0 0 24px color-mix(in oklab, currentColor 80%, transparent) !important;
 }
 
 .node-connected-value {
@@ -1105,37 +1175,60 @@
     min-width: var(--node-shell-width);
 }
 
+.sequencer-size-select {
+    width: 96px;
+}
+
 .sequencer-steps-row {
     display: flex;
     flex-direction: row;
-    gap: 2px;
+    gap: 6px;
     overflow-x: auto;
-    padding-bottom: 2px;
+    padding: 8px 4px 4px;
 }
 
 .step-column {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 6px;
     align-items: center;
-    width: 24px;
+    width: 30px;
+    min-width: 30px;
+    padding: 4px 2px 6px;
+    border-radius: 12px;
+    transition: transform 0.12s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.step-column::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: transparent;
+    box-shadow: none;
+    transition: background 0.16s ease, box-shadow 0.16s ease;
 }
 
 .sequencer-pad {
     width: 100%;
+    min-width: 28px;
+    min-height: 28px;
     aspect-ratio: 1;
     background: var(--control-border);
     border: none;
     padding: 0;
     margin: 0;
-    border-radius: 2px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.1s;
+    position: relative;
+    z-index: 1;
+    transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
 }
 
 .sequencer-pad.active {
     background: var(--semantic-warning);
-    box-shadow: 0 0 4px color-mix(in oklab, var(--semantic-warning) 78%, transparent);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--semantic-warning) 78%, transparent);
 }
 
 .sequencer-status {
@@ -1169,12 +1262,18 @@
     color: var(--text-subtle);
 }
 
-.step-column {
-    transition: transform 0.12s ease;
-}
-
 .step-column.current-step-column {
     transform: translateY(-2px);
+    background: linear-gradient(180deg, color-mix(in oklab, white 18%, transparent) 0%, color-mix(in oklab, var(--semantic-warning) 10%, transparent) 100%);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primitive-neutral-0) 18%, transparent);
+}
+
+.step-column.current-step-column::before {
+    background: linear-gradient(180deg, color-mix(in oklab, var(--primitive-neutral-0) 22%, transparent) 0%, color-mix(in oklab, var(--semantic-warning) 16%, transparent) 100%);
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--primitive-neutral-0) 14%, transparent),
+        0 0 18px color-mix(in oklab, var(--primitive-neutral-0) 28%, transparent),
+        0 0 32px color-mix(in oklab, var(--semantic-warning) 30%, transparent);
 }
 
 /* ADSR Node Styles */
@@ -1244,11 +1343,12 @@
 
 .velocity-bar-container {
     width: 100%;
-    height: 60px;
+    height: 72px;
     position: relative;
     background: var(--panel-muted);
-    border-radius: 2px;
+    border-radius: 8px;
     overflow: hidden;
+    z-index: 1;
 }
 
 .velocity-bar {
@@ -1265,15 +1365,12 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 60px;
-    /* height of container */
-    height: 24px;
-    /* width of container */
+    width: 76px;
+    height: 28px;
     opacity: 0;
     cursor: ns-resize;
     transform-origin: bottom left;
-    transform: rotate(-90deg) translate(0, 24px);
-    /* translate(0, width of container) */
+    transform: rotate(-90deg) translate(0, 28px);
     margin: 0;
     padding: 0;
     appearance: none;
@@ -1292,7 +1389,7 @@
     background: var(--primitive-neutral-0);
     box-shadow:
         0 0 0 2px color-mix(in oklab, var(--primitive-neutral-0) 85%, transparent),
-        0 0 18px color-mix(in oklab, var(--primitive-neutral-0) 55%, transparent);
+        0 0 24px color-mix(in oklab, var(--primitive-neutral-0) 65%, transparent);
 }
 
 .sequencer-pad.current-step.active {
@@ -1318,18 +1415,29 @@
     min-width: var(--node-shell-width);
 }
 
+.piano-roll-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.piano-roll-toolbar__field {
+    width: 110px;
+}
+
 .node-shell__piano-widget {
     position: relative;
-    max-height: 152px;
+    max-height: 520px;
     border-radius: 8px;
     overflow: hidden;
     background:
         repeating-linear-gradient(
             to bottom,
             transparent 0,
-            transparent 16px,
-            color-mix(in oklab, var(--panel-border) 54%, transparent) 16px,
-            color-mix(in oklab, var(--panel-border) 54%, transparent) 17px
+            transparent 18px,
+            color-mix(in oklab, var(--panel-border) 54%, transparent) 18px,
+            color-mix(in oklab, var(--panel-border) 54%, transparent) 19px
         ),
         color-mix(in oklab, var(--panel-bg) 76%, var(--panel-muted));
     border: 1px solid color-mix(in oklab, var(--panel-border) 76%, transparent);
@@ -1346,7 +1454,7 @@
 .piano-roll-grid {
     display: flex;
     gap: 2px;
-    max-height: 138px;
+    max-height: inherit;
     overflow: auto;
 }
 
@@ -1359,12 +1467,12 @@
 
 .piano-key {
     width: 40px;
-    height: 12px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding-right: 4px;
-    font-size: 8px;
+    font-size: 9px;
     border-radius: 2px 0 0 2px;
 }
 
@@ -1396,13 +1504,14 @@
 }
 
 .piano-cell {
-    width: 16px;
-    height: 12px;
+    width: 22px;
+    min-width: 22px;
+    height: 18px;
     background: var(--panel-muted);
     border: none;
-    border-radius: 2px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.1s;
+    transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
     padding: 0;
 }
 
@@ -1415,7 +1524,10 @@
 }
 
 .piano-cell.current {
-    box-shadow: inset 0 0 0 1px var(--panel-bg);
+    background: color-mix(in oklab, var(--primitive-neutral-0) 18%, var(--panel-muted));
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--primitive-neutral-0) 28%, transparent),
+        0 0 10px color-mix(in oklab, var(--primitive-neutral-0) 18%, transparent);
 }
 
 .piano-cell.beat {
@@ -1443,4 +1555,52 @@
 
 .piano-cell.selecting {
     background: var(--semantic-selection);
+}
+
+.piano-cell.current.active,
+.piano-cell.current.note-cont {
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--primitive-neutral-0) 36%, transparent),
+        0 0 12px color-mix(in oklab, var(--primitive-neutral-0) 20%, transparent),
+        0 0 20px color-mix(in oklab, var(--semantic-warning) 26%, transparent);
+}
+
+.ui-token-trigger-row {
+    width: 100%;
+    min-height: 36px;
+    border: 1px solid color-mix(in oklab, var(--panel-border) 76%, transparent);
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--panel-bg) 82%, var(--panel-muted));
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 10px;
+    cursor: pointer;
+    transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.ui-token-trigger-row:hover {
+    border-color: color-mix(in oklab, var(--node-family-accent) 72%, white 28%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px color-mix(in oklab, var(--primitive-neutral-950) 20%, transparent);
+}
+
+.ui-token-trigger-row-icon {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--node-family-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .step-column,
+    .step-column::before,
+    .sequencer-pad,
+    .piano-cell,
+    .ui-token-trigger-row {
+        transition: none;
+    }
 }

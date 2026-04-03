@@ -27,6 +27,7 @@ export const StepSequencerNode: React.FC<NodeProps<Node<StepSequencerNodeData>>>
     const velocities = data.pattern || Array(steps).fill(0.8);
     const activeSteps = data.activeSteps || Array(steps).fill(false);
     const playingStep = currentStep >= 0 ? currentStep % steps : -1;
+    const shellWidth = Math.min(1000, Math.max(460, 148 + steps * 32));
     const toggleStep = (index: number) => {
         const newActive = [...activeSteps];
         newActive[index] = !newActive[index];
@@ -63,14 +64,27 @@ export const StepSequencerNode: React.FC<NodeProps<Node<StepSequencerNodeData>>>
             selected={selected}
             badge={<NodeValueBadge>pattern</NodeValueBadge>}
             className="sequencer-node"
+            style={{ width: `${shellWidth}px`, minWidth: `${shellWidth}px` }}
         >
             <NodeHandleRow direction="source" label="trigger" handleId="trigger" handleKind="trigger" />
 
             <NodeWidget
-                title={<NodeWidgetTitle icon="stepSequencer">Pattern + velocity</NodeWidgetTitle>}
-                footer={playingStep >= 0
-                    ? `Playing step ${playingStep + 1} / ${steps}`
-                    : 'Waiting for transport'}
+                title={(
+                    <>
+                        <NodeWidgetTitle icon="stepSequencer">Pattern + velocity</NodeWidgetTitle>
+                        <NodeSelectField
+                            aria-label="Steps"
+                            className="sequencer-size-select"
+                            value={String(steps)}
+                            onChange={(value) => updateSteps(Number(value))}
+                        >
+                            {[16, 32, 64].map((value) => (
+                                <option key={value} value={value}>{value}</option>
+                            ))}
+                        </NodeSelectField>
+                    </>
+                )}
+                footer={<NodeValueBadge live={playingStep >= 0}>{playingStep >= 0 ? `step ${playingStep + 1} / ${steps}` : 'waiting'}</NodeValueBadge>}
             >
                 <div className="sequencer-steps-row">
                     {Array.from({ length: steps }).map((_, index) => (
@@ -110,23 +124,7 @@ export const StepSequencerNode: React.FC<NodeProps<Node<StepSequencerNodeData>>>
                 label="transport"
                 handleId="transport"
                 handleKind="trigger"
-                trailing={<NodeValueBadge live={playingStep >= 0}>{playingStep >= 0 ? 'external' : 'idle'}</NodeValueBadge>}
-            />
-            <NodeHandleRow
-                direction="target"
-                label="Steps"
-                trailing={(
-                    <NodeSelectField
-                        aria-label="Steps"
-                        className="node-shell__row-field-wrap"
-                        value={String(steps)}
-                        onChange={(value) => updateSteps(Number(value))}
-                    >
-                        {[16, 32, 64].map((value) => (
-                            <option key={value} value={value}>{value}</option>
-                        ))}
-                    </NodeSelectField>
-                )}
+                control={<NodeValueBadge live={playingStep >= 0}>{playingStep >= 0 ? 'external' : 'idle'}</NodeValueBadge>}
             />
         </NodeShell>
     );

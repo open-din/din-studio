@@ -1,12 +1,22 @@
 import { memo } from 'react';
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { useAudioGraphStore, type MatrixMixerNodeData } from '../store';
+import type { NodeProps } from '@xyflow/react';
 import { audioEngine } from '../AudioEngine';
+import {
+    NodeHandleRow,
+    NodeNumberField,
+    NodeSelectField,
+    NodeShell,
+    NodeValueBadge,
+    NodeWidget,
+    NodeWidgetTitle,
+} from '../components/NodeShell';
 import { formatConnectedValue, useTargetHandleConnection } from '../paramConnections';
+import { useAudioGraphStore } from '../store';
+import type { MatrixMixerNodeData } from '../types';
 
 const clampSize = (value: number) => Math.max(2, Math.min(8, Math.floor(value)));
 
-const MatrixCellControl = ({
+function MatrixCellEditor({
     nodeId,
     row,
     column,
@@ -18,26 +28,51 @@ const MatrixCellControl = ({
     column: number;
     value: number;
     onChange: (next: number) => void;
-}) => {
+}) {
+    const handleId = `cell:${row}:${column}`;
+    const connection = useTargetHandleConnection(nodeId, handleId);
+
+    return connection.connected ? (
+        <NodeValueBadge live>{formatConnectedValue(connection.value)}</NodeValueBadge>
+    ) : (
+        <NodeNumberField min={0} max={1} step={0.01} value={value} onChange={onChange} />
+    );
+}
+
+function MatrixCellHandleRow({
+    nodeId,
+    row,
+    column,
+    value,
+}: {
+    nodeId: string;
+    row: number;
+    column: number;
+    value: number;
+}) {
     const handleId = `cell:${row}:${column}`;
     const connection = useTargetHandleConnection(nodeId, handleId);
 
     return (
-        <div className="node-control">
-            <label>{`M${row + 1}${column + 1}`}</label>
-            {connection.connected ? (
-                <div className="node-connected-value">{formatConnectedValue(connection.value)}</div>
-            ) : (
-                <input type="range" min="0" max="1" step="0.01" value={value} onChange={(e) => onChange(Number(e.target.value))} />
-            )}
-            <Handle type="target" position={Position.Left} id={handleId} className="handle handle-in handle-param" />
-        </div>
+        <NodeHandleRow
+            direction="target"
+            label={`M${row + 1}${column + 1}`}
+            handleId={handleId}
+            handleKind="control"
+            control={
+                <NodeValueBadge live={connection.connected}>
+                    {connection.connected
+                        ? formatConnectedValue(connection.value)
+                        : value.toFixed(2)}
+                </NodeValueBadge>
+            }
+        />
     );
-};
+}
 
 const MatrixMixerNode = memo(({ id, data, selected }: NodeProps) => {
     const matrixData = data as MatrixMixerNodeData;
-    const updateNodeData = useAudioGraphStore((s) => s.updateNodeData);
+    const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);
 
     const inputs = clampSize(matrixData.inputs || 4);
     const outputs = clampSize(matrixData.outputs || 4);
@@ -66,58 +101,84 @@ const MatrixMixerNode = memo(({ id, data, selected }: NodeProps) => {
 
     const updateCell = (row: number, column: number, nextValue: number) => {
         const nextMatrix = matrix.map((rowValues, rowIndex) =>
-            rowValues.map((cellValue, colIndex) => (rowIndex === row && colIndex === column ? nextValue : cellValue))
+            rowValues.map((cellValue, columnIndex) => (rowIndex === row && columnIndex === column ? nextValue : cellValue))
         );
         updateMatrix(nextMatrix);
     };
 
     return (
-        <div className={`audio-node matrix-mixer-node ${selected ? 'selected' : ''}`}>
-            <div className="node-header" style={{ justifyContent: 'space-between', position: 'relative', background: '#ffaa44' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="node-icon">▦</span>
-                    <span className="node-title">Matrix Mixer</span>
+        <NodeShell
+            nodeType="matrixMixer"
+            title={matrixData.label?.trim() || 'Matrix Mixer'}
+            selected={selected}
+            badge={<NodeValueBadge>{`${inputs}x${outputs}`}</NodeValueBadge>}
+        >
+            <NodeHandleRow direction="source" label="out mix" handleId="out" handleKind="audio" />
+            {Array.from({ length: outputs }, (_, index) => (
+                <NodeHandleRow
+                    key={`matrix-out-${index}`}
+                    direction="source"
+                    label={`out ${index + 1}`}
+                    handleId={`out${index + 1}`}
+                    handleKind="audio"
+                />
+            ))}
+
+            <NodeWidget title={<NodeWidgetTitle icon="matrixMixer">Routing matrix</NodeWidgetTitle>}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <NodeSelectField value={String(inputs)} onChange={(value) => updateSize('inputs', Number(value))}>
+                        {Array.from({ length: 7 }, (_, index) => index + 2).map((value) => (
+                            <option key={`in-${value}`} value={value}>{value} inputs</option>
+                        ))}
+                    </NodeSelectField>
+                    <NodeSelectField value={String(outputs)} onChange={(value) => updateSize('outputs', Number(value))}>
+                        {Array.from({ length: 7 }, (_, index) => index + 2).map((value) => (
+                            <option key={`out-${value}`} value={value}>{value} outputs</option>
+                        ))}
+                    </NodeSelectField>
                 </div>
-            </div>
-            <div className="node-content">
-                <div className="node-control">
-                    <label>Inputs</label>
-                    <input type="range" min="2" max="8" step="1" value={inputs} onChange={(e) => updateSize('inputs', Number(e.target.value))} />
+
+                <div style={{ display: 'grid', gap: '8px' }}>
+                    {matrix.map((rowValues, row) => (
+                        <div key={`matrix-row-${row}`} style={{ display: 'grid', gridTemplateColumns: `64px repeat(${outputs}, minmax(64px, 1fr))`, gap: '8px', alignItems: 'center' }}>
+                            <NodeValueBadge>{`In ${row + 1}`}</NodeValueBadge>
+                            {rowValues.map((cell, column) => (
+                                <MatrixCellEditor
+                                    key={`matrix-cell-${row}-${column}`}
+                                    nodeId={id}
+                                    row={row}
+                                    column={column}
+                                    value={cell}
+                                    onChange={(nextValue) => updateCell(row, column, nextValue)}
+                                />
+                            ))}
+                        </div>
+                    ))}
                 </div>
-                <div className="node-control">
-                    <label>Outputs</label>
-                    <input type="range" min="2" max="8" step="1" value={outputs} onChange={(e) => updateSize('outputs', Number(e.target.value))} />
-                </div>
-                {Array.from({ length: inputs }, (_, index) => (
-                    <div className="node-control" key={`in-${index}`}>
-                        <label>{`In ${index + 1}`}</label>
-                        <Handle type="target" position={Position.Left} id={`in${index + 1}`} className="handle handle-in handle-audio" />
-                    </div>
-                ))}
-                <div className="node-control">
-                    <label>Out Mix</label>
-                    <Handle type="source" position={Position.Right} id="out" className="handle handle-out handle-audio" />
-                </div>
-                {Array.from({ length: outputs }, (_, index) => (
-                    <div className="node-control" key={`out-${index}`}>
-                        <label>{`Out ${index + 1}`}</label>
-                        <Handle type="source" position={Position.Right} id={`out${index + 1}`} className="handle handle-out handle-audio" />
-                    </div>
-                ))}
-                {matrix.flatMap((rowValues, row) =>
-                    rowValues.map((cell, column) => (
-                        <MatrixCellControl
-                            key={`cell-${row}-${column}`}
-                            nodeId={id}
-                            row={row}
-                            column={column}
-                            value={cell}
-                            onChange={(next) => updateCell(row, column, next)}
-                        />
-                    ))
-                )}
-            </div>
-        </div>
+            </NodeWidget>
+
+            {Array.from({ length: inputs }, (_, index) => (
+                <NodeHandleRow
+                    key={`matrix-in-${index}`}
+                    direction="target"
+                    label={`in ${index + 1}`}
+                    handleId={`in${index + 1}`}
+                    handleKind="audio"
+                />
+            ))}
+
+            {matrix.flatMap((rowValues, row) =>
+                rowValues.map((cell, column) => (
+                    <MatrixCellHandleRow
+                        key={`matrix-handle-${row}-${column}`}
+                        nodeId={id}
+                        row={row}
+                        column={column}
+                        value={cell}
+                    />
+                ))
+            )}
+        </NodeShell>
     );
 });
 

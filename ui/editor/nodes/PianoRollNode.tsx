@@ -50,6 +50,8 @@ export const PianoRollNode: React.FC<NodeProps<Node<PianoRollNodeData>>> = memo(
     const octaves = data.octaves || 2;
     const baseNote = data.baseNote || 48; // C3
     const notes = data.notes || [];
+    const shellWidth = Math.min(1120, Math.max(540, 160 + steps * 24));
+    const widgetHeight = Math.min(560, Math.max(260, 64 + octaves * 12 * 18));
 
     const totalNotes = octaves * 12;
 
@@ -187,11 +189,49 @@ export const PianoRollNode: React.FC<NodeProps<Node<PianoRollNodeData>>> = memo(
             selected={selected}
             badge={<NodeValueBadge>notes</NodeValueBadge>}
             className="piano-roll-node"
+            style={{ width: `${shellWidth}px`, minWidth: `${shellWidth}px` }}
         >
             <NodeHandleRow direction="source" label="trigger" handleId="trigger" handleKind="trigger" />
 
-            <NodeWidget title={<NodeWidgetTitle icon="pianoRoll">Timeline + note events</NodeWidgetTitle>}>
-                <div className="node-shell__piano-widget">
+            <NodeWidget
+                title={<NodeWidgetTitle icon="pianoRoll">Timeline + note events</NodeWidgetTitle>}
+                footer={(
+                    <div className="piano-roll-toolbar">
+                        <NodeSelectField
+                            aria-label="Steps"
+                            className="piano-roll-toolbar__field"
+                            value={String(steps)}
+                            onChange={(value) => updateSteps(Number(value))}
+                        >
+                            {[16, 32, 64].map((value) => (
+                                <option key={value} value={value}>{value} steps</option>
+                            ))}
+                        </NodeSelectField>
+                        <NodeSelectField
+                            aria-label="Octaves"
+                            className="piano-roll-toolbar__field"
+                            value={String(octaves)}
+                            onChange={(value) => updateOctaves(Number(value))}
+                        >
+                            {[1, 2, 3, 4].map((value) => (
+                                <option key={value} value={value}>{value} oct</option>
+                            ))}
+                        </NodeSelectField>
+                        <NodeSelectField
+                            aria-label="Base note"
+                            className="piano-roll-toolbar__field"
+                            value={String(baseNote)}
+                            onChange={(value) => updateBaseNote(Number(value))}
+                        >
+                            {[36, 48, 60, 72].map((value) => (
+                                <option key={value} value={value}>{midiToNoteName(value)}</option>
+                            ))}
+                        </NodeSelectField>
+                        <NodeValueBadge live={currentPlayStep >= 0}>{currentPlayStep >= 0 ? `step ${currentPlayStep % steps + 1}` : 'idle'}</NodeValueBadge>
+                    </div>
+                )}
+            >
+                <div className="node-shell__piano-widget" style={{ maxHeight: `${widgetHeight}px` }}>
                     <div className="piano-roll-grid" ref={gridRef}>
                         <div className="piano-keys">
                             {Array.from({ length: totalNotes }).map((_, i) => {
@@ -245,55 +285,7 @@ export const PianoRollNode: React.FC<NodeProps<Node<PianoRollNodeData>>> = memo(
                 label="transport"
                 handleId="transport"
                 handleKind="trigger"
-                trailing={<NodeValueBadge live={currentPlayStep >= 0}>{currentPlayStep >= 0 ? 'live' : 'idle'}</NodeValueBadge>}
-            />
-            <NodeHandleRow
-                direction="target"
-                label="Steps"
-                trailing={(
-                    <NodeSelectField
-                        aria-label="Steps"
-                        className="node-shell__row-field-wrap"
-                        value={String(steps)}
-                        onChange={(value) => updateSteps(Number(value))}
-                    >
-                        {[16, 32, 64].map((value) => (
-                            <option key={value} value={value}>{value}</option>
-                        ))}
-                    </NodeSelectField>
-                )}
-            />
-            <NodeHandleRow
-                direction="target"
-                label="Octaves"
-                trailing={(
-                    <NodeSelectField
-                        aria-label="Octaves"
-                        className="node-shell__row-field-wrap"
-                        value={String(octaves)}
-                        onChange={(value) => updateOctaves(Number(value))}
-                    >
-                        {[1, 2, 3, 4].map((value) => (
-                            <option key={value} value={value}>{value}</option>
-                        ))}
-                    </NodeSelectField>
-                )}
-            />
-            <NodeHandleRow
-                direction="target"
-                label="Base"
-                trailing={(
-                    <NodeSelectField
-                        aria-label="Base note"
-                        className="node-shell__row-field-wrap"
-                        value={String(baseNote)}
-                        onChange={(value) => updateBaseNote(Number(value))}
-                    >
-                        {[36, 48, 60, 72].map((value) => (
-                            <option key={value} value={value}>{midiToNoteName(value)}</option>
-                        ))}
-                    </NodeSelectField>
-                )}
+                control={<NodeValueBadge live={currentPlayStep >= 0}>{currentPlayStep >= 0 ? 'live' : 'idle'}</NodeValueBadge>}
             />
         </NodeShell>
     );
