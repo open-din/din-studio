@@ -2,12 +2,12 @@
 
 Standalone DIN Studio editor repository.
 
-`din-studio` contains the editor UI, Electron-facing app target, and MCP server that sit on top of the published `@din/react` library.
+`din-studio` contains the editor UI, Electron-facing app target, and MCP server that sit on top of the published `@open-din/react` library.
 
 ## Local Setup
 
 1. Install dependencies with `npm install`.
-2. Install a compatible `@din/react` release, or use a local tarball or `npm link` during the transition.
+2. Install a compatible `@open-din/react` release, or use a local tarball or `npm link` during the transition.
 3. Run `npm run dev:web` for the browser editor or `npm run dev:mcp` for the MCP bridge.
 
 ## Scripts
@@ -23,8 +23,8 @@ Standalone DIN Studio editor repository.
 
 ## Compatibility
 
-This repo assumes `@din/react` exposes public patch, MIDI, and data helper surfaces used by the editor:
+This repo assumes `@open-din/react` exposes public patch, MIDI, and data helper surfaces used by the editor:
 
-- `@din/react/patch`
-- `@din/react/midi`
-- `@din/react/data`
+- `@open-din/react/patch`
+- `@open-din/react/midi`
+- `@open-din/react/data`

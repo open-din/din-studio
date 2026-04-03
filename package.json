@@ -2,7 +2,7 @@
   "name": "din-studio",
   "version": "0.1.0",
   "private": true,
-  "description": "Standalone DIN Studio editor, desktop app targets, and MCP server built on @din/react",
+  "description": "Standalone DIN Studio editor, desktop app targets, and MCP server built on @open-din/react",
   "type": "module",
   "scripts": {
     "dev:web": "vite --config targets/web/vite.config.ts",
@@ -21,7 +21,7 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p targets/mcp/tsconfig.json --noEmit && tsc -p targets/app/tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@din/react": "^0.1.0",
+    "@open-din/react": "^0.1.0",
     "@xyflow/react": "^12.10.0",
     "lucide-react": "^1.7.0",
     "react": "^19.2.4",
