@@ -7,7 +7,7 @@
   "scripts": {
     "dev:web": "vite --config targets/web/vite.config.ts",
     "build:web": "vite build --config targets/web/vite.config.ts",
-    "dev:app": "vite --config targets/app/vite.config.ts",
+    "dev:app": "node ./scripts/dev-app.mjs",
     "build:app": "node ./scripts/build-app.mjs",
     "build:mcp": "node --enable-source-maps ./node_modules/tsup/dist/cli-default.js --config targets/mcp/tsup.config.ts",
     "dev:mcp": "node ./scripts/run-mcp.mjs dev",

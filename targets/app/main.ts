@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { graphDocumentToPatch, patchToGraphDocument } from '@open-din/react/patch';
 
 type ProjectStorageKind = 'electron-fs';
@@ -81,6 +81,7 @@ interface StoredProjectManifestFile extends ProjectManifest {
 
 let launcherWindow: BrowserWindow | null = null;
 const projectWindows = new Map<string, BrowserWindow>();
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function createInitialGraphDocument(graphId = createProjectId(), name = 'Graph 1', order = 0): ProjectGraphDocument {
     const now = Date.now();

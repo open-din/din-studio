@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "rootDir": "../../..",
+    "rootDir": ".",
     "outDir": "../../dist/app/main"
   },
   "include": ["main.ts", "preload.ts", "electron-shim.d.ts"]

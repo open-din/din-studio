@@ -8,13 +8,13 @@ Standalone DIN Studio editor repository.
 
 1. Install dependencies with `npm install`.
 2. Install a compatible `@open-din/react` release, or use a local tarball or `npm link` during the transition.
-3. Run `npm run dev:web` for the browser editor or `npm run dev:mcp` for the MCP bridge.
+3. Run `npm run dev:web` for the browser editor, `npm run dev:app` for the Electron desktop app, or `npm run dev:mcp` for the MCP bridge.
 
 ## Scripts
 
 - `npm run dev:web`
 - `npm run build:web`
-- `npm run dev:app`
+- `npm run dev:app` (Electron)
 - `npm run build:app`
 - `npm run dev:mcp`
 - `npm run mcp:start`
