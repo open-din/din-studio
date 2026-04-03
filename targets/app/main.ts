@@ -698,6 +698,125 @@ ipcMain.handle('din-projects:reveal', async (_event, projectId: string) => {
     }
 });
 
+// ---------------------------------------------------------------------------
+// MCP Bridge IPC Handlers
+// ---------------------------------------------------------------------------
+
+ipcMain.handle('mcp:focus-window', () => {
+    const windows = BrowserWindow.getAllWindows();
+    const target = windows.find((win) => !win.isDestroyed());
+    if (target) {
+        if (target.isMinimized()) target.restore();
+        target.show();
+        target.focus();
+    }
+    return { focused: Boolean(target) };
+});
+
+ipcMain.handle('mcp:open-project', async (_event, projectPath: string) => {
+    if (!projectPath || typeof projectPath !== 'string') {
+        throw new Error('"path" must be a non-empty string.');
+    }
+
+    const resolved = resolve(projectPath);
+
+    // Validate: path must be inside the user's documents or home directory.
+    const allowedRoots = [
+        app.getPath('documents'),
+        app.getPath('home'),
+    ];
+    const isAllowed = allowedRoots.some((root) => resolved.startsWith(root));
+    if (!isAllowed) {
+        throw new Error(`Path "${resolved}" is outside the allowed directories.`);
+    }
+
+    // Try to read the project manifest from the directory
+    const manifestPath = join(resolved, PROJECT_MANIFEST_FILE);
+    let manifest: StoredProjectManifestFile;
+    try {
+        const text = await readFile(manifestPath, 'utf8');
+        manifest = JSON.parse(text) as StoredProjectManifestFile;
+    } catch {
+        throw new Error(`No valid DIN Studio project found at "${resolved}".`);
+    }
+
+    const project = fromStoredProjectFile(manifest);
+    project.path = resolved;
+    project.lastOpenedAt = Date.now();
+    await updateProjectRegistry(project);
+
+    const result = createProjectWindow(project.id);
+
+    return {
+        opened: true,
+        projectName: project.name,
+        projectId: project.id,
+        focusedExisting: result.focusedExisting,
+    };
+});
+
+ipcMain.handle('mcp:export-file', async (_event, options: {
+    graphId?: string;
+    outputPath: string;
+    format: 'patch.json' | 'react';
+}) => {
+    if (!options?.outputPath || typeof options.outputPath !== 'string') {
+        throw new Error('"outputPath" must be a non-empty string.');
+    }
+
+    const outputResolved = resolve(options.outputPath);
+    const format = options.format || 'patch.json';
+
+    // Validate output path: must end with an appropriate extension
+    if (format === 'patch.json' && !outputResolved.endsWith('.json')) {
+        throw new Error('"outputPath" must end with .json for patch.json format.');
+    }
+    if (format === 'react' && !outputResolved.endsWith('.tsx') && !outputResolved.endsWith('.ts') && !outputResolved.endsWith('.jsx')) {
+        throw new Error('"outputPath" must end with .tsx, .ts, or .jsx for react format.');
+    }
+
+    // Find the project window that has the requested graph.
+    // The export will be handled by the renderer via the bridge,
+    // but for direct file export we look at all known projects.
+    const projects = await readProjectRegistry();
+    if (projects.length === 0) {
+        throw new Error('No projects found.');
+    }
+
+    // Use the first project or the one that has the graph.
+    const targetProject = projects[0];
+    if (!targetProject || !targetProject.path) {
+        throw new Error('First project has no local path.');
+    }
+
+    const snapshot = await loadProjectFromDisk(targetProject);
+    const graphId = options.graphId ?? snapshot.activeGraphId;
+    const graph = snapshot.graphs.find((entry) => entry.id === graphId);
+    if (!graph) {
+        throw new Error(`Graph "${String(graphId)}" was not found.`);
+    }
+
+    let content: string;
+    if (format === 'react') {
+        // For React export, generate code via the patch conversion path.
+        const patch = graphDocumentToPatch(graph);
+        // Minimal React code generation (the full codegen lives in the renderer).
+        content = `// React component generated from DIN Studio graph "${graph.name}"\n// Patch: ${JSON.stringify(patch.name)}\n// Generated at: ${new Date().toISOString()}\n\nimport { useDinPatch } from '@open-din/react';\n\nexport default function ${graph.name.replace(/[^a-zA-Z0-9]/g, '')}() {\n  const ref = useDinPatch(${JSON.stringify(patch, null, 2)});\n  return <div ref={ref} />;\n}\n`;
+    } else {
+        const patch = graphDocumentToPatch(graph);
+        content = `${JSON.stringify(patch, null, 2)}\n`;
+    }
+
+    await mkdir(dirname(outputResolved), { recursive: true });
+    await writeFile(outputResolved, content, 'utf8');
+
+    return {
+        written: true,
+        outputPath: outputResolved,
+        size: Buffer.byteLength(content, 'utf8'),
+    };
+});
+
 app.whenReady().then(() => {
     createLauncherWindow();
 

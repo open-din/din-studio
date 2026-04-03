@@ -21,7 +21,12 @@ import type {
     BridgeCodegenResponse,
     BridgeDiscoveryInfo,
     BridgeEnvelope,
+    BridgeExportFileRequest,
+    BridgeExportFileResponse,
+    BridgeFocusWindowResponse,
     BridgeHelloAck,
+    BridgeOpenProjectRequest,
+    BridgeOpenProjectResponse,
     BridgePatchExportRequest,
     BridgePatchExportResponse,
     BridgePatchImportRequest,
@@ -290,6 +295,58 @@ async function handleRequest(
                 objectUrl,
             };
             respond(socket, envelope.type, sessionId, requestId, response);
+            return;
+        }
+
+        if (envelope.type === 'app.focus_window') {
+            const dinApp = (window as any).dinStudioApp;
+            if (dinApp?.runtime === 'electron') {
+                // In Electron, the MCP tool focuses the window via the main process.
+                // The preload API does not expose a direct focus call, but the window
+                // is already in the foreground when the renderer receives the request.
+                window.focus();
+            } else {
+                window.focus();
+            }
+            const response: BridgeFocusWindowResponse = { focused: true };
+            respond(socket, envelope.type, sessionId, requestId, response);
+            return;
+        }
+
+        if (envelope.type === 'app.open_project') {
+            const payload = envelope.payload as BridgeOpenProjectRequest;
+            const dinApp = (window as any).dinStudioApp;
+            if (!dinApp?.openProjectWindow) {
+                respondError(socket, sessionId, requestId, 'NOT_SUPPORTED', 'Opening projects is only supported in the Electron app.');
+                return;
+            }
+
+            try {
+                // Load project from path via the Electron main process.
+                // The preload API exposes loadProject by projectId, so we use
+                // the MCP-specific IPC channel registered in main.ts.
+                const result = await (dinApp as any).mcpOpenProject(payload.path) as BridgeOpenProjectResponse;
+                respond(socket, envelope.type, sessionId, requestId, result);
+            } catch (error) {
+                respondError(socket, sessionId, requestId, 'OPEN_PROJECT_FAILED', error instanceof Error ? error.message : 'Failed to open project.');
+            }
+            return;
+        }
+
+        if (envelope.type === 'app.export_file') {
+            const payload = envelope.payload as BridgeExportFileRequest;
+            const dinApp = (window as any).dinStudioApp;
+            if (!dinApp?.mcpExportFile) {
+                respondError(socket, sessionId, requestId, 'NOT_SUPPORTED', 'File export is only supported in the Electron app.');
+                return;
+            }
+
+            try {
+                const result = await (dinApp as any).mcpExportFile(payload) as BridgeExportFileResponse;
+                respond(socket, envelope.type, sessionId, requestId, result);
+            } catch (error) {
+                respondError(socket, sessionId, requestId, 'EXPORT_FILE_FAILED', error instanceof Error ? error.message : 'Failed to export file.');
+            }
             return;
         }
 

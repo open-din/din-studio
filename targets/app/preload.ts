@@ -103,4 +103,24 @@ contextBridge.exposeInMainWorld('dinStudioApp', {
         ipcRenderer.invoke('din-projects:open-window', projectId) as Promise<ProjectOpenResult>,
     revealProject: (projectId: string) =>
         ipcRenderer.invoke('din-projects:reveal', projectId) as Promise<void>,
+
+    // MCP bridge-specific actions
+    mcpFocusWindow: () =>
+        ipcRenderer.invoke('mcp:focus-window') as Promise<{ focused: boolean }>,
+    mcpOpenProject: (path: string) =>
+        ipcRenderer.invoke('mcp:open-project', path) as Promise<{
+            opened: boolean;
+            projectName: string;
+            projectId: string;
+        }>,
+    mcpExportFile: (options: {
+        graphId?: string;
+        outputPath: string;
+        format: 'patch.json' | 'react';
+    }) =>
+        ipcRenderer.invoke('mcp:export-file', options) as Promise<{
+            written: boolean;
+            outputPath: string;
+            size: number;
+        }>,
 });

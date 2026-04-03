@@ -6,6 +6,11 @@ import type {
     BridgeAssetIngestResponse,
     BridgeCodegenRequest,
     BridgeCodegenResponse,
+    BridgeExportFileRequest,
+    BridgeExportFileResponse,
+    BridgeFocusWindowResponse,
+    BridgeOpenProjectRequest,
+    BridgeOpenProjectResponse,
     BridgePatchExportRequest,
     BridgePatchExportResponse,
     BridgePreviewOperationsRequest,
@@ -348,6 +353,64 @@ const TOOL_DEFINITIONS: McpTool[] = [
                 mimeType: { type: 'string' },
             },
             required: ['path'],
+            additionalProperties: false,
+        },
+    },
+    {
+        name: 'editor_app_status',
+        description: 'Return the health status, version, session count, and bridge configuration of the DIN Studio MCP server.',
+        inputSchema: {
+            type: 'object',
+            properties: {},
+            additionalProperties: false,
+        },
+    },
+    {
+        name: 'editor_focus_window',
+        description: 'Bring the DIN Studio application window to the foreground.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                sessionId: { type: 'string' },
+            },
+            additionalProperties: false,
+        },
+    },
+    {
+        name: 'editor_open_project',
+        description: 'Open a DIN Studio project from a local directory path.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                sessionId: { type: 'string' },
+                path: {
+                    type: 'string',
+                    description: 'Absolute path to the project directory.',
+                },
+            },
+            required: ['path'],
+            additionalProperties: false,
+        },
+    },
+    {
+        name: 'editor_export_file',
+        description: 'Export a live graph to a local file. Supports patch JSON and React code generation formats.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                sessionId: { type: 'string' },
+                graphId: { type: 'string' },
+                outputPath: {
+                    type: 'string',
+                    description: 'Absolute path where the exported file should be saved.',
+                },
+                format: {
+                    type: 'string',
+                    enum: ['patch.json', 'react'],
+                    description: 'Export format. Defaults to patch.json.',
+                },
+            },
+            required: ['outputPath'],
             additionalProperties: false,
         },
     },
@@ -810,6 +873,97 @@ export class DinEditorMcpRuntime {
                         path: localPath,
                         asset,
                     },
+                );
+            }
+
+            if (name === 'editor_app_status') {
+                const sessions = this.registry.listSessionSummaries();
+                return toolSuccess(
+                    `DIN Studio MCP server is running with ${sessions.length} active session(s).`,
+                    {
+                        status: 'running',
+                        serverVersion: this.options.serverVersion,
+                        readOnly: this.options.readOnly,
+                        sessionCount: sessions.length,
+                        sessions: sessions.map((session) => ({
+                            sessionId: session.sessionId,
+                            appVersion: session.appVersion,
+                            connectedAt: session.connectedAt,
+                            lastSeenAt: session.lastSeenAt,
+                            graphCount: session.graphCount,
+                        })),
+                        uptime: Math.floor(process.uptime()),
+                    },
+                );
+            }
+
+            if (name === 'editor_focus_window') {
+                const session = this.registry.resolveSession(asOptionalString(input, 'sessionId'));
+                const result = await this.registry.request<undefined, BridgeFocusWindowResponse>(
+                    session.sessionId,
+                    'app.focus_window',
+                    undefined,
+                );
+                return toolSuccess(
+                    result.focused
+                        ? `Focused DIN Studio window for session "${session.sessionId}".`
+                        : `DIN Studio session "${session.sessionId}" could not focus the window.`,
+                    { sessionId: session.sessionId, ...result },
+                );
+            }
+
+            if (name === 'editor_open_project') {
+                if (this.options.readOnly) {
+                    return toolFailure('DIN Studio MCP server is running in read-only mode.');
+                }
+
+                const session = this.registry.resolveSession(asOptionalString(input, 'sessionId'));
+                const path = asOptionalString(input, 'path');
+                if (!path) {
+                    return toolFailure('"path" is required.');
+                }
+
+                const result = await this.registry.request<BridgeOpenProjectRequest, BridgeOpenProjectResponse>(
+                    session.sessionId,
+                    'app.open_project',
+                    { path },
+                );
+
+                this.options.logger.mutation('editor_open_project', {
+                    sessionId: session.sessionId,
+                    path,
+                    projectId: result.projectId,
+                });
+
+                return toolSuccess(
+                    result.opened
+                        ? `Opened project "${result.projectName}" in DIN Studio.`
+                        : `Failed to open project at "${path}".`,
+                    { sessionId: session.sessionId, ...result },
+                );
+            }
+
+            if (name === 'editor_export_file') {
+                const session = this.registry.resolveSession(asOptionalString(input, 'sessionId'));
+                const outputPath = asOptionalString(input, 'outputPath');
+                if (!outputPath) {
+                    return toolFailure('"outputPath" is required.');
+                }
+
+                const format = (asOptionalString(input, 'format') ?? 'patch.json') as 'patch.json' | 'react';
+                const graphId = asOptionalString(input, 'graphId');
+
+                const result = await this.registry.request<BridgeExportFileRequest, BridgeExportFileResponse>(
+                    session.sessionId,
+                    'app.export_file',
+                    { graphId, outputPath, format },
+                );
+
+                return toolSuccess(
+                    result.written
+                        ? `Exported ${format} file to "${result.outputPath}" (${result.size} bytes).`
+                        : `Export failed for "${outputPath}".`,
+                    { sessionId: session.sessionId, ...result },
                 );
             }
 

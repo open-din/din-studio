@@ -34,6 +34,9 @@ export interface BridgeEnvelope<TPayload = unknown> {
         | 'codegen.generate'
         | 'assets.list'
         | 'assets.ingest_file'
+        | 'app.focus_window'
+        | 'app.open_project'
+        | 'app.export_file'
         | 'session.error';
     sessionId: string | null;
     payload?: TPayload;
@@ -102,6 +105,34 @@ export interface BridgeAssetListItem {
     durationSec?: number;
     createdAt: number;
     updatedAt: number;
+}
+
+// Electron-specific bridge requests (MCP → renderer → main process via IPC)
+
+export interface BridgeFocusWindowResponse {
+    focused: boolean;
+}
+
+export interface BridgeOpenProjectRequest {
+    path: string;
+}
+
+export interface BridgeOpenProjectResponse {
+    opened: boolean;
+    projectName: string;
+    projectId: string;
+}
+
+export interface BridgeExportFileRequest {
+    graphId?: string;
+    outputPath: string;
+    format: 'patch.json' | 'react';
+}
+
+export interface BridgeExportFileResponse {
+    written: boolean;
+    outputPath: string;
+    size: number;
 }
 
 export type BridgeSessionHelloEnvelope = BridgeEnvelope<EditorSessionHello>;
