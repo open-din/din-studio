@@ -11,11 +11,13 @@ interface BottomDrawerProps {
     onHeightChange: (height: number) => void;
     runtimeContent: ReactNode;
     diagnosticsContent: ReactNode;
+    agentContent: ReactNode;
 }
 
 const DRAWER_TABS: Array<{ id: BottomDrawerTab; label: string }> = [
     { id: 'runtime', label: 'Runtime' },
     { id: 'diagnostics', label: 'Diagnostics' },
+    { id: 'agent', label: 'AI Agent' },
 ];
 
 export function BottomDrawer({
@@ -27,6 +29,7 @@ export function BottomDrawer({
     onHeightChange,
     runtimeContent,
     diagnosticsContent,
+    agentContent,
 }: BottomDrawerProps) {
     const startResize = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -52,7 +55,9 @@ export function BottomDrawer({
 
     const content = activeTab === 'runtime'
         ? runtimeContent
-        : diagnosticsContent;
+        : activeTab === 'agent'
+            ? agentContent
+            : diagnosticsContent;
 
     return (
         <section

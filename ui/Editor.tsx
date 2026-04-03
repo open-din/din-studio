@@ -33,7 +33,9 @@ import {
     MidiNoteOutputNode, MidiCCOutputNode, MidiSyncNode, MathNode, CompareNode,
     MixNode, ClampNode, SwitchNode,
 } from './editor/nodes';
-import { loadActiveGraphId, loadGraphs, saveActiveGraphId, saveGraph } from './editor/graphStorage';
+import { loadActiveGraphId, loadGraphs, saveActiveGraphId, saveGraph, deleteGraph } from './editor/graphStorage';
+import { graphDocumentToPatch, patchToGraphDocument } from '@open-din/react/patch';
+import { validateOfflinePatchText } from '../core/offline';
 import { addAssetFromFile, getAssetObjectUrl, subscribeAssets, listAssets } from './editor/audioLibrary';
 import { audioEngine } from './editor/AudioEngine';
 import {
@@ -43,6 +45,7 @@ import {
 import { McpStatusBadge } from '../bridge/McpStatusBadge';
 import { createAtmosphericBreakbeatArcTemplate } from './editor/templates/atmosphericBreakbeatArcTemplate';
 import { ActivityRail } from './shell/ActivityRail';
+import { AgentPanel } from './shell/AgentPanel';
 import { BottomDrawer } from './shell/BottomDrawer';
 import { CatalogExplorerPanel } from './shell/CatalogExplorerPanel';
 import { CommandPalette } from './shell/CommandPalette';
@@ -242,6 +245,10 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     const updateNodeData = useAudioGraphStore((s) => s.updateNodeData);
     const renameGraph = useAudioGraphStore((s) => s.renameGraph);
     const createGraph = useAudioGraphStore((s) => s.createGraph);
+    const removeGraph = useAudioGraphStore((s) => s.removeGraph);
+    const openGraphIds = useAudioGraphStore((s) => s.openGraphIds);
+    const openGraph = useAudioGraphStore((s) => s.openGraph);
+    const closeGraph = useAudioGraphStore((s) => s.closeGraph);
     const undo = useAudioGraphStore((s) => s.undo);
     const redo = useAudioGraphStore((s) => s.redo);
     
@@ -255,7 +262,13 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     const [resumeIntent, setResumeIntent] = useState<ResumeIntent | null>(null);
     const [reviewHydrated, setReviewHydrated] = useState(false);
     const [initialDataReady, setInitialDataReady] = useState(false);
+    const [autosaveEnabled, setAutosaveEnabled] = useState<boolean>(() => {
+        try { return localStorage.getItem('din-editor:autosave') !== 'false'; } catch { return true; }
+    });
+    const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
     const reviewTimerRef = useRef<number | null>(null);
+    const autosaveTimerRef = useRef<number | null>(null);
+    const importPatchInputRef = useRef<HTMLInputElement | null>(null);
     const canvasDropzoneRef = useRef<HTMLElement | null>(null);
     
     const {
@@ -405,17 +418,19 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
             updatedAt: Date.now(),
         };
         await saveGraph(updatedGraph);
+        setSaveStatus('saved');
     }, [activeGraphId, nodes, edges, graphs]);
 
-    // Handle graph loading
+    // Handle graph loading (opens tab + switches active)
     const handleLoadGraph = useCallback(async (graphId: string) => {
+        openGraph(graphId);
         const graph = graphs.find(g => g.id === graphId);
         if (!graph) return;
 
         setActiveGraph(graphId);
         await saveActiveGraphId(graphId);
         initializeFromGraphData({ nodes: graph.nodes, edges: graph.edges });
-    }, [graphs, setActiveGraph, initializeFromGraphData]);
+    }, [graphs, setActiveGraph, initializeFromGraphData, openGraph]);
 
     const handleCreateGraph = useCallback(async () => {
         await handleSaveActiveGraph();
@@ -423,6 +438,77 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         await saveGraph(graph);
         await saveActiveGraphId(graph.id);
     }, [createGraph, handleSaveActiveGraph]);
+
+    // Close tab (hides tab, keeps graph in project)
+    const handleCloseGraph = useCallback(async (graphId: string) => {
+        const nextGraph = closeGraph(graphId);
+        if (nextGraph) {
+            await saveActiveGraphId(nextGraph.id);
+            initializeFromGraphData({ nodes: nextGraph.nodes, edges: nextGraph.edges });
+        }
+    }, [closeGraph, initializeFromGraphData]);
+
+    // Delete graph permanently
+    const handleDeleteGraph = useCallback(async (graphId: string) => {
+        const graphToDelete = graphs.find(g => g.id === graphId);
+        if (!window.confirm(`Delete "${graphToDelete?.name ?? 'this graph'}"? This cannot be undone.`)) return;
+        const wasLastGraph = graphs.length === 1;
+        const nextActiveGraph = removeGraph(graphId);
+        await deleteGraph(graphId);
+        if (nextActiveGraph) {
+            if (wasLastGraph) await saveGraph(nextActiveGraph);
+            await saveActiveGraphId(nextActiveGraph.id);
+            initializeFromGraphData({ nodes: nextActiveGraph.nodes, edges: nextActiveGraph.edges });
+        }
+    }, [graphs, removeGraph, initializeFromGraphData]);
+
+    // Export: copy patch JSON to clipboard
+    const handleCopyPatchJson = useCallback(async () => {
+        if (!activeGraphId) return;
+        const graph = graphs.find(g => g.id === activeGraphId);
+        if (!graph) return;
+        const patch = graphDocumentToPatch({ ...graph, nodes, edges });
+        try { await navigator.clipboard.writeText(JSON.stringify(patch, null, 2)); } catch {}
+    }, [activeGraphId, graphs, nodes, edges]);
+
+    // Export: download patch JSON as file
+    const handleDownloadPatchJson = useCallback(() => {
+        if (!activeGraphId) return;
+        const graph = graphs.find(g => g.id === activeGraphId);
+        if (!graph) return;
+        const patch = graphDocumentToPatch({ ...graph, nodes, edges });
+        const blob = new Blob([JSON.stringify(patch, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${graph.name.replace(/[^a-zA-Z0-9_-]/g, '_') || 'patch'}.patch.json`;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+    }, [activeGraphId, graphs, nodes, edges]);
+
+    // Import: trigger file picker
+    const handleImportPatch = useCallback(() => { importPatchInputRef.current?.click(); }, []);
+
+    // Import: process selected file
+    const handleImportPatchFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const validation = validateOfflinePatchText(text);
+            const graphName = validation.patch.name || file.name.replace(/\.patch\.json$|\.json$/i, '');
+            await handleSaveActiveGraph();
+            const graph = createGraph(graphName);
+            const graphDoc = patchToGraphDocument(validation.patch);
+            initializeFromGraphData({ nodes: graphDoc.nodes as any, edges: graphDoc.edges });
+            await saveGraph({ ...graph, name: graphName, nodes: graphDoc.nodes as any, edges: graphDoc.edges });
+            await saveActiveGraphId(graph.id);
+        } catch (err) {
+            window.alert(`Failed to import patch: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        } finally {
+            if (importPatchInputRef.current) importPatchInputRef.current.value = '';
+        }
+    }, [handleSaveActiveGraph, createGraph, initializeFromGraphData]);
 
     const commitGraphName = useCallback((nextName: string) => {
         if (!activeGraphId) return;
@@ -711,14 +797,22 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         { id: 'undo', title: 'Undo', shortcut: '⌘Z', onSelect: undo, section: 'Edit' },
         { id: 'redo', title: 'Redo', shortcut: '⌘⇧Z', onSelect: redo, section: 'Edit' },
         { id: 'save', title: 'Save Graph', shortcut: '⌘S', onSelect: handleSaveActiveGraph, section: 'File' },
+        { id: 'toggle-autosave', title: autosaveEnabled ? 'Disable Autosave' : 'Enable Autosave', section: 'File',
+            onSelect: () => setAutosaveEnabled(p => {
+                const n = !p;
+                try { localStorage.setItem('din-editor:autosave', String(n)); } catch {}
+                return n;
+            })
+        },
         { id: 'clear', title: 'Clear Canvas', onSelect: clearGraph, section: 'Edit' },
         { id: 'arrange', title: 'Auto Arrange', shortcut: '⌘L', onSelect: handleAutoArrange, section: 'Layout' },
-        { id: 'copy-patch', title: 'Copy Patch JSON', section: 'File', onSelect: () => {} },
-        { id: 'download-patch', title: 'Download Patch JSON', section: 'File', onSelect: () => {} },
-        { id: 'import-patch', title: 'Import Patch JSON', section: 'File', onSelect: () => {} },
+        { id: 'copy-patch', title: 'Copy Patch JSON', section: 'File', onSelect: () => void handleCopyPatchJson() },
+        { id: 'download-patch', title: 'Download Patch JSON', section: 'File', onSelect: handleDownloadPatchJson },
+        { id: 'import-patch', title: 'Import Patch JSON', section: 'File', onSelect: handleImportPatch },
         { id: 'template-breakbeat', title: 'Load Template: Breakbeat Arc', onSelect: () => loadTemplate(createAtmosphericBreakbeatArcTemplate()), section: 'Templates' },
         { id: 'template-medieval', title: 'Load Template: Medieval Strategy', onSelect: () => loadTemplate(createMedievalStrategyLongformTemplate()), section: 'Templates' },
-    ], [undo, redo, handleSaveActiveGraph, clearGraph, handleAutoArrange, loadTemplate]);
+    ], [undo, redo, handleSaveActiveGraph, autosaveEnabled, clearGraph, handleAutoArrange,
+        handleCopyPatchJson, handleDownloadPatchJson, handleImportPatch, loadTemplate]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -760,6 +854,26 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleSaveActiveGraph, handleAutoArrange, setCommandPaletteOpen]);
+
+    // Mark graph as unsaved when nodes/edges change
+    useEffect(() => {
+        if (!initialDataReady) return;
+        setSaveStatus('unsaved');
+    }, [nodes, edges, initialDataReady]);
+
+    // Debounced autosave
+    useEffect(() => {
+        if (!autosaveEnabled || !initialDataReady || saveStatus !== 'unsaved') return;
+        if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = window.setTimeout(async () => {
+            setSaveStatus('saving');
+            await handleSaveActiveGraph();
+            setSaveStatus('saved');
+        }, 1500);
+        return () => {
+            if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current);
+        };
+    }, [nodes, edges, saveStatus, autosaveEnabled, initialDataReady, handleSaveActiveGraph]);
 
     const onDrop = useCallback(
         (event: React.DragEvent) => {
@@ -855,6 +969,13 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                 onSelect: () => openLeftPanelView('library'),
             }]
             : []),
+        ...(saveStatus !== 'saved'
+            ? [{
+                id: 'save-status',
+                label: saveStatus === 'saving' ? 'Saving…' : 'Unsaved',
+                tone: 'info' as const,
+            }]
+            : []),
     ];
     const gitStatusLabel = reviewState.phase === 'success'
         ? 'git: local review complete'
@@ -930,6 +1051,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                     <ExplorerPanel
                                         onCreateGraph={handleCreateGraph}
                                         onLoadGraph={handleLoadGraph}
+                                        onDeleteGraph={handleDeleteGraph}
                                         onLoadTemplate={(id) => {
                                             if (id === 'atmospheric-breakbeat-arc') {
                                                 loadTemplate(createAtmosphericBreakbeatArcTemplate());
@@ -984,7 +1106,10 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                             >
                                 <div className="flex items-end justify-between border-b border-[var(--panel-border)] bg-[var(--panel-muted)]/30 pr-3" data-testid="graph-tabs">
                                     <div className="flex min-w-0 flex-1 items-end overflow-x-auto">
-                                        {graphs.map((graph) => (
+                                        {openGraphIds
+                                            .map(id => graphs.find(g => g.id === id))
+                                            .filter((g): g is NonNullable<typeof g> => Boolean(g))
+                                            .map((graph) => (
                                             <button
                                                 key={graph.id}
                                                 type="button"
@@ -1003,10 +1128,11 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                                     <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[var(--canvas-bg)]" />
                                                 )}
                                                 <span className="truncate pr-4">{graph.name || graph.id || 'Untitled'}</span>
-                                                <div 
+                                                <div
                                                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded transition-colors ${
                                                         graph.id === activeGraphId ? 'opacity-100 hover:bg-[var(--panel-muted)]' : 'opacity-0 group-hover:opacity-100 hover:bg-[var(--panel-muted)]'
                                                     }`}
+                                                    onClick={(e) => { e.stopPropagation(); void handleCloseGraph(graph.id); }}
                                                 >
                                                     <span aria-hidden="true" className="text-[10px]">✕</span>
                                                 </div>
@@ -1122,6 +1248,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                 onHeightChange={updateBottomDrawerHeight}
                                 runtimeContent={<RuntimeDrawerContent />}
                                 diagnosticsContent={<DiagnosticsDrawerContent />}
+                                agentContent={<AgentPanel />}
                             />
                         )}
                         rightPanel={(
@@ -1170,6 +1297,13 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                     open={commandPaletteOpen}
                     onClose={() => setCommandPaletteOpen(false)}
                     actions={commandActions}
+                />
+                <input
+                    ref={importPatchInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={(e) => void handleImportPatchFile(e)}
                 />
             </div>
         </MidiProvider>

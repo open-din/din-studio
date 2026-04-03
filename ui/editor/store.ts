@@ -68,8 +68,11 @@ interface AudioGraphState {
     onConnect: OnConnect;
 
     // Graph actions
+    openGraphIds: string[];
     setGraphs: (graphs: GraphDocument[], activeGraphId?: string | null) => void;
     setActiveGraph: (graphId: string) => void;
+    openGraph: (graphId: string) => void;
+    closeGraph: (graphId: string) => GraphDocument | null;
     createGraph: (name?: string) => GraphDocument;
     renameGraph: (graphId: string, name: string) => void;
     removeGraph: (graphId: string) => GraphDocument | null;
@@ -98,6 +101,10 @@ interface AudioGraphState {
     setConnectionAssist: (assist: ConnectionAssistStart | null) => void;
     setAssistPosition: (position: XYPosition | null) => void;
     setAssistQuery: (query: string) => void;
+
+    // AI Agent
+    openAiApiKey: string | null;
+    setOpenAiApiKey: (key: string | null) => void;
 }
 
 let nodeIdCounter = 0;
@@ -434,6 +441,10 @@ const syncNodePatchIntoHistory = (
 
 const initialGraph: GraphDocument = createInitialGraphDocument();
 
+function persistOpenGraphIds(ids: string[]) {
+    try { localStorage.setItem('din-editor:openGraphIds', JSON.stringify(ids)); } catch {}
+}
+
 const normalizeGraphDocument = (graph: GraphDocument, index: number, now: number): GraphDocument => {
     const nodes = migrateGraphNodes(graph.nodes);
     const edges = migrateGraphEdges(nodes, graph.edges);
@@ -525,6 +536,7 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
     edges: initialGraph.edges,
     graphs: [initialGraph],
     activeGraphId: initialGraph.id,
+    openGraphIds: [initialGraph.id],
     isHydrated: false,
     audioContext: null,
     selectedNodeId: null,
@@ -662,9 +674,21 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
         audioEngine.stop();
         syncNodeIdCounter(activeGraph.nodes);
 
+        const savedOpen = (() => {
+            try {
+                const raw = localStorage.getItem('din-editor:openGraphIds');
+                const parsed: string[] = raw ? JSON.parse(raw) : [];
+                return parsed.filter(id => orderedGraphs.some(g => g.id === id));
+            } catch { return []; }
+        })();
+        const openGraphIds = savedOpen.length > 0
+            ? savedOpen
+            : [activeGraph.id];
+
         set({
             graphs: orderedGraphs,
             activeGraphId: activeGraph.id,
+            openGraphIds,
             nodes: activeGraph.nodes,
             edges: activeGraph.edges,
             selectedNodeId: null,
@@ -713,6 +737,31 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
         audioEngine.refreshConnections(nextGraph.nodes, nextGraph.edges);
     },
 
+    openGraph: (graphId) => {
+        const state = get();
+        if (!state.graphs.find(g => g.id === graphId)) return;
+        if (state.openGraphIds.includes(graphId)) return;
+        const openGraphIds = [...state.openGraphIds, graphId];
+        set({ openGraphIds });
+        persistOpenGraphIds(openGraphIds);
+    },
+
+    closeGraph: (graphId) => {
+        const state = get();
+        const remaining = state.openGraphIds.filter(id => id !== graphId);
+        // If no open tabs remain, re-open the first available graph
+        const fallbackId = remaining[0] ?? state.graphs.find(g => g.id !== graphId)?.id ?? null;
+        const nextOpen = fallbackId && !remaining.includes(fallbackId)
+            ? [...remaining, fallbackId]
+            : remaining;
+        const nextActiveId = state.activeGraphId === graphId
+            ? (nextOpen[0] ?? null)
+            : state.activeGraphId;
+        set({ openGraphIds: nextOpen, activeGraphId: nextActiveId ?? state.activeGraphId });
+        persistOpenGraphIds(nextOpen);
+        return nextActiveId ? state.graphs.find(g => g.id === nextActiveId) ?? null : null;
+    },
+
     createGraph: (name) => {
         const state = get();
         const nextIndex = state.graphs.length + 1;
@@ -735,9 +784,13 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
         syncNodeIdCounter(normalizedGraph.nodes);
         audioEngine.stop();
 
+        const openGraphIds = [...state.openGraphIds, normalizedGraph.id];
+        persistOpenGraphIds(openGraphIds);
+
         set({
             graphs: [...updatedGraphs, normalizedGraph],
             activeGraphId: normalizedGraph.id,
+            openGraphIds,
             nodes: normalizedGraph.nodes,
             edges: normalizedGraph.edges,
             selectedNodeId: null,
@@ -806,9 +859,13 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
             syncNodeIdCounter(normalized.nodes);
             audioEngine.stop();
 
+            const fallbackOpenIds = [normalized.id];
+            persistOpenGraphIds(fallbackOpenIds);
+
             set({
                 graphs: [normalized],
                 activeGraphId: normalized.id,
+                openGraphIds: fallbackOpenIds,
                 nodes: normalized.nodes,
                 edges: normalized.edges,
                 selectedNodeId: null,
@@ -821,8 +878,16 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
             return normalized;
         }
 
-        const nextActiveId = graphId === state.activeGraphId ? remaining[0].id : state.activeGraphId;
+        const nextActiveId = graphId === state.activeGraphId
+            ? remaining[0].id
+            : (state.activeGraphId ?? remaining[0].id);
         const nextActiveGraph = remaining.find((g) => g.id === nextActiveId)!;
+        const nextOpenIds = state.openGraphIds.filter(id => id !== graphId);
+        // If we removed the active tab and no other open tabs exist, open the next active
+        const finalOpenIds = nextOpenIds.length > 0
+            ? nextOpenIds
+            : [nextActiveId];
+        persistOpenGraphIds(finalOpenIds);
 
         syncNodeIdCounter(nextActiveGraph.nodes);
         audioEngine.stop();
@@ -830,6 +895,7 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
         set({
             graphs: remaining,
             activeGraphId: nextActiveId,
+            openGraphIds: finalOpenIds,
             nodes: nextActiveGraph.nodes,
             edges: nextActiveGraph.edges,
             selectedNodeId: null,
@@ -883,6 +949,18 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
     setConnectionAssist: (connectionAssist) => set({ connectionAssist }),
     setAssistPosition: (assistPosition) => set({ assistPosition }),
     setAssistQuery: (assistQuery) => set({ assistQuery }),
+
+    openAiApiKey: (typeof localStorage !== 'undefined' ? localStorage.getItem('din-studio-openai-api-key') : null),
+    setOpenAiApiKey: (key) => {
+        if (typeof localStorage !== 'undefined') {
+            if (key) {
+                localStorage.setItem('din-studio-openai-api-key', key);
+            } else {
+                localStorage.removeItem('din-studio-openai-api-key');
+            }
+        }
+        set({ openAiApiKey: key });
+    },
 
     onNodesChange: (changes) => {
         const state = get();

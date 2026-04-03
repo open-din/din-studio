@@ -1,7 +1,7 @@
 import type { DensityMode, LauncherSection, RailMode, SourceControlPhase, StatusSeverity } from '../phase3a.types';
 
 export type LeftPanelView = Exclude<RailMode, 'runtime'>;
-export type BottomDrawerTab = 'runtime' | 'diagnostics';
+export type BottomDrawerTab = 'runtime' | 'diagnostics' | 'agent';
 export type InspectorTab = 'inspect' | 'code';
 export type { DensityMode, LauncherSection, RailMode, SourceControlPhase, StatusSeverity };
 
