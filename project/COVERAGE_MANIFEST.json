@@ -1,0 +1,828 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "editor-node:OscNode",
+      "kind": "editor-node",
+      "name": "OscNode",
+      "source": "ui/editor/nodes/OscNode.tsx",
+      "docs": "project/features/32_node_osc.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F32-S01",
+        "F32-S02",
+        "F32-S03"
+      ]
+    },
+    {
+      "id": "editor-node:GainNode",
+      "kind": "editor-node",
+      "name": "GainNode",
+      "source": "ui/editor/nodes/GainNode.tsx",
+      "docs": "project/features/41_node_gain.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F41-S01",
+        "F41-S02",
+        "F41-S03"
+      ]
+    },
+    {
+      "id": "editor-node:FilterNode",
+      "kind": "editor-node",
+      "name": "FilterNode",
+      "source": "ui/editor/nodes/FilterNode.tsx",
+      "docs": "project/features/42_node_filter.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F42-S01",
+        "F42-S02",
+        "F42-S03"
+      ]
+    },
+    {
+      "id": "editor-node:OutputNode",
+      "kind": "editor-node",
+      "name": "OutputNode",
+      "source": "ui/editor/nodes/OutputNode.tsx",
+      "docs": "project/features/61_node_output.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F61-S01",
+        "F61-S02",
+        "F61-S03",
+        "F61-S04"
+      ]
+    },
+    {
+      "id": "editor-node:NoiseNode",
+      "kind": "editor-node",
+      "name": "NoiseNode",
+      "source": "ui/editor/nodes/NoiseNode.tsx",
+      "docs": "project/features/33_node_noise.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F33-S01",
+        "F33-S02",
+        "F33-S03"
+      ]
+    },
+    {
+      "id": "editor-node:DelayNode",
+      "kind": "editor-node",
+      "name": "DelayNode",
+      "source": "ui/editor/nodes/DelayNode.tsx",
+      "docs": "project/features/44_node_delay.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F44-S01",
+        "F44-S02",
+        "F44-S03"
+      ]
+    },
+    {
+      "id": "editor-node:ReverbNode",
+      "kind": "editor-node",
+      "name": "ReverbNode",
+      "source": "ui/editor/nodes/ReverbNode.tsx",
+      "docs": "project/features/45_node_reverb.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F45-S01",
+        "F45-S02",
+        "F45-S03"
+      ]
+    },
+    {
+      "id": "editor-node:AnalyzerNode",
+      "kind": "editor-node",
+      "name": "AnalyzerNode",
+      "source": "ui/editor/nodes/AnalyzerNode.tsx",
+      "docs": "project/features/54_node_analyzer.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F54-S01",
+        "F54-S02",
+        "F54-S03"
+      ]
+    },
+    {
+      "id": "editor-node:ChorusNode",
+      "kind": "editor-node",
+      "name": "ChorusNode",
+      "source": "ui/editor/nodes/ChorusNode.tsx",
+      "docs": "project/features/51_node_chorus.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F51-S01",
+        "F51-S02",
+        "F51-S03"
+      ]
+    },
+    {
+      "id": "editor-node:CompressorNode",
+      "kind": "editor-node",
+      "name": "CompressorNode",
+      "source": "ui/editor/nodes/CompressorNode.tsx",
+      "docs": "project/features/43_node_compressor.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/unit/node-helpers.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S06",
+        "F43-S01",
+        "F43-S02",
+        "F43-S03"
+      ]
+    },
+    {
+      "id": "editor-node:PhaserNode",
+      "kind": "editor-node",
+      "name": "PhaserNode",
+      "source": "ui/editor/nodes/PhaserNode.tsx",
+      "docs": "project/features/46_node_phaser.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S05",
+        "F46-S01",
+        "F46-S02",
+        "F46-S03"
+      ]
+    },
+    {
+      "id": "editor-node:FlangerNode",
+      "kind": "editor-node",
+      "name": "FlangerNode",
+      "source": "ui/editor/nodes/FlangerNode.tsx",
+      "docs": "project/features/47_node_flanger.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S05",
+        "F47-S01",
+        "F47-S02",
+        "F47-S03"
+      ]
+    },
+    {
+      "id": "editor-node:TremoloNode",
+      "kind": "editor-node",
+      "name": "TremoloNode",
+      "source": "ui/editor/nodes/TremoloNode.tsx",
+      "docs": "project/features/48_node_tremolo.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S05",
+        "F48-S01",
+        "F48-S02",
+        "F48-S03"
+      ]
+    },
+    {
+      "id": "editor-node:EQ3Node",
+      "kind": "editor-node",
+      "name": "EQ3Node",
+      "source": "ui/editor/nodes/EQ3Node.tsx",
+      "docs": "project/features/49_node_eq3.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S05",
+        "F49-S01",
+        "F49-S02",
+        "F49-S03"
+      ]
+    },
+    {
+      "id": "editor-node:ConstantSourceNode",
+      "kind": "editor-node",
+      "name": "ConstantSourceNode",
+      "source": "ui/editor/nodes/ConstantSourceNode.tsx",
+      "docs": "project/features/27_node_constant_source.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F27-S01",
+        "F27-S02",
+        "F27-S03"
+      ]
+    },
+    {
+      "id": "editor-node:ConvolverNode",
+      "kind": "editor-node",
+      "name": "ConvolverNode",
+      "source": "ui/editor/nodes/ConvolverNode.tsx",
+      "docs": "project/features/53_node_convolver.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/unit/audio-library.spec.ts",
+        "tests/unit/editor-connection-assist.spec.tsx"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F53-S01",
+        "F53-S02",
+        "F53-S03"
+      ]
+    },
+    {
+      "id": "editor-node:DistortionNode",
+      "kind": "editor-node",
+      "name": "DistortionNode",
+      "source": "ui/editor/nodes/DistortionNode.tsx",
+      "docs": "project/features/50_node_distortion.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F50-S01",
+        "F50-S02",
+        "F50-S03"
+      ]
+    },
+    {
+      "id": "editor-node:EventTriggerNode",
+      "kind": "editor-node",
+      "name": "EventTriggerNode",
+      "source": "ui/editor/nodes/EventTriggerNode.tsx",
+      "docs": "project/features/22_node_event_trigger.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S03",
+        "F22-S01",
+        "F22-S02",
+        "F22-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MediaStreamNode",
+      "kind": "editor-node",
+      "name": "MediaStreamNode",
+      "source": "ui/editor/nodes/MediaStreamNode.tsx",
+      "docs": "project/features/28_node_media_stream.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F28-S01",
+        "F28-S02",
+        "F28-S03"
+      ]
+    },
+    {
+      "id": "editor-node:NoiseBurstNode",
+      "kind": "editor-node",
+      "name": "NoiseBurstNode",
+      "source": "ui/editor/nodes/NoiseBurstNode.tsx",
+      "docs": "project/features/34_node_noise_burst.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F34-S01",
+        "F34-S02",
+        "F34-S03"
+      ]
+    },
+    {
+      "id": "editor-node:Panner3DNode",
+      "kind": "editor-node",
+      "name": "Panner3DNode",
+      "source": "ui/editor/nodes/Panner3DNode.tsx",
+      "docs": "project/features/56_node_panner_3d.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F56-S01",
+        "F56-S02",
+        "F56-S03"
+      ]
+    },
+    {
+      "id": "editor-node:StereoPannerNode",
+      "kind": "editor-node",
+      "name": "StereoPannerNode",
+      "source": "ui/editor/nodes/StereoPannerNode.tsx",
+      "docs": "project/features/55_node_panner.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F55-S01",
+        "F55-S02",
+        "F55-S03"
+      ]
+    },
+    {
+      "id": "editor-node:WaveShaperNode",
+      "kind": "editor-node",
+      "name": "WaveShaperNode",
+      "source": "ui/editor/nodes/WaveShaperNode.tsx",
+      "docs": "project/features/52_node_wave_shaper.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F52-S01",
+        "F52-S02",
+        "F52-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MixerNode",
+      "kind": "editor-node",
+      "name": "MixerNode",
+      "source": "ui/editor/nodes/MixerNode.tsx",
+      "docs": "project/features/57_node_mixer.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F57-S01",
+        "F57-S02",
+        "F57-S03"
+      ]
+    },
+    {
+      "id": "editor-node:AuxSendNode",
+      "kind": "editor-node",
+      "name": "AuxSendNode",
+      "source": "ui/editor/nodes/AuxSendNode.tsx",
+      "docs": "project/features/58_node_aux_send.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S06",
+        "F58-S01",
+        "F58-S02",
+        "F58-S03"
+      ]
+    },
+    {
+      "id": "editor-node:AuxReturnNode",
+      "kind": "editor-node",
+      "name": "AuxReturnNode",
+      "source": "ui/editor/nodes/AuxReturnNode.tsx",
+      "docs": "project/features/59_node_aux_return.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S06",
+        "F59-S01",
+        "F59-S02",
+        "F59-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MatrixMixerNode",
+      "kind": "editor-node",
+      "name": "MatrixMixerNode",
+      "source": "ui/editor/nodes/MatrixMixerNode.tsx",
+      "docs": "project/features/60_node_matrix_mixer.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/unit/node-helpers.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F03-S06",
+        "F60-S01",
+        "F60-S02",
+        "F60-S03"
+      ]
+    },
+    {
+      "id": "editor-node:InputNode",
+      "kind": "editor-node",
+      "name": "InputNode",
+      "source": "ui/editor/nodes/InputNode.tsx",
+      "docs": "project/features/20_node_input.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F20-S01",
+        "F20-S02",
+        "F20-S03"
+      ]
+    },
+    {
+      "id": "editor-node:UiTokensNode",
+      "kind": "editor-node",
+      "name": "UiTokensNode",
+      "source": "ui/editor/nodes/UiTokensNode.tsx",
+      "docs": "project/features/21_node_ui_tokens.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/unit/node-helpers.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F21-S01",
+        "F21-S02",
+        "F21-S03"
+      ]
+    },
+    {
+      "id": "editor-node:NoteNode",
+      "kind": "editor-node",
+      "name": "NoteNode",
+      "source": "ui/editor/nodes/NoteNode.tsx",
+      "docs": "project/features/31_node_note.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F31-S01",
+        "F31-S02",
+        "F31-S03"
+      ]
+    },
+    {
+      "id": "editor-node:TransportNode",
+      "kind": "editor-node",
+      "name": "TransportNode",
+      "source": "ui/editor/nodes/TransportNode.tsx",
+      "docs": "project/features/23_node_transport.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S03",
+        "F23-S01",
+        "F23-S02",
+        "F23-S03",
+        "F23-S04"
+      ]
+    },
+    {
+      "id": "editor-node:StepSequencerNode",
+      "kind": "editor-node",
+      "name": "StepSequencerNode",
+      "source": "ui/editor/nodes/StepSequencerNode.tsx",
+      "docs": "project/features/24_node_step_sequencer.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S03",
+        "F24-S01",
+        "F24-S02",
+        "F24-S03"
+      ]
+    },
+    {
+      "id": "editor-node:PianoRollNode",
+      "kind": "editor-node",
+      "name": "PianoRollNode",
+      "source": "ui/editor/nodes/PianoRollNode.tsx",
+      "docs": "project/features/25_node_piano_roll.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S03",
+        "F25-S01",
+        "F25-S02",
+        "F25-S03"
+      ]
+    },
+    {
+      "id": "editor-node:LFONode",
+      "kind": "editor-node",
+      "name": "LFONode",
+      "source": "ui/editor/nodes/LFONode.tsx",
+      "docs": "project/features/26_node_lfo.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S03",
+        "F26-S01",
+        "F26-S02",
+        "F26-S03"
+      ]
+    },
+    {
+      "id": "editor-node:ADSRNode",
+      "kind": "editor-node",
+      "name": "ADSRNode",
+      "source": "ui/editor/nodes/ADSRNode.tsx",
+      "docs": "project/features/30_node_adsr.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S03",
+        "F30-S01",
+        "F30-S02",
+        "F30-S03"
+      ]
+    },
+    {
+      "id": "editor-node:VoiceNode",
+      "kind": "editor-node",
+      "name": "VoiceNode",
+      "source": "ui/editor/nodes/VoiceNode.tsx",
+      "docs": "project/features/29_node_voice.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S03",
+        "F29-S01",
+        "F29-S02",
+        "F29-S03"
+      ]
+    },
+    {
+      "id": "editor-node:SamplerNode",
+      "kind": "editor-node",
+      "name": "SamplerNode",
+      "source": "ui/editor/nodes/SamplerNode.tsx",
+      "docs": "project/features/35_node_sampler.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/unit/audio-library.spec.ts",
+        "tests/unit/editor-connection-assist.spec.tsx"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F35-S01",
+        "F35-S02",
+        "F35-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MathNode",
+      "kind": "editor-node",
+      "name": "MathNode",
+      "source": "ui/editor/nodes/MathNode.tsx",
+      "docs": "project/features/62_node_math.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F62-S01",
+        "F62-S02",
+        "F62-S03"
+      ]
+    },
+    {
+      "id": "editor-node:CompareNode",
+      "kind": "editor-node",
+      "name": "CompareNode",
+      "source": "ui/editor/nodes/CompareNode.tsx",
+      "docs": "project/features/63_node_compare.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F63-S01",
+        "F63-S02",
+        "F63-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MixNode",
+      "kind": "editor-node",
+      "name": "MixNode",
+      "source": "ui/editor/nodes/MixNode.tsx",
+      "docs": "project/features/64_node_mix.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F64-S01",
+        "F64-S02",
+        "F64-S03"
+      ]
+    },
+    {
+      "id": "editor-node:ClampNode",
+      "kind": "editor-node",
+      "name": "ClampNode",
+      "source": "ui/editor/nodes/ClampNode.tsx",
+      "docs": "project/features/65_node_clamp.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F65-S01",
+        "F65-S02",
+        "F65-S03"
+      ]
+    },
+    {
+      "id": "editor-node:SwitchNode",
+      "kind": "editor-node",
+      "name": "SwitchNode",
+      "source": "ui/editor/nodes/SwitchNode.tsx",
+      "docs": "project/features/66_node_switch.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S02",
+        "F66-S01",
+        "F66-S02",
+        "F66-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MidiNoteNode",
+      "kind": "editor-node",
+      "name": "MidiNoteNode",
+      "source": "ui/editor/nodes/MidiNoteNode.tsx",
+      "docs": "project/features/36_node_midi_note.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/node-helpers.spec.ts",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S04",
+        "F03-S07",
+        "F36-S01",
+        "F36-S02",
+        "F36-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MidiCCNode",
+      "kind": "editor-node",
+      "name": "MidiCCNode",
+      "source": "ui/editor/nodes/MidiCCNode.tsx",
+      "docs": "project/features/37_node_midi_cc.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/node-helpers.spec.ts",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S04",
+        "F03-S07",
+        "F37-S01",
+        "F37-S02",
+        "F37-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MidiNoteOutputNode",
+      "kind": "editor-node",
+      "name": "MidiNoteOutputNode",
+      "source": "ui/editor/nodes/MidiNoteOutputNode.tsx",
+      "docs": "project/features/38_node_midi_note_output.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S04",
+        "F03-S07",
+        "F38-S01",
+        "F38-S02",
+        "F38-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MidiCCOutputNode",
+      "kind": "editor-node",
+      "name": "MidiCCOutputNode",
+      "source": "ui/editor/nodes/MidiCCOutputNode.tsx",
+      "docs": "project/features/39_node_midi_cc_output.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S04",
+        "F03-S07",
+        "F39-S01",
+        "F39-S02",
+        "F39-S03"
+      ]
+    },
+    {
+      "id": "editor-node:MidiSyncNode",
+      "kind": "editor-node",
+      "name": "MidiSyncNode",
+      "source": "ui/editor/nodes/MidiSyncNode.tsx",
+      "docs": "project/features/40_node_midi_sync.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S04",
+        "F03-S07",
+        "F40-S01",
+        "F40-S02",
+        "F40-S03"
+      ]
+    }
+  ]
+}
