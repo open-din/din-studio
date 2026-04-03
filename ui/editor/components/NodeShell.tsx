@@ -1,4 +1,5 @@
-import type { CSSProperties, ChangeEvent, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import type { CSSProperties, ChangeEvent, InputHTMLAttributes, KeyboardEvent, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Position } from '@xyflow/react';
 import type { EditorNodeType, PaletteCategory } from '../nodeCatalog';
 import { getNodeCatalogEntry } from '../nodeCatalog';
@@ -170,24 +171,230 @@ export function NodeValueBadge({ children, live = false, className = '', dot = l
     );
 }
 
-interface NodeNumberFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+interface NodeNumberFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'type'> {
     value: number;
     onChange: (value: number) => void;
 }
 
 export function NodeNumberField({ value, onChange, className = '', ...props }: NodeNumberFieldProps) {
-    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-        onChange(Number(event.target.value));
+    const min = typeof props.min === 'number' && Number.isFinite(props.min) ? props.min : undefined;
+    const max = typeof props.max === 'number' && Number.isFinite(props.max) ? props.max : undefined;
+    const step = typeof props.step === 'number' && Number.isFinite(props.step) ? props.step : 0.01;
+    const hasRange = typeof min === 'number' && typeof max === 'number';
+    const isDisabled = Boolean(props.disabled);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [draftValue, setDraftValue] = useState(String(Number.isFinite(value) ? value : 0));
+    const [isScrubbing, setIsScrubbing] = useState(false);
+    const startRef = useRef<{ x: number; value: number; dragging: boolean } | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const suppressClickRef = useRef(false);
+
+    const stepDecimals = useMemo(() => {
+        const text = String(step);
+        const [, decimals] = text.split('.');
+        return decimals ? decimals.length : 0;
+    }, [step]);
+
+    const clampValue = (nextValue: number) => {
+        let clamped = nextValue;
+        if (typeof min === 'number') clamped = Math.max(min, clamped);
+        if (typeof max === 'number') clamped = Math.min(max, clamped);
+        return clamped;
+    };
+
+    const normalizeValue = (nextValue: number) => {
+        if (!Number.isFinite(nextValue)) return clampValue(value);
+        if (step > 0) {
+            const rounded = Math.round(nextValue / step) * step;
+            return clampValue(Number(rounded.toFixed(stepDecimals)));
+        }
+        return clampValue(nextValue);
+    };
+
+    const displayValue = useMemo(() => {
+        const safeValue = Number.isFinite(value) ? value : 0;
+        return stepDecimals > 0 ? safeValue.toFixed(stepDecimals) : String(Math.round(safeValue));
+    }, [value, stepDecimals]);
+
+    useEffect(() => {
+        if (!isEditing) {
+            setDraftValue(displayValue);
+        }
+    }, [displayValue, isEditing]);
+
+    const commitDraft = (next: string) => {
+        const parsed = Number(next);
+        if (Number.isFinite(parsed)) {
+            onChange(normalizeValue(parsed));
+        }
+        setIsEditing(false);
+    };
+
+    const handleScrubPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (isDisabled || isEditing) return;
+        startRef.current = { x: event.clientX, value: Number.isFinite(value) ? value : 0, dragging: false };
+        suppressClickRef.current = false;
+        setIsScrubbing(false);
+        event.currentTarget.setPointerCapture(event.pointerId);
+    };
+
+    const handleScrubPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+        const start = startRef.current;
+        if (!start || isDisabled) return;
+        const delta = event.clientX - start.x;
+        if (!start.dragging && Math.abs(delta) > 3) {
+            start.dragging = true;
+            suppressClickRef.current = true;
+            setIsScrubbing(true);
+        }
+        if (!start.dragging) return;
+
+        const nextValue = start.value + (delta / 8) * step;
+        onChange(normalizeValue(nextValue));
+    };
+
+    const handleScrubPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (startRef.current) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        startRef.current = null;
+        setIsScrubbing(false);
+        window.setTimeout(() => {
+            suppressClickRef.current = false;
+        }, 0);
+    };
+
+    const handleValueClick = () => {
+        if (isDisabled || suppressClickRef.current) return;
+        setIsEditing(true);
+        requestAnimationFrame(() => {
+            inputRef.current?.focus();
+            inputRef.current?.select();
+        });
+    };
+
+    const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setDraftValue(event.target.value);
+    };
+
+    const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            commitDraft(draftValue);
+        } else if (event.key === 'Escape') {
+            setIsEditing(false);
+            setDraftValue(displayValue);
+        }
+    };
+
+    const handleStep = (direction: -1 | 1) => {
+        if (isDisabled) return;
+        onChange(normalizeValue((Number.isFinite(value) ? value : 0) + direction * step));
+    };
+
+    const handleSliderChange = (event: ChangeEvent<HTMLInputElement>) => {
+        onChange(normalizeValue(Number(event.target.value)));
     };
 
     return (
-        <input
-            {...props}
-            type="number"
-            value={Number.isFinite(value) ? value : 0}
-            onChange={handleChange}
-            className={`node-shell__field ${className}`.trim()}
-        />
+        <div
+            className={`node-shell__number ${hasRange ? 'node-shell__number--range' : ''} ${isScrubbing ? 'is-scrubbing' : ''} ${className}`.trim()}
+        >
+            {!hasRange ? (
+                <>
+                    <button
+                        type="button"
+                        aria-label="Decrease value"
+                        className="node-shell__number-step"
+                        onClick={() => handleStep(-1)}
+                        disabled={isDisabled}
+                    >
+                        &lt;
+                    </button>
+                    <div
+                        className="node-shell__number-core"
+                        onPointerDown={handleScrubPointerDown}
+                        onPointerMove={handleScrubPointerMove}
+                        onPointerUp={handleScrubPointerUp}
+                        onPointerCancel={handleScrubPointerUp}
+                    >
+                        {isEditing ? (
+                            <input
+                                {...props}
+                                ref={inputRef}
+                                type="text"
+                                inputMode="decimal"
+                                value={draftValue}
+                                onChange={handleInputChange}
+                                onBlur={() => commitDraft(draftValue)}
+                                onKeyDown={handleInputKeyDown}
+                                className="node-shell__number-input"
+                            />
+                        ) : (
+                            <button type="button" className="node-shell__number-value" onClick={handleValueClick} disabled={isDisabled}>
+                                {displayValue}
+                            </button>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        aria-label="Increase value"
+                        className="node-shell__number-step"
+                        onClick={() => handleStep(1)}
+                        disabled={isDisabled}
+                    >
+                        &gt;
+                    </button>
+                </>
+            ) : (
+                <>
+                    <div className="node-shell__slider">
+                        <div className="node-shell__slider-track" />
+                        <div
+                            className="node-shell__slider-fill"
+                            style={{
+                                width: (() => {
+                                    const safeValue = Number.isFinite(value) ? value : 0;
+                                    const range = (max ?? 1) - (min ?? 0);
+                                    if (!Number.isFinite(range) || range === 0) return '0%';
+                                    const percent = ((safeValue - (min ?? 0)) / range) * 100;
+                                    return `${Math.min(100, Math.max(0, percent))}%`;
+                                })(),
+                            }}
+                        />
+                        <input
+                            {...props}
+                            type="range"
+                            min={min}
+                            max={max}
+                            step={step}
+                            value={Number.isFinite(value) ? value : 0}
+                            onChange={handleSliderChange}
+                            className="node-shell__slider-input"
+                            aria-label={props['aria-label'] ?? 'Numeric slider'}
+                            disabled={isDisabled}
+                        />
+                    </div>
+                    {isEditing ? (
+                        <input
+                            {...props}
+                            ref={inputRef}
+                            type="text"
+                            inputMode="decimal"
+                            value={draftValue}
+                            onChange={handleInputChange}
+                            onBlur={() => commitDraft(draftValue)}
+                            onKeyDown={handleInputKeyDown}
+                            className="node-shell__number-input node-shell__number-input--inline"
+                        />
+                    ) : (
+                        <button type="button" className="node-shell__number-value node-shell__number-value--inline" onClick={handleValueClick} disabled={isDisabled}>
+                            {displayValue}
+                        </button>
+                    )}
+                </>
+            )}
+        </div>
     );
 }
 

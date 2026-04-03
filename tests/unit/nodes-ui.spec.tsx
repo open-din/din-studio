@@ -488,8 +488,36 @@ describe('editor node UIs', () => {
         );
 
         expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+        expect(screen.queryByRole('slider')).not.toBeInTheDocument();
         expect(screen.getByText('0.72')).toBeInTheDocument();
         expect(screen.queryByText(/incoming modulation value/i)).not.toBeInTheDocument();
+    });
+
+    it('renders a gauge slider with value for ranged numeric fields', () => {
+        const sharedProps = {
+            dragging: false,
+            selected: false,
+            zIndex: 0,
+            selectable: true,
+            draggable: true,
+            isConnectable: true,
+            positionAbsoluteX: 0,
+            positionAbsoluteY: 0,
+            xPos: 0,
+            yPos: 0,
+        } as const;
+
+        render(
+            <OutputNode
+                {...(sharedProps as any)}
+                id="output-1"
+                data={{ type: 'output', masterGain: 0.42, playing: false, label: 'Output' }}
+            />
+        );
+
+        expect(screen.getByRole('slider')).toBeInTheDocument();
+        expect(screen.getByText('0.42')).toBeInTheDocument();
     });
 
     it('renders extended MVP feedback and routing node controls with stable handles', async () => {

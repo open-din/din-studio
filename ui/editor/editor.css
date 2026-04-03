@@ -459,6 +459,127 @@
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--node-family-accent) 18%, transparent);
 }
 
+.node-shell__number {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.node-shell__number-core {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    min-height: 32px;
+    border-radius: 8px;
+    border: 1px solid color-mix(in oklab, var(--control-border) 88%, white 12%);
+    background: color-mix(in oklab, var(--panel-bg) 84%, var(--panel-muted));
+    padding: 0 8px;
+    cursor: col-resize;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.node-shell__number.is-scrubbing .node-shell__number-core {
+    border-color: color-mix(in oklab, var(--node-family-accent) 72%, white 28%);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--node-family-accent) 18%, transparent);
+}
+
+.node-shell__number-step {
+    width: 20px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in oklab, var(--control-border) 88%, white 12%);
+    background: color-mix(in oklab, var(--panel-bg) 84%, var(--panel-muted));
+    color: var(--text);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+
+.node-shell__number-step:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.node-shell__number-value {
+    width: 100%;
+    text-align: right;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 16px;
+    cursor: text;
+}
+
+.node-shell__number-value:disabled {
+    cursor: not-allowed;
+}
+
+.node-shell__number-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 16px;
+    outline: none;
+    text-align: right;
+}
+
+.node-shell__number--range {
+    gap: 10px;
+}
+
+.node-shell__slider {
+    position: relative;
+    flex: 1;
+    height: 12px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--panel-bg) 70%, var(--panel-muted));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--control-border) 88%, white 12%);
+}
+
+.node-shell__slider-track {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+}
+
+.node-shell__slider-fill {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, color-mix(in oklab, var(--node-family-accent) 78%, white 22%), var(--node-family-accent));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--node-family-accent) 55%, transparent);
+}
+
+.node-shell__slider-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: ew-resize;
+}
+
+.node-shell__number-value--inline {
+    width: 52px;
+    text-align: right;
+    padding: 0 4px;
+}
+
+.node-shell__number-input--inline {
+    width: 52px;
+    text-align: right;
+}
+
 .node-shell__textarea {
     min-height: 72px;
     padding-block: 8px;

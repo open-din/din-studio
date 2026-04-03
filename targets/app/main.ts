@@ -4,6 +4,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { graphDocumentToPatch, patchToGraphDocument } from '@open-din/react/patch';
 
+// Reduce GPU raster load in development to avoid tile memory overages.
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu-rasterization');
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('force-device-scale-factor', '1');
+
 type ProjectStorageKind = 'electron-fs';
 type ProjectAssetKind = 'sample' | 'impulse' | 'audio';
 
@@ -535,10 +541,10 @@ function createWindowUrl(projectId?: string): string {
 function createBrowserWindow(projectId?: string): BrowserWindow {
     const preloadPath = join(__dirname, 'preload.js');
     const window = new BrowserWindow({
-        width: 1540,
-        height: 980,
-        minWidth: 1120,
-        minHeight: 720,
+        width: 1280,
+        height: 720,
+        minWidth: 1024,
+        minHeight: 640,
         backgroundColor: '#080912',
         webPreferences: {
             preload: preloadPath,
