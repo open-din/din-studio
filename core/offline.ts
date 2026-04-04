@@ -1,4 +1,5 @@
 import { generateCode } from '../ui/editor/CodeGenerator';
+import type { GraphDocument } from '../ui/editor/store';
 import {
     graphDocumentToPatch,
     migratePatchDocument,
@@ -6,6 +7,10 @@ import {
     type PatchDocument,
 } from '@open-din/react/patch';
 import type { OfflinePatchSummary, OfflinePatchValidation } from './types';
+
+function patchDocumentToStudioGraph(patch: PatchDocument): GraphDocument {
+    return patchToGraphDocument(patch) as unknown as GraphDocument;
+}
 
 export function summarizePatch(patch: PatchDocument): OfflinePatchSummary {
     return {
@@ -22,7 +27,7 @@ export function summarizePatch(patch: PatchDocument): OfflinePatchSummary {
 
 export function normalizeOfflinePatch(patch: PatchDocument): OfflinePatchValidation {
     const migrated = migratePatchDocument(patch);
-    const normalizedPatch = graphDocumentToPatch(patchToGraphDocument(migrated));
+    const normalizedPatch = graphDocumentToPatch(patchDocumentToStudioGraph(migrated));
     const normalizedText = `${JSON.stringify(normalizedPatch, null, 2)}\n`;
 
     return {
@@ -43,6 +48,6 @@ export function generateCodeFromOfflinePatch(
     graphName?: string,
     includeProvider = false,
 ): string {
-    const graph = patchToGraphDocument(patch);
+    const graph = patchDocumentToStudioGraph(patch);
     return generateCode(graph.nodes, graph.edges, includeProvider, graphName ?? graph.name);
 }

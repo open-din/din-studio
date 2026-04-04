@@ -26,11 +26,13 @@
     "noUncheckedSideEffectImports": true
   },
   "include": [
+    "file-system-access.d.ts",
     "src/**/*.ts",
     "bridge/**/*.ts",
     "bridge/**/*.tsx",
     "core/**/*.ts",
     "core/**/*.tsx",
+    "project/**/*.ts",
     "targets/web/**/*.ts",
     "targets/web/**/*.tsx",
     "targets/web/**/*.d.ts",

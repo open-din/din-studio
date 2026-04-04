@@ -1,4 +1,7 @@
 import type { Connection, Edge, Node } from '@xyflow/react';
+
+/** XYFlow `Connection` plus optional stable edge id (not in upstream type). */
+type ConnectionDraft = Connection & { id?: string };
 import { patchToGraphDocument } from '@open-din/react/patch';
 import {
     canConnect,
@@ -242,7 +245,7 @@ function makeSummary(state: EditorSessionState): EditorOperationSummary {
 function createStyledEdge(
     nodes: Node<AudioNodeData>[],
     edges: Edge[],
-    connection: Connection,
+    connection: ConnectionDraft,
 ): Edge | null {
     const nodeById = new Map(nodes.map((node) => [node.id, node]));
     if (!canConnect(connection, nodeById)) return null;
@@ -661,13 +664,14 @@ export function applyEditorOperations(
         }
 
         if (operation.type === 'connect') {
-            const edge = createStyledEdge(graph.nodes, graph.edges, {
-                id: operation.edgeId,
+            const draft: ConnectionDraft = {
                 source: operation.source,
                 sourceHandle: operation.sourceHandle ?? null,
                 target: operation.target,
                 targetHandle: operation.targetHandle ?? null,
-            });
+            };
+            if (operation.edgeId) draft.id = operation.edgeId;
+            const edge = createStyledEdge(graph.nodes, graph.edges, draft);
 
             if (!edge) {
                 issues.push({
@@ -810,7 +814,7 @@ export function applyEditorOperations(
                     createdAt: graph.createdAt,
                     updatedAt: Date.now(),
                     order: graph.order,
-                }) as GraphDocument;
+                }) as unknown as GraphDocument;
             } catch (error) {
                 issues.push({
                     index,

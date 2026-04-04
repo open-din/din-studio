@@ -88,12 +88,14 @@ const numberField = (
 const rangeField = (
     key: string,
     label: string,
-    options: Omit<Extract<NodeInspectorField, { kind: 'range' }>, 'kind' | 'key' | 'label'> = {}
+    options: Partial<Omit<Extract<NodeInspectorField, { kind: 'range' }>, 'kind' | 'key' | 'label'>> = {},
 ): Extract<NodeInspectorField, { kind: 'range' }> => ({
     kind: 'range',
     key,
     label,
     ...options,
+    min: options.min ?? 0,
+    max: options.max ?? 1,
 });
 
 const textField = (
@@ -644,7 +646,7 @@ export function getInspectablePrimitiveEntries(
                 || value === null
                 || value === undefined;
         })
-        .map(([key, value]) => ({ key, value }));
+        .map(([key, value]) => ({ key, value: value as PrimitiveFieldEntry['value'] }));
 }
 
 export function isTokenParamNode(data: AudioNodeData): data is InputNodeData | UiTokensNodeData {

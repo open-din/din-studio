@@ -31,7 +31,6 @@ import type {
     MediaStreamNodeData,
     EventTriggerNodeData,
     StereoPannerNodeData,
-    MixerNodeData,
     AuxSendNodeData,
     AuxReturnNodeData,
     MatrixMixerNodeData,
@@ -227,7 +226,10 @@ function createReverbImpulse(ctx: AudioContext, decay: number): AudioBuffer {
     return buffer;
 }
 
-function createWaveShaperCurve(amount: number, preset: 'softClip' | 'hardClip' | 'saturate'): Float32Array {
+function createWaveShaperCurve(
+    amount: number,
+    preset: 'softClip' | 'hardClip' | 'saturate',
+): Float32Array<ArrayBuffer> {
     const samples = 512;
     const curve = new Float32Array(samples);
     const k = Math.max(0, amount) * 100;
@@ -245,7 +247,7 @@ function createWaveShaperCurve(amount: number, preset: 'softClip' | 'hardClip' |
         }
     }
 
-    return curve;
+    return curve as Float32Array<ArrayBuffer>;
 }
 
 const MIN_EQ3_GAP_HZ = 50;
@@ -282,11 +284,9 @@ export class AudioEngine {
     private busNodes: Map<string, GainNode> = new Map();
     private liveControlInputValues: Map<string, number> = new Map();
     private controlValueTimerID: number | undefined = undefined;
-    private midiRuntimeUnsubscribe: (() => void) | null = null;
-
     constructor() {
         this.audioContext = null;
-        this.midiRuntimeUnsubscribe = editorMidiRuntime.subscribe(() => {
+        void editorMidiRuntime.subscribe(() => {
             this.handleMidiRuntimeChange();
         });
     }
@@ -987,7 +987,7 @@ export class AudioEngine {
 
     private triggerMidiNoteOutput(
         nodeId: string,
-        time: number,
+        _time: number,
         velocity: number,
         duration: number,
         midiPitch?: number

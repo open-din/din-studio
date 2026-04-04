@@ -93,21 +93,15 @@ import {
     TransportProvider,
     Voice,
     MidiProvider,
-    MidiNoteOutput,
-    MidiCCOutput,
-    MidiTransportSync,
     useAudio,
     useAudioOut,
     useLFO,
-    useMidiNote,
-    useMidiCC,
 } from '@open-din/react';
 import type { LFOOutput, VoiceRenderProps } from '@open-din/react';
 import {
     getInputParamHandleId,
     getTransportConnections,
     isAudioConnection,
-    isAudioNodeType,
     isDataNodeType,
     isInputLikeNodeType,
 } from './nodeHelpers';
@@ -2317,7 +2311,9 @@ const PreviewRenderer: React.FC<{ graph: PreviewGraphData; sequencerBpm?: number
             if (eventData.note !== 60) eventProps.note = eventData.note;
             if (eventData.trackId && eventData.trackId !== 'event') eventProps.trackId = eventData.trackId;
 
-            element = React.createElement(EventTrigger, eventProps, element);
+            element = React.createElement(EventTrigger, { ...eventProps, children: element } as React.ComponentProps<
+                typeof EventTrigger
+            >);
         }
 
         return element;

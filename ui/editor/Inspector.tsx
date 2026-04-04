@@ -54,11 +54,12 @@ function updateNodeField(
 }
 
 function InspectorRow({ nodeId, nodeData, field, updateNodeData }: InspectorRowProps) {
-    const targetHandle = field.handleId && (field.kind === 'number' || field.kind === 'range') ? field.handleId : '';
+    const handleId = field.kind === 'params' ? undefined : field.handleId;
+    const targetHandle = handleId && (field.kind === 'number' || field.kind === 'range') ? handleId : '';
     const targetHandleInfo = useTargetHandleConnection(nodeId, targetHandle);
 
     const value = nodeDataValue(nodeData, field.key);
-    const isConnectedTarget = Boolean(field.handleId && targetHandleInfo.connected && (field.kind === 'number' || field.kind === 'range'));
+    const isConnectedTarget = Boolean(handleId && targetHandleInfo.connected && (field.kind === 'number' || field.kind === 'range'));
 
     return (
         <div className="rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-muted)]/70 p-3">
@@ -73,9 +74,9 @@ function InspectorRow({ nodeId, nodeData, field, updateNodeData }: InspectorRowP
                         </div>
                     )}
                 </div>
-                {field.handleId && (
+                {handleId && (
                     <span className="rounded-full border border-[var(--panel-border)] px-2 py-0.5 text-[10px] font-mono text-[var(--text-subtle)]">
-                        {field.handleId}
+                        {handleId}
                     </span>
                 )}
             </div>

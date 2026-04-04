@@ -106,7 +106,9 @@ export function ProjectLauncher({
     const [importTargetProjectId, setImportTargetProjectId] = useState(projects[0]?.id ?? '');
     const [importDraft, setImportDraft] = useState<ImportDraft | null>(null);
     const [importError, setImportError] = useState<string | null>(null);
-    const [selectedResumeProjectId, setSelectedResumeProjectId] = useState(resumableWork[0]?.projectId ?? null);
+    const [selectedResumeProjectId, setSelectedResumeProjectId] = useState<string | null>(
+        resumableWork[0]?.projectId ?? null,
+    );
     const importInputRef = useRef<HTMLInputElement>(null);
     const deferredSearch = useDeferredValue(search);
 

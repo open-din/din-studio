@@ -3,8 +3,6 @@ import { createInitialGraphDocument } from '../ui/editor/defaultGraph';
 import { sanitizeGraphForStorage } from '../ui/editor/graphUtils';
 import type { AudioNodeData, ConvolverNodeData, GraphDocument, SamplerNodeData } from '../ui/editor/store';
 import type {
-    AddProjectAssetOptions,
-    AudioLibraryAsset,
     CreateProjectOptions,
     ElectronProjectBridgeApi,
     ProjectAssetKind,
@@ -27,6 +25,12 @@ const ASSET_BLOBS_STORE = 'assetBlobs';
 const HANDLES_STORE = 'handles';
 const META_STORE = 'meta';
 const LEGACY_RECOVERY_KEY = 'legacy-recovery-complete';
+
+/** Permission helpers on directory handles (Chromium File System Access). */
+type FileSystemDirectoryHandleWithPermissions = FileSystemDirectoryHandle & {
+    queryPermission?(descriptor: { mode: 'read' | 'readwrite' }): Promise<PermissionState>;
+    requestPermission?(descriptor: { mode: 'read' | 'readwrite' }): Promise<PermissionState>;
+};
 
 const LEGACY_GRAPH_DB_NAME = 'din-studio';
 const LEGACY_GRAPH_STORE = 'graphs';
@@ -708,9 +712,10 @@ async function ensureLegacyWorkspaceExists(): Promise<boolean> {
 }
 
 async function requestHandlePermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
-    const query = await handle.queryPermission?.({ mode: 'readwrite' }).catch(() => 'prompt');
+    const h = handle as FileSystemDirectoryHandleWithPermissions;
+    const query = await h.queryPermission?.({ mode: 'readwrite' }).catch(() => 'prompt');
     if (query === 'granted') return true;
-    const next = await handle.requestPermission?.({ mode: 'readwrite' }).catch(() => 'denied');
+    const next = await h.requestPermission?.({ mode: 'readwrite' }).catch(() => 'denied');
     return next === 'granted';
 }
 
@@ -840,12 +845,14 @@ async function loadWorkspaceFromFileSystem(project: ProjectManifest, handle: Fil
         if (!text) continue;
         try {
             const patch = JSON.parse(text);
-            graphs.push(patchToGraphDocument(patch, {
-                graphId: summary.id,
-                createdAt: summary.createdAt,
-                updatedAt: summary.updatedAt,
-                order: summary.order,
-            }));
+            graphs.push(
+                patchToGraphDocument(patch, {
+                    graphId: summary.id,
+                    createdAt: summary.createdAt,
+                    updatedAt: summary.updatedAt,
+                    order: summary.order,
+                }) as unknown as GraphDocument,
+            );
         } catch {
             continue;
         }

@@ -12,7 +12,6 @@ import {
     INPUT_PARAM_HANDLE_PREFIX,
     getInputParamHandleId,
     migrateLegacyInputHandle,
-    resolveInputParamByHandle,
 } from './handleIds';
 import {
     EDITOR_NODE_CATALOG,
