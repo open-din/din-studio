@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "surface:EditorShell",
+      "kind": "studio-surface",
+      "name": "EditorShell",
+      "source": "ui/shell/EditorShell.tsx",
+      "docs": "project/features/05_editor_shell_and_navigation.feature.md",
+      "tests": ["tests/unit/editor-shell.spec.tsx", "tests/e2e/f05-shell-navigation.spec.ts"],
+      "scenarios": ["F05-S01", "F05-S02", "F05-S03"]
+    },
+    {
+      "id": "surface:ProjectLauncher",
+      "kind": "studio-surface",
+      "name": "ProjectLauncher",
+      "source": "ui/ProjectLauncher.tsx",
+      "docs": "project/features/12_launcher_entry_flows.feature.md",
+      "tests": ["tests/unit/app-launcher.spec.tsx", "tests/e2e/f12-launcher-entry.spec.ts"],
+      "scenarios": ["F12-S01", "F12-S02", "F12-S03"]
+    },
+    {
+      "id": "surface:SourceControlPanel",
+      "kind": "studio-surface",
+      "name": "SourceControlPanel",
+      "source": "ui/shell/SourceControlPanel.tsx",
+      "docs": "project/features/09_source_control_actions.feature.md",
+      "tests": ["tests/e2e/f09-source-control.spec.ts"],
+      "scenarios": ["F09-S01", "F09-S02", "F09-S03", "F09-S04"]
+    },
+    {
+      "id": "surface:CatalogExplorerPanel",
+      "kind": "studio-surface",
+      "name": "CatalogExplorerPanel",
+      "source": "ui/shell/CatalogExplorerPanel.tsx",
+      "docs": "project/features/10_asset_library_actions.feature.md",
+      "tests": ["tests/unit/editor-connection-assist.spec.tsx", "tests/e2e/f10-asset-library.spec.ts"],
+      "scenarios": ["F10-S01", "F10-S02", "F10-S03"]
+    },
+    {
+      "id": "surface:AgentPanel",
+      "kind": "studio-surface",
+      "name": "AgentPanel",
+      "source": "ui/shell/AgentPanel.tsx",
+      "docs": "project/features/13_ai_agent_panel.feature.md",
+      "tests": [
+        "tests/unit/agent-api.spec.ts",
+        "tests/unit/agent-chat-storage.spec.ts",
+        "tests/unit/agent-settings.spec.ts",
+        "tests/e2e/f13-agent-panel.spec.ts"
+      ],
+      "scenarios": ["F13-S01", "F13-S02", "F13-S03", "F13-S04", "F13-S05", "F13-S06", "F13-S07"]
+    },
+    {
+      "id": "mcp-target:StudioMcp",
+      "kind": "mcp-target",
+      "name": "StudioMcp",
+      "source": "targets/mcp/src/index.ts",
+      "docs": "project/features/14_mcp_server_target.feature.md",
+      "tests": ["targets/mcp/tests/runtime.spec.ts", "targets/mcp/tests/bridge-server.spec.ts"],
+      "scenarios": ["F14-S01", "F14-S02"]
+    }
+  ]
+}

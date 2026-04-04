@@ -1,0 +1,7 @@
+---
+description: Coverage and surface manifests
+globs: project/COVERAGE_MANIFEST.json,project/SURFACE_MANIFEST.json
+alwaysApply: false
+---
+
+Follow @AGENTS.md. Editor nodes → `project/COVERAGE_MANIFEST.json`. Other surfaces → `project/SURFACE_MANIFEST.json`. Use @project/skills/surface-manifest-update/SKILL.md.

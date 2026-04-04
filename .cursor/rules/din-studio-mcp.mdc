@@ -1,0 +1,7 @@
+---
+description: MCP server target for DIN Studio
+globs: targets/mcp/**
+alwaysApply: false
+---
+
+Follow @AGENTS.md. Use @project/skills/mcp-target-change/SKILL.md; extend `targets/mcp/tests/**` with every behavioral change.

@@ -1,0 +1,7 @@
+---
+description: DIN Studio canonical agent contract (all files)
+globs: *
+alwaysApply: true
+---
+
+Follow @AGENTS.md. Product context: `project/SUMMARY.md`, `project/USERFLOW.md`, `project/TEST_MATRIX.md`. Portable workflows: @project/skills.

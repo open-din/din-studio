@@ -32,6 +32,8 @@
 | `F13-S05` | AI Agent Panel | Clear chat button removes message history from view | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | - |
 | `F13-S06` | AI Agent Panel | Model selection is persisted and restored from localStorage | e2e | `playwright` | baseline | `Jakob's Law`, `Zeigarnik Effect` | - |
 | `F13-S07` | AI Agent Panel | Thinking selector is disabled for non-reasoning models | e2e | `playwright` | baseline | `Selective Attention`, `Postel's Law` | - |
+| `F14-S01` | MCP Server Target | MCP runtime tools answer without structural errors for editor codegen flows | integration | `vitest` | baseline | `Postel's Law`, `Doherty Threshold` | - |
+| `F14-S02` | MCP Server Target | MCP bridge server sessions stay consistent with studio handshake expectations | integration | `vitest` | baseline | `Jakob's Law`, `Postel's Law` | - |
 | `F20-S01` | Params Node | Params node is discoverable and placeable from the Sources catalog | integration | `vitest` | planned | `Postel's Law`, `Fitts's Law` | VEA-166 |
 | `F20-S02` | Params Node | Params node exposes its contract handles and editable settings | integration | `vitest` | planned | `Selective Attention` | VEA-168 |
 | `F20-S03` | Params Node | Params node stays coherent through graph, runtime, and code generation | integration | `vitest` | planned | `Doherty Threshold` | VEA-171 |
