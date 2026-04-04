@@ -28,6 +28,8 @@ import type { EditorNodeType } from './nodeCatalog';
 import {
     createEditorNode,
 } from './graphBuilders';
+import type { AgentReasoningMode } from '../ai/agentSettings';
+import { DEFAULT_AGENT_MODEL, parseStoredReasoningMode } from '../ai/agentSettings';
 import { normalizeUiTokensNodeData } from './uiTokens';
 import { createEditorGraphId, createInitialGraphDocument } from './defaultGraph';
 import type {
@@ -105,6 +107,10 @@ interface AudioGraphState {
     // AI Agent
     openAiApiKey: string | null;
     setOpenAiApiKey: (key: string | null) => void;
+    agentModel: string;
+    setAgentModel: (model: string) => void;
+    agentReasoningMode: AgentReasoningMode;
+    setAgentReasoningMode: (mode: AgentReasoningMode) => void;
 }
 
 let nodeIdCounter = 0;
@@ -960,6 +966,32 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
             }
         }
         set({ openAiApiKey: key });
+    },
+
+    agentModel:
+        typeof localStorage !== 'undefined'
+            ? localStorage.getItem('din-studio-agent-model') ?? DEFAULT_AGENT_MODEL
+            : DEFAULT_AGENT_MODEL,
+    setAgentModel: (model) => {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('din-studio-agent-model', model);
+        }
+        set({ agentModel: model });
+    },
+
+    agentReasoningMode:
+        typeof localStorage !== 'undefined'
+            ? parseStoredReasoningMode(localStorage.getItem('din-studio-agent-reasoning'))
+            : 'default',
+    setAgentReasoningMode: (mode) => {
+        if (typeof localStorage !== 'undefined') {
+            if (mode === 'default') {
+                localStorage.removeItem('din-studio-agent-reasoning');
+            } else {
+                localStorage.setItem('din-studio-agent-reasoning', mode);
+            }
+        }
+        set({ agentReasoningMode: mode });
     },
 
     onNodesChange: (changes) => {

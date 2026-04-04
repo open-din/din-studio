@@ -4,6 +4,12 @@ import { useAudioGraphStore } from '../editor/store';
 import { runPatchAgent } from '../ai/agent';
 import { applyOperations } from '../ai/applyOperations';
 import { loadAgentChat, saveAgentChat } from '../ai/agentChatStorage';
+import {
+    AGENT_MODEL_OPTIONS,
+    REASONING_MODE_OPTIONS,
+    modelSupportsReasoningEffort,
+    reasoningModeToApiEffort,
+} from '../ai/agentSettings';
 import type { AgentMessage, GraphSnapshot } from '../ai/types';
 
 function buildSnapshot(): GraphSnapshot {
@@ -88,10 +94,17 @@ function MessageBubble({ msg }: { msg: AgentMessage }) {
     );
 }
 
+const selectClassName =
+    'min-w-0 border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)] disabled:opacity-45 disabled:cursor-not-allowed';
+
 export function AgentPanel() {
     const openAiApiKey = useAudioGraphStore((s) => s.openAiApiKey);
     const setOpenAiApiKey = useAudioGraphStore((s) => s.setOpenAiApiKey);
     const activeGraphId = useAudioGraphStore((s) => s.activeGraphId);
+    const agentModel = useAudioGraphStore((s) => s.agentModel);
+    const setAgentModel = useAudioGraphStore((s) => s.setAgentModel);
+    const agentReasoningMode = useAudioGraphStore((s) => s.agentReasoningMode);
+    const setAgentReasoningMode = useAudioGraphStore((s) => s.setAgentReasoningMode);
 
     const [messages, setMessages] = useState<AgentMessage[]>([]);
     const [input, setInput] = useState('');
@@ -130,12 +143,20 @@ export function AgentPanel() {
         if (!prompt || isLoading || !openAiApiKey) return;
 
         setInput('');
-        setMessages((prev) => [...prev, { role: 'user', content: prompt }]);
+        const userMessage: AgentMessage = { role: 'user', content: prompt };
+        const thread = [...messages, userMessage];
+        setMessages(thread);
         setIsLoading(true);
 
         try {
             const snapshot = buildSnapshot();
-            const result = await runPatchAgent(prompt, snapshot, openAiApiKey);
+            const reasoningEffort = modelSupportsReasoningEffort(agentModel)
+                ? reasoningModeToApiEffort(agentReasoningMode)
+                : undefined;
+            const result = await runPatchAgent(thread, snapshot, openAiApiKey, {
+                model: agentModel,
+                ...(reasoningEffort ? { reasoningEffort } : {}),
+            });
 
             let operationsApplied = 0;
             let error: string | undefined;
@@ -163,7 +184,7 @@ export function AgentPanel() {
             setIsLoading(false);
             textareaRef.current?.focus();
         }
-    }, [input, isLoading, openAiApiKey]);
+    }, [agentModel, agentReasoningMode, input, isLoading, messages, openAiApiKey]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -206,6 +227,61 @@ export function AgentPanel() {
                         <Settings size={13} />
                     </button>
                 </div>
+            </div>
+
+            <div className="flex flex-none flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+                <label className="flex min-w-[140px] flex-1 flex-col gap-0.5">
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">
+                        Agent (model)
+                    </span>
+                    <select
+                        value={agentModel}
+                        onChange={(e) => {
+                            const next = e.target.value;
+                            setAgentModel(next);
+                            if (!modelSupportsReasoningEffort(next) && agentReasoningMode !== 'default') {
+                                setAgentReasoningMode('default');
+                            }
+                        }}
+                        className={selectClassName}
+                    >
+                        {!AGENT_MODEL_OPTIONS.some((o) => o.id === agentModel) ? (
+                            <option value={agentModel}>{agentModel}</option>
+                        ) : null}
+                        {AGENT_MODEL_OPTIONS.map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <label className="flex min-w-[140px] flex-1 flex-col gap-0.5">
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">
+                        Thinking
+                    </span>
+                    <select
+                        value={agentReasoningMode}
+                        disabled={!modelSupportsReasoningEffort(agentModel)}
+                        title={
+                            modelSupportsReasoningEffort(agentModel)
+                                ? 'Reasoning effort (o·series / compatible models)'
+                                : 'Only applies to reasoning models (e.g. o3-mini, o4-mini)'
+                        }
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            if (v === 'default' || v === 'low' || v === 'medium' || v === 'high') {
+                                setAgentReasoningMode(v);
+                            }
+                        }}
+                        className={selectClassName}
+                    >
+                        {REASONING_MODE_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
             </div>
 
             {/* Messages */}

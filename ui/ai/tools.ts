@@ -5,7 +5,8 @@ export const PATCH_TOOLS: ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'apply_patch_operations',
-            description: 'Apply a sequence of editor operations to create or modify the audio patch. Call this whenever the user wants to add, remove, or modify nodes and connections.',
+            description:
+                'Apply ordered editor operations to the active graph. Use exact node type keys (osc, gain, stepSequencer, …) and handle ids from the DIN catalog (e.g. out, in, frequency, gate, transport). Call when the user wants structural or parameter changes; explain-only questions need no tool.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -27,7 +28,11 @@ export const PATCH_TOOLS: ChatCompletionTool[] = [
                                         'load_graph',
                                     ],
                                 },
-                                nodeType: { type: 'string', description: 'Node type key (e.g. osc, gain, filter). Required for add_node.' },
+                                nodeType: {
+                                    type: 'string',
+                                    description:
+                                        'Catalog node type id (osc, noise, stepSequencer, adsr, gain, filter, output, …). Must match DIN / react-din registry exactly.',
+                                },
                                 nodeId: { type: 'string', description: 'Temporary node ID you assign (e.g. osc1). Used for add_node and update/remove.' },
                                 position: {
                                     type: 'object',
@@ -38,9 +43,15 @@ export const PATCH_TOOLS: ChatCompletionTool[] = [
                                     required: ['x', 'y'],
                                 },
                                 source: { type: 'string', description: 'Source node ID for connect/disconnect.' },
-                                sourceHandle: { type: 'string', description: 'Source handle ID (port name).' },
+                                sourceHandle: {
+                                    type: 'string',
+                                    description: 'Source output handle id (e.g. out, envelope, trigger, note).',
+                                },
                                 target: { type: 'string', description: 'Target node ID for connect/disconnect.' },
-                                targetHandle: { type: 'string', description: 'Target handle ID (port name).' },
+                                targetHandle: {
+                                    type: 'string',
+                                    description: 'Target input handle id (e.g. in, frequency, gate, transport).',
+                                },
                                 edgeId: { type: 'string', description: 'Edge ID for disconnect.' },
                                 data: {
                                     type: 'object',
