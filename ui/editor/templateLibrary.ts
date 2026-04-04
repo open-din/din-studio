@@ -3,6 +3,7 @@ import type { AudioNodeData, GraphDocument } from './store';
 import { createEditorGraphId } from './defaultGraph';
 import { createAtmosphericBreakbeatArcTemplate } from './templates/atmosphericBreakbeatArcTemplate';
 import { createMedievalStrategyLongformTemplate } from './templates/feedbackTemplates';
+import { createWestcoastGfunk64Template } from './templates/westcoastGfunk64Template';
 
 interface TemplateGraph {
     nodes: Node<AudioNodeData>[];
@@ -38,6 +39,13 @@ export const EDITOR_TEMPLATES: EditorTemplateDefinition[] = [
         description: 'Layered long-form cue with piano-roll voices, rhythm, and evolving mix automation.',
         accentColor: '#f6a623',
         createGraph: () => createMedievalStrategyLongformTemplate() as TemplateGraph,
+    },
+    {
+        id: 'westcoast-gfunk-64',
+        name: 'West Coast GFunk 64',
+        description: 'Eight-bar West Coast pocket: 808-weight kick, snare, hats, psychedelic whistle, and bass on a 64-step grid.',
+        accentColor: '#e8a932',
+        createGraph: () => createWestcoastGfunk64Template(),
     },
 ];
 

@@ -119,6 +119,15 @@ export const ExplorerPanel: FC<ExplorerPanelProps> = ({ onCreateGraph, onLoadGra
                                 </div>
                                 <span className="text-xs font-semibold">Medieval Strategy Longform</span>
                             </button>
+                            <button
+                                onClick={() => onLoadTemplate?.('westcoast-gfunk-64')}
+                                className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-[var(--text)] transition-all hover:border-[var(--panel-border)] hover:bg-[var(--panel-muted)]/60"
+                            >
+                                <div className="rounded bg-[var(--accent-soft)] p-1.5 text-[var(--accent)]">
+                                    <FileCodeIcon className="w-3.5 h-3.5" />
+                                </div>
+                                <span className="text-xs font-semibold">West Coast GFunk 64</span>
+                            </button>
                         </div>
                     </div>
                 </div>

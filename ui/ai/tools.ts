@@ -55,7 +55,8 @@ export const PATCH_TOOLS: ChatCompletionTool[] = [
                                 edgeId: { type: 'string', description: 'Edge ID for disconnect.' },
                                 data: {
                                     type: 'object',
-                                    description: 'Partial node data to update. Required for update_node_data.',
+                                    description:
+                                        'Partial node data to merge (update_node_data). Include type discriminator where needed. For stepSequencer: pattern (number[]), activeSteps (boolean[], must match steps). For pianoRoll: notes as [{ pitch, step, duration, velocity }]. For transport: bpm, playing, etc.',
                                 },
                                 name: { type: 'string', description: 'Graph name for create_graph.' },
                                 activate: { type: 'boolean', description: 'Whether to activate the graph after creating it.' },

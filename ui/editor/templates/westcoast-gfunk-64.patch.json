@@ -1,0 +1,2211 @@
+{
+  "version": 1,
+  "name": "West Coast GFunk 64 — Fluid Groove",
+  "nodes": [
+    {
+      "id": "transport-1",
+      "type": "transport",
+      "position": {
+        "x": -200,
+        "y": 200
+      },
+      "data": {
+        "type": "transport",
+        "bpm": 92,
+        "playing": false,
+        "beatsPerBar": 4,
+        "beatUnit": 4,
+        "stepsPerBeat": 4,
+        "barsPerPhrase": 4,
+        "swing": 0.18,
+        "label": "Transport · 92 BPM · 16ths"
+      }
+    },
+    {
+      "id": "seq-kick",
+      "type": "stepSequencer",
+      "position": {
+        "x": 40,
+        "y": -300
+      },
+      "data": {
+        "type": "stepSequencer",
+        "steps": 64,
+        "pattern": [
+          0.85,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.85,
+          0,
+          0,
+          0,
+          0,
+          0.85,
+          0,
+          0.85,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.85,
+          0,
+          0,
+          0,
+          0.85,
+          0,
+          0.85,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.85,
+          0,
+          0,
+          0,
+          0,
+          0.85,
+          0,
+          0.85,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.85,
+          0,
+          0,
+          0.85,
+          0,
+          0
+        ],
+        "activeSteps": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false
+        ],
+        "label": "Kick Seq"
+      }
+    },
+    {
+      "id": "voice-kick",
+      "type": "voice",
+      "position": {
+        "x": 300,
+        "y": -300
+      },
+      "data": {
+        "type": "voice",
+        "portamento": 0,
+        "label": "Kick Voice"
+      }
+    },
+    {
+      "id": "note-kick",
+      "type": "note",
+      "position": {
+        "x": 300,
+        "y": -200
+      },
+      "data": {
+        "type": "note",
+        "note": "G",
+        "octave": 1,
+        "frequency": 49,
+        "label": "Kick Pitch"
+      }
+    },
+    {
+      "id": "osc-kick",
+      "type": "osc",
+      "position": {
+        "x": 500,
+        "y": -300
+      },
+      "data": {
+        "type": "osc",
+        "frequency": 49,
+        "detune": 0,
+        "waveform": "sine",
+        "label": "808 Sub"
+      }
+    },
+    {
+      "id": "adsr-kick",
+      "type": "adsr",
+      "position": {
+        "x": 500,
+        "y": -150
+      },
+      "data": {
+        "type": "adsr",
+        "attack": 0.001,
+        "decay": 0.6,
+        "sustain": 0,
+        "release": 0.2,
+        "label": "808 Env"
+      }
+    },
+    {
+      "id": "gain-kick-sub",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": -300
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0,
+        "label": "Sub Level"
+      }
+    },
+    {
+      "id": "noise-kick",
+      "type": "noiseBurst",
+      "position": {
+        "x": 300,
+        "y": -450
+      },
+      "data": {
+        "type": "noiseBurst",
+        "noiseType": "white",
+        "duration": 0.015,
+        "gain": 0.5,
+        "attack": 0.001,
+        "release": 0.01,
+        "label": "Kick Click"
+      }
+    },
+    {
+      "id": "filter-kick",
+      "type": "filter",
+      "position": {
+        "x": 500,
+        "y": -450
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "bandpass",
+        "frequency": 3500,
+        "detune": 0,
+        "q": 1.5,
+        "gain": 0,
+        "label": "Click Tone"
+      }
+    },
+    {
+      "id": "gain-kick-click",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": -450
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.6,
+        "label": "Click Level"
+      }
+    },
+    {
+      "id": "gain-kick-sum",
+      "type": "gain",
+      "position": {
+        "x": 900,
+        "y": -350
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.9,
+        "label": "Kick Bus"
+      }
+    },
+    {
+      "id": "seq-snare",
+      "type": "stepSequencer",
+      "position": {
+        "x": 40,
+        "y": -50
+      },
+      "data": {
+        "type": "stepSequencer",
+        "steps": 64,
+        "pattern": [
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0.3,
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0.3,
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0.3,
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.95,
+          0,
+          0,
+          0.3
+        ],
+        "activeSteps": [
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true
+        ],
+        "label": "Snare Seq"
+      }
+    },
+    {
+      "id": "noise-snare-body",
+      "type": "noiseBurst",
+      "position": {
+        "x": 300,
+        "y": -50
+      },
+      "data": {
+        "type": "noiseBurst",
+        "noiseType": "pink",
+        "duration": 0.25,
+        "gain": 0.8,
+        "attack": 0.002,
+        "release": 0.2,
+        "label": "Snare Body"
+      }
+    },
+    {
+      "id": "filter-snare-body",
+      "type": "filter",
+      "position": {
+        "x": 500,
+        "y": -50
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "bandpass",
+        "frequency": 250,
+        "detune": 0,
+        "q": 1.2,
+        "gain": 0,
+        "label": "Body Tone"
+      }
+    },
+    {
+      "id": "gain-snare-body",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": -50
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.6,
+        "label": "Body Level"
+      }
+    },
+    {
+      "id": "noise-snare-crack",
+      "type": "noiseBurst",
+      "position": {
+        "x": 300,
+        "y": 100
+      },
+      "data": {
+        "type": "noiseBurst",
+        "noiseType": "white",
+        "duration": 0.1,
+        "gain": 0.9,
+        "attack": 0.001,
+        "release": 0.08,
+        "label": "Snare Crack"
+      }
+    },
+    {
+      "id": "filter-snare-crack",
+      "type": "filter",
+      "position": {
+        "x": 500,
+        "y": 100
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "bandpass",
+        "frequency": 3200,
+        "detune": 0,
+        "q": 0.8,
+        "gain": 0,
+        "label": "Crack Tone"
+      }
+    },
+    {
+      "id": "gain-snare-crack",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": 100
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.7,
+        "label": "Crack Level"
+      }
+    },
+    {
+      "id": "gain-snare-sum",
+      "type": "gain",
+      "position": {
+        "x": 900,
+        "y": 25
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.9,
+        "label": "Snare Bus"
+      }
+    },
+    {
+      "id": "seq-hat",
+      "type": "stepSequencer",
+      "position": {
+        "x": 40,
+        "y": 250
+      },
+      "data": {
+        "type": "stepSequencer",
+        "steps": 64,
+        "pattern": [
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3,
+          0.6,
+          0.3,
+          0,
+          0.3
+        ],
+        "activeSteps": [
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true
+        ],
+        "label": "Hat Seq"
+      }
+    },
+    {
+      "id": "noise-hat",
+      "type": "noiseBurst",
+      "position": {
+        "x": 300,
+        "y": 250
+      },
+      "data": {
+        "type": "noiseBurst",
+        "noiseType": "white",
+        "duration": 0.04,
+        "gain": 0.5,
+        "attack": 0.001,
+        "release": 0.03,
+        "label": "Hat Noise"
+      }
+    },
+    {
+      "id": "filter-hat",
+      "type": "filter",
+      "position": {
+        "x": 500,
+        "y": 250
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "highpass",
+        "frequency": 8000,
+        "detune": 0,
+        "q": 0.7,
+        "gain": 0,
+        "label": "Hat Tone"
+      }
+    },
+    {
+      "id": "gain-hat",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": 250
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.7,
+        "label": "Hat Level"
+      }
+    },
+    {
+      "id": "seq-ohat",
+      "type": "stepSequencer",
+      "position": {
+        "x": 40,
+        "y": 400
+      },
+      "data": {
+        "type": "stepSequencer",
+        "steps": 64,
+        "pattern": [
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.7,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "activeSteps": [
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "label": "Open Hat Seq"
+      }
+    },
+    {
+      "id": "noise-ohat",
+      "type": "noiseBurst",
+      "position": {
+        "x": 300,
+        "y": 400
+      },
+      "data": {
+        "type": "noiseBurst",
+        "noiseType": "white",
+        "duration": 0.2,
+        "gain": 0.6,
+        "attack": 0.002,
+        "release": 0.15,
+        "label": "Open Hat Noise"
+      }
+    },
+    {
+      "id": "filter-ohat",
+      "type": "filter",
+      "position": {
+        "x": 500,
+        "y": 400
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "highpass",
+        "frequency": 6000,
+        "detune": 0,
+        "q": 0.8,
+        "gain": 0,
+        "label": "Open Hat Tone"
+      }
+    },
+    {
+      "id": "gain-ohat",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": 400
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.8,
+        "label": "Open Hat Level"
+      }
+    },
+    {
+      "id": "gain-drums-sum",
+      "type": "gain",
+      "position": {
+        "x": 1100,
+        "y": -100
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.9,
+        "label": "Drums Bus"
+      }
+    },
+    {
+      "id": "piano-bass",
+      "type": "pianoRoll",
+      "position": {
+        "x": 40,
+        "y": 600
+      },
+      "data": {
+        "type": "pianoRoll",
+        "steps": 64,
+        "octaves": 3,
+        "baseNote": 36,
+        "notes": [
+          {
+            "pitch": 43,
+            "step": 0,
+            "duration": 2,
+            "velocity": 0.9
+          },
+          {
+            "pitch": 43,
+            "step": 3,
+            "duration": 1,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 41,
+            "step": 6,
+            "duration": 2,
+            "velocity": 0.7
+          },
+          {
+            "pitch": 43,
+            "step": 9,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 46,
+            "step": 12,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 48,
+            "step": 14,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 43,
+            "step": 16,
+            "duration": 2,
+            "velocity": 0.9
+          },
+          {
+            "pitch": 43,
+            "step": 19,
+            "duration": 1,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 50,
+            "step": 22,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 48,
+            "step": 26,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 46,
+            "step": 30,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 43,
+            "step": 32,
+            "duration": 2,
+            "velocity": 0.9
+          },
+          {
+            "pitch": 43,
+            "step": 35,
+            "duration": 1,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 41,
+            "step": 38,
+            "duration": 2,
+            "velocity": 0.7
+          },
+          {
+            "pitch": 43,
+            "step": 41,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 46,
+            "step": 44,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 48,
+            "step": 46,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 51,
+            "step": 48,
+            "duration": 4,
+            "velocity": 0.9
+          },
+          {
+            "pitch": 50,
+            "step": 54,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 48,
+            "step": 58,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 46,
+            "step": 62,
+            "duration": 2,
+            "velocity": 0.8
+          }
+        ],
+        "label": "Bass Line"
+      }
+    },
+    {
+      "id": "voice-bass",
+      "type": "voice",
+      "position": {
+        "x": 300,
+        "y": 600
+      },
+      "data": {
+        "type": "voice",
+        "portamento": 0.08,
+        "label": "Bass Voice"
+      }
+    },
+    {
+      "id": "adsr-bass",
+      "type": "adsr",
+      "position": {
+        "x": 500,
+        "y": 750
+      },
+      "data": {
+        "type": "adsr",
+        "attack": 0.005,
+        "decay": 0.3,
+        "sustain": 0.4,
+        "release": 0.2,
+        "label": "Bass Env"
+      }
+    },
+    {
+      "id": "osc-bass-saw",
+      "type": "osc",
+      "position": {
+        "x": 500,
+        "y": 550
+      },
+      "data": {
+        "type": "osc",
+        "frequency": 110,
+        "waveform": "sawtooth",
+        "detune": 0,
+        "label": "Bass Saw"
+      }
+    },
+    {
+      "id": "osc-bass-sub",
+      "type": "osc",
+      "position": {
+        "x": 500,
+        "y": 650
+      },
+      "data": {
+        "type": "osc",
+        "frequency": 110,
+        "waveform": "sine",
+        "detune": 0,
+        "label": "Bass Sub"
+      }
+    },
+    {
+      "id": "gain-bass-saw",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": 550
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.6,
+        "label": "Saw Level"
+      }
+    },
+    {
+      "id": "gain-bass-sub",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": 650
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.8,
+        "label": "Sub Level"
+      }
+    },
+    {
+      "id": "gain-bass-sum",
+      "type": "gain",
+      "position": {
+        "x": 900,
+        "y": 600
+      },
+      "data": {
+        "type": "gain",
+        "gain": 1,
+        "label": "Bass Mix"
+      }
+    },
+    {
+      "id": "filter-bass",
+      "type": "filter",
+      "position": {
+        "x": 1100,
+        "y": 600
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "lowpass",
+        "frequency": 600,
+        "detune": 0,
+        "q": 1.5,
+        "gain": 0,
+        "label": "Bass Filter"
+      }
+    },
+    {
+      "id": "gain-bass-out",
+      "type": "gain",
+      "position": {
+        "x": 1300,
+        "y": 600
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0,
+        "label": "Bass Amp"
+      }
+    },
+    {
+      "id": "piano-brass",
+      "type": "pianoRoll",
+      "position": {
+        "x": 40,
+        "y": 900
+      },
+      "data": {
+        "type": "pianoRoll",
+        "steps": 64,
+        "octaves": 3,
+        "baseNote": 48,
+        "notes": [
+          {
+            "pitch": 55,
+            "step": 0,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 53,
+            "step": 10,
+            "duration": 2,
+            "velocity": 0.7
+          },
+          {
+            "pitch": 55,
+            "step": 16,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 58,
+            "step": 26,
+            "duration": 2,
+            "velocity": 0.7
+          },
+          {
+            "pitch": 55,
+            "step": 32,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 53,
+            "step": 42,
+            "duration": 2,
+            "velocity": 0.7
+          },
+          {
+            "pitch": 51,
+            "step": 48,
+            "duration": 2,
+            "velocity": 0.8
+          },
+          {
+            "pitch": 50,
+            "step": 58,
+            "duration": 2,
+            "velocity": 0.7
+          }
+        ],
+        "label": "Brass Stabs"
+      }
+    },
+    {
+      "id": "voice-brass",
+      "type": "voice",
+      "position": {
+        "x": 300,
+        "y": 900
+      },
+      "data": {
+        "type": "voice",
+        "portamento": 0,
+        "label": "Brass Voice"
+      }
+    },
+    {
+      "id": "adsr-brass",
+      "type": "adsr",
+      "position": {
+        "x": 500,
+        "y": 1050
+      },
+      "data": {
+        "type": "adsr",
+        "attack": 0.02,
+        "decay": 0.4,
+        "sustain": 0.2,
+        "release": 0.3,
+        "label": "Brass Env"
+      }
+    },
+    {
+      "id": "osc-brass-1",
+      "type": "osc",
+      "position": {
+        "x": 500,
+        "y": 850
+      },
+      "data": {
+        "type": "osc",
+        "frequency": 220,
+        "waveform": "sawtooth",
+        "detune": -8,
+        "label": "Brass Saw 1"
+      }
+    },
+    {
+      "id": "osc-brass-2",
+      "type": "osc",
+      "position": {
+        "x": 500,
+        "y": 950
+      },
+      "data": {
+        "type": "osc",
+        "frequency": 220,
+        "waveform": "sawtooth",
+        "detune": 8,
+        "label": "Brass Saw 2"
+      }
+    },
+    {
+      "id": "gain-brass-sum",
+      "type": "gain",
+      "position": {
+        "x": 700,
+        "y": 900
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.7,
+        "label": "Brass Mix"
+      }
+    },
+    {
+      "id": "filter-brass",
+      "type": "filter",
+      "position": {
+        "x": 900,
+        "y": 900
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "lowpass",
+        "frequency": 1500,
+        "detune": 0,
+        "q": 2,
+        "gain": 0,
+        "label": "Brass Filter"
+      }
+    },
+    {
+      "id": "math-brass-env",
+      "type": "math",
+      "position": {
+        "x": 700,
+        "y": 1050
+      },
+      "data": {
+        "type": "math",
+        "operation": "multiplyAdd",
+        "a": 0,
+        "b": 3000,
+        "c": 800,
+        "label": "Env -> Cutoff"
+      }
+    },
+    {
+      "id": "gain-brass-out",
+      "type": "gain",
+      "position": {
+        "x": 1100,
+        "y": 900
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0,
+        "label": "Brass Amp"
+      }
+    },
+    {
+      "id": "piano-whistle",
+      "type": "pianoRoll",
+      "position": {
+        "x": 40,
+        "y": 1200
+      },
+      "data": {
+        "type": "pianoRoll",
+        "steps": 64,
+        "octaves": 3,
+        "baseNote": 72,
+        "notes": [
+          {
+            "pitch": 79,
+            "step": 0,
+            "duration": 6,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 82,
+            "step": 8,
+            "duration": 4,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 84,
+            "step": 12,
+            "duration": 8,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 86,
+            "step": 24,
+            "duration": 4,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 84,
+            "step": 28,
+            "duration": 4,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 79,
+            "step": 32,
+            "duration": 6,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 77,
+            "step": 40,
+            "duration": 4,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 79,
+            "step": 44,
+            "duration": 8,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 82,
+            "step": 56,
+            "duration": 4,
+            "velocity": 0.6
+          },
+          {
+            "pitch": 84,
+            "step": 60,
+            "duration": 4,
+            "velocity": 0.6
+          }
+        ],
+        "label": "Whistle Lead"
+      }
+    },
+    {
+      "id": "voice-whistle",
+      "type": "voice",
+      "position": {
+        "x": 300,
+        "y": 1200
+      },
+      "data": {
+        "type": "voice",
+        "portamento": 0.18,
+        "label": "Whistle Voice"
+      }
+    },
+    {
+      "id": "adsr-whistle",
+      "type": "adsr",
+      "position": {
+        "x": 500,
+        "y": 1350
+      },
+      "data": {
+        "type": "adsr",
+        "attack": 0.05,
+        "decay": 0.2,
+        "sustain": 0.6,
+        "release": 0.4,
+        "label": "Whistle Env"
+      }
+    },
+    {
+      "id": "osc-whistle",
+      "type": "osc",
+      "position": {
+        "x": 500,
+        "y": 1200
+      },
+      "data": {
+        "type": "osc",
+        "frequency": 880,
+        "waveform": "triangle",
+        "detune": 0,
+        "label": "Whistle Osc"
+      }
+    },
+    {
+      "id": "filter-whistle",
+      "type": "filter",
+      "position": {
+        "x": 700,
+        "y": 1200
+      },
+      "data": {
+        "type": "filter",
+        "filterType": "bandpass",
+        "frequency": 2500,
+        "detune": 0,
+        "q": 2.5,
+        "gain": 0,
+        "label": "Whistle Tone"
+      }
+    },
+    {
+      "id": "lfo-whistle",
+      "type": "lfo",
+      "position": {
+        "x": 500,
+        "y": 1450
+      },
+      "data": {
+        "type": "lfo",
+        "rate": 0.15,
+        "depth": 500,
+        "waveform": "sine",
+        "label": "Whistle Vibrato"
+      }
+    },
+    {
+      "id": "math-whistle-vib",
+      "type": "math",
+      "position": {
+        "x": 700,
+        "y": 1450
+      },
+      "data": {
+        "type": "math",
+        "operation": "add",
+        "a": 2500,
+        "b": 0,
+        "c": 0,
+        "label": "Vibrato Sum"
+      }
+    },
+    {
+      "id": "phaser-whistle",
+      "type": "phaser",
+      "position": {
+        "x": 900,
+        "y": 1200
+      },
+      "data": {
+        "type": "phaser",
+        "rate": 0.3,
+        "depth": 0.8,
+        "feedback": 0.2,
+        "baseFrequency": 1000,
+        "stages": 4,
+        "mix": 0.5,
+        "label": "Whistle Phaser"
+      }
+    },
+    {
+      "id": "delay-whistle",
+      "type": "delay",
+      "position": {
+        "x": 1100,
+        "y": 1200
+      },
+      "data": {
+        "type": "delay",
+        "delayTime": 0.38,
+        "feedback": 0.4,
+        "label": "Whistle Echo"
+      }
+    },
+    {
+      "id": "reverb-whistle",
+      "type": "reverb",
+      "position": {
+        "x": 1300,
+        "y": 1200
+      },
+      "data": {
+        "type": "reverb",
+        "decay": 4,
+        "mix": 0.35,
+        "label": "Whistle Space"
+      }
+    },
+    {
+      "id": "gain-whistle-out",
+      "type": "gain",
+      "position": {
+        "x": 1500,
+        "y": 1200
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0,
+        "label": "Whistle Amp"
+      }
+    },
+    {
+      "id": "gain-music-sum",
+      "type": "gain",
+      "position": {
+        "x": 1800,
+        "y": 600
+      },
+      "data": {
+        "type": "gain",
+        "gain": 0.85,
+        "label": "Music Bus"
+      }
+    },
+    {
+      "id": "compressor-master",
+      "type": "compressor",
+      "position": {
+        "x": 2100,
+        "y": 200
+      },
+      "data": {
+        "type": "compressor",
+        "threshold": -18,
+        "knee": 12,
+        "ratio": 4,
+        "attack": 0.005,
+        "release": 0.15,
+        "sidechainStrength": 0.65,
+        "label": "Master Ducking"
+      }
+    },
+    {
+      "id": "output-1",
+      "type": "output",
+      "position": {
+        "x": 2400,
+        "y": 200
+      },
+      "data": {
+        "type": "output",
+        "playing": false,
+        "masterGain": 0.8,
+        "label": "Main Output"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "tk",
+      "source": "transport-1",
+      "sourceHandle": "out",
+      "target": "seq-kick",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "sk-vk",
+      "source": "seq-kick",
+      "sourceHandle": "trigger",
+      "target": "voice-kick",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "vk-ak",
+      "source": "voice-kick",
+      "sourceHandle": "gate",
+      "target": "adsr-kick",
+      "targetHandle": "gate"
+    },
+    {
+      "id": "nk-ok",
+      "source": "note-kick",
+      "sourceHandle": "freq",
+      "target": "osc-kick",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "ak-gk",
+      "source": "adsr-kick",
+      "sourceHandle": "envelope",
+      "target": "gain-kick-sub",
+      "targetHandle": "gain"
+    },
+    {
+      "id": "ok-gk",
+      "source": "osc-kick",
+      "sourceHandle": "out",
+      "target": "gain-kick-sub",
+      "targetHandle": "in"
+    },
+    {
+      "id": "sk-nk",
+      "source": "seq-kick",
+      "sourceHandle": "trigger",
+      "target": "noise-kick",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "nk-fk",
+      "source": "noise-kick",
+      "sourceHandle": "out",
+      "target": "filter-kick",
+      "targetHandle": "in"
+    },
+    {
+      "id": "fk-gkc",
+      "source": "filter-kick",
+      "sourceHandle": "out",
+      "target": "gain-kick-click",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gks-sum1",
+      "source": "gain-kick-sub",
+      "sourceHandle": "out",
+      "target": "gain-kick-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gkc-sum2",
+      "source": "gain-kick-click",
+      "sourceHandle": "out",
+      "target": "gain-kick-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "ts",
+      "source": "transport-1",
+      "sourceHandle": "out",
+      "target": "seq-snare",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "ss-nsb",
+      "source": "seq-snare",
+      "sourceHandle": "trigger",
+      "target": "noise-snare-body",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "nsb-fsb",
+      "source": "noise-snare-body",
+      "sourceHandle": "out",
+      "target": "filter-snare-body",
+      "targetHandle": "in"
+    },
+    {
+      "id": "fsb-gsb",
+      "source": "filter-snare-body",
+      "sourceHandle": "out",
+      "target": "gain-snare-body",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gsb-sum",
+      "source": "gain-snare-body",
+      "sourceHandle": "out",
+      "target": "gain-snare-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "ss-nsc",
+      "source": "seq-snare",
+      "sourceHandle": "trigger",
+      "target": "noise-snare-crack",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "nsc-fsc",
+      "source": "noise-snare-crack",
+      "sourceHandle": "out",
+      "target": "filter-snare-crack",
+      "targetHandle": "in"
+    },
+    {
+      "id": "fsc-gsc",
+      "source": "filter-snare-crack",
+      "sourceHandle": "out",
+      "target": "gain-snare-crack",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gsc-sum",
+      "source": "gain-snare-crack",
+      "sourceHandle": "out",
+      "target": "gain-snare-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "th",
+      "source": "transport-1",
+      "sourceHandle": "out",
+      "target": "seq-hat",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "sh-nh",
+      "source": "seq-hat",
+      "sourceHandle": "trigger",
+      "target": "noise-hat",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "nh-fh",
+      "source": "noise-hat",
+      "sourceHandle": "out",
+      "target": "filter-hat",
+      "targetHandle": "in"
+    },
+    {
+      "id": "fh-gh",
+      "source": "filter-hat",
+      "sourceHandle": "out",
+      "target": "gain-hat",
+      "targetHandle": "in"
+    },
+    {
+      "id": "toh",
+      "source": "transport-1",
+      "sourceHandle": "out",
+      "target": "seq-ohat",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "soh-noh",
+      "source": "seq-ohat",
+      "sourceHandle": "trigger",
+      "target": "noise-ohat",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "noh-foh",
+      "source": "noise-ohat",
+      "sourceHandle": "out",
+      "target": "filter-ohat",
+      "targetHandle": "in"
+    },
+    {
+      "id": "foh-goh",
+      "source": "filter-ohat",
+      "sourceHandle": "out",
+      "target": "gain-ohat",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gks-ds",
+      "source": "gain-kick-sum",
+      "sourceHandle": "out",
+      "target": "gain-drums-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gss-ds",
+      "source": "gain-snare-sum",
+      "sourceHandle": "out",
+      "target": "gain-drums-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gh-ds",
+      "source": "gain-hat",
+      "sourceHandle": "out",
+      "target": "gain-drums-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "goh-ds",
+      "source": "gain-ohat",
+      "sourceHandle": "out",
+      "target": "gain-drums-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "tb",
+      "source": "transport-1",
+      "sourceHandle": "out",
+      "target": "piano-bass",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "pb-vb",
+      "source": "piano-bass",
+      "sourceHandle": "trigger",
+      "target": "voice-bass",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "vb-ab",
+      "source": "voice-bass",
+      "sourceHandle": "gate",
+      "target": "adsr-bass",
+      "targetHandle": "gate"
+    },
+    {
+      "id": "vb-obs",
+      "source": "voice-bass",
+      "sourceHandle": "note",
+      "target": "osc-bass-saw",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "vb-obsu",
+      "source": "voice-bass",
+      "sourceHandle": "note",
+      "target": "osc-bass-sub",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "obs-gbs",
+      "source": "osc-bass-saw",
+      "sourceHandle": "out",
+      "target": "gain-bass-saw",
+      "targetHandle": "in"
+    },
+    {
+      "id": "obsu-gbsu",
+      "source": "osc-bass-sub",
+      "sourceHandle": "out",
+      "target": "gain-bass-sub",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gbs-gbsum",
+      "source": "gain-bass-saw",
+      "sourceHandle": "out",
+      "target": "gain-bass-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gbsu-gbsum",
+      "source": "gain-bass-sub",
+      "sourceHandle": "out",
+      "target": "gain-bass-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gbsum-fb",
+      "source": "gain-bass-sum",
+      "sourceHandle": "out",
+      "target": "filter-bass",
+      "targetHandle": "in"
+    },
+    {
+      "id": "fb-gbo",
+      "source": "filter-bass",
+      "sourceHandle": "out",
+      "target": "gain-bass-out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "ab-gbo",
+      "source": "adsr-bass",
+      "sourceHandle": "envelope",
+      "target": "gain-bass-out",
+      "targetHandle": "gain"
+    },
+    {
+      "id": "tbr",
+      "source": "transport-1",
+      "sourceHandle": "out",
+      "target": "piano-brass",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "pbr-vbr",
+      "source": "piano-brass",
+      "sourceHandle": "trigger",
+      "target": "voice-brass",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "vbr-abr",
+      "source": "voice-brass",
+      "sourceHandle": "gate",
+      "target": "adsr-brass",
+      "targetHandle": "gate"
+    },
+    {
+      "id": "vbr-obr1",
+      "source": "voice-brass",
+      "sourceHandle": "note",
+      "target": "osc-brass-1",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "vbr-obr2",
+      "source": "voice-brass",
+      "sourceHandle": "note",
+      "target": "osc-brass-2",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "obr1-gbrs",
+      "source": "osc-brass-1",
+      "sourceHandle": "out",
+      "target": "gain-brass-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "obr2-gbrs",
+      "source": "osc-brass-2",
+      "sourceHandle": "out",
+      "target": "gain-brass-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gbrs-fbr",
+      "source": "gain-brass-sum",
+      "sourceHandle": "out",
+      "target": "filter-brass",
+      "targetHandle": "in"
+    },
+    {
+      "id": "abr-mbr",
+      "source": "adsr-brass",
+      "sourceHandle": "envelope",
+      "target": "math-brass-env",
+      "targetHandle": "a"
+    },
+    {
+      "id": "mbr-fbr",
+      "source": "math-brass-env",
+      "sourceHandle": "out",
+      "target": "filter-brass",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "fbr-gbro",
+      "source": "filter-brass",
+      "sourceHandle": "out",
+      "target": "gain-brass-out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "abr-gbro",
+      "source": "adsr-brass",
+      "sourceHandle": "envelope",
+      "target": "gain-brass-out",
+      "targetHandle": "gain"
+    },
+    {
+      "id": "tw",
+      "source": "transport-1",
+      "sourceHandle": "out",
+      "target": "piano-whistle",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "pw-vw",
+      "source": "piano-whistle",
+      "sourceHandle": "trigger",
+      "target": "voice-whistle",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "vw-aw",
+      "source": "voice-whistle",
+      "sourceHandle": "gate",
+      "target": "adsr-whistle",
+      "targetHandle": "gate"
+    },
+    {
+      "id": "vw-ow",
+      "source": "voice-whistle",
+      "sourceHandle": "note",
+      "target": "osc-whistle",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "ow-fw",
+      "source": "osc-whistle",
+      "sourceHandle": "out",
+      "target": "filter-whistle",
+      "targetHandle": "in"
+    },
+    {
+      "id": "lw-mw",
+      "source": "lfo-whistle",
+      "sourceHandle": "out",
+      "target": "math-whistle-vib",
+      "targetHandle": "b"
+    },
+    {
+      "id": "mw-fw",
+      "source": "math-whistle-vib",
+      "sourceHandle": "out",
+      "target": "filter-whistle",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "fw-phw",
+      "source": "filter-whistle",
+      "sourceHandle": "out",
+      "target": "phaser-whistle",
+      "targetHandle": "in"
+    },
+    {
+      "id": "phw-dw",
+      "source": "phaser-whistle",
+      "sourceHandle": "out",
+      "target": "delay-whistle",
+      "targetHandle": "in"
+    },
+    {
+      "id": "dw-rw",
+      "source": "delay-whistle",
+      "sourceHandle": "out",
+      "target": "reverb-whistle",
+      "targetHandle": "in"
+    },
+    {
+      "id": "rw-gwo",
+      "source": "reverb-whistle",
+      "sourceHandle": "out",
+      "target": "gain-whistle-out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "aw-gwo",
+      "source": "adsr-whistle",
+      "sourceHandle": "envelope",
+      "target": "gain-whistle-out",
+      "targetHandle": "gain"
+    },
+    {
+      "id": "gbo-gms",
+      "source": "gain-bass-out",
+      "sourceHandle": "out",
+      "target": "gain-music-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gbro-gms",
+      "source": "gain-brass-out",
+      "sourceHandle": "out",
+      "target": "gain-music-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gwo-gms",
+      "source": "gain-whistle-out",
+      "sourceHandle": "out",
+      "target": "gain-music-sum",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gds-cm",
+      "source": "gain-drums-sum",
+      "sourceHandle": "out",
+      "target": "compressor-master",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gms-cm",
+      "source": "gain-music-sum",
+      "sourceHandle": "out",
+      "target": "compressor-master",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gks-cm",
+      "source": "gain-kick-sum",
+      "sourceHandle": "out",
+      "target": "compressor-master",
+      "targetHandle": "sidechainIn"
+    },
+    {
+      "id": "cm-out",
+      "source": "compressor-master",
+      "sourceHandle": "out",
+      "target": "output-1",
+      "targetHandle": "in"
+    }
+  ],
+  "interface": {
+    "inputs": [],
+    "events": [],
+    "midiInputs": [],
+    "midiOutputs": []
+  }
+}

@@ -494,6 +494,16 @@ export function buildAgentNodeCatalogMarkdown(): string {
                 ports = '**out** (source). Targets **index**, **in_0…in_k** where k = `data.inputs` − 1 (2–8).';
             } else if (entry.type === 'matrixMixer') {
                 ports = '**in1…**, **out**, **out1…**, plus **cell:row:col** gains; counts from `data.inputs` / `data.outputs`.';
+            } else if (entry.type === 'stepSequencer') {
+                const handles = DEFAULT_HANDLES_BY_TYPE.stepSequencer;
+                const sources = handles.filter((h) => h.direction === 'source').map((h) => `\`${h.id}\``);
+                const targets = handles.filter((h) => h.direction === 'target').map((h) => `\`${h.id}\``);
+                ports = `Sources: ${sources.join(', ')}. Targets: ${targets.join(', ')}. **Data**: \`steps\`, \`pattern\` (number[] 0–1), \`activeSteps\` (boolean[] — **defaults all false; set true on steps that should fire**).`;
+            } else if (entry.type === 'pianoRoll') {
+                const handles = DEFAULT_HANDLES_BY_TYPE.pianoRoll;
+                const sources = handles.filter((h) => h.direction === 'source').map((h) => `\`${h.id}\``);
+                const targets = handles.filter((h) => h.direction === 'target').map((h) => `\`${h.id}\``);
+                ports = `Sources: ${sources.join(', ')}. Targets: ${targets.join(', ')}. **Data**: \`steps\`, \`octaves\`, \`baseNote\` (MIDI), \`notes\`: [\`{ pitch, step, duration, velocity }\`] (**defaults empty — add notes for melody**).`;
             } else {
                 const handles = DEFAULT_HANDLES_BY_TYPE[entry.type];
                 if (handles.length === 0) {

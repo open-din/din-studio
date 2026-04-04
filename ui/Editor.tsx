@@ -44,6 +44,7 @@ import {
 } from './editor/nodeHelpers';
 import { McpStatusBadge } from '../bridge/McpStatusBadge';
 import { createAtmosphericBreakbeatArcTemplate } from './editor/templates/atmosphericBreakbeatArcTemplate';
+import { createWestcoastGfunk64Template } from './editor/templates/westcoastGfunk64Template';
 import { ActivityRail } from './shell/ActivityRail';
 import { AgentPanel } from './shell/AgentPanel';
 import { BottomDrawer } from './shell/BottomDrawer';
@@ -1060,6 +1061,9 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                             }
                                             if (id === 'medieval-strategy-longform') {
                                                 loadTemplate(createMedievalStrategyLongformTemplate());
+                                            }
+                                            if (id === 'westcoast-gfunk-64') {
+                                                loadTemplate(createWestcoastGfunk64Template());
                                             }
                                         }}
                                     />
