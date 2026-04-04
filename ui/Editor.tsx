@@ -334,13 +334,15 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         setReviewHydrated(true);
     }, [project?.id]);
 
-    // Track selection for inspector
-    useOnSelectionChange({
-        onChange: ({ nodes: selectedNodes }) => {
+    // Track selection for inspector (onChange must be memoized — see useOnSelectionChange docs)
+    const onInspectorSelectionChange = useCallback(
+        ({ nodes: selectedNodes }: { nodes: Node<AudioNodeData>[] }) => {
             const nextNode = selectedNodes[0] as Node<AudioNodeData> | undefined;
             setSelectedNode(nextNode?.id ?? null);
         },
-    });
+        [setSelectedNode],
+    );
+    useOnSelectionChange({ onChange: onInspectorSelectionChange });
 
     // Helpers that wrap store logic
     const clearGraph = useCallback(() => {
