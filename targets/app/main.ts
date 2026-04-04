@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { graphDocumentToPatch, patchToGraphDocument } from '@open-din/react/patch';
 
@@ -171,6 +171,36 @@ function sanitizeFileName(name: string): string {
 
 function normalizeRelativePath(path: string): string {
     return path.replace(/\\/g, '/').replace(/^\/+/, '').trim();
+}
+
+function assertPathInsideProjectRoot(projectRoot: string, absolutePath: string): void {
+    const root = resolve(projectRoot);
+    const abs = resolve(absolutePath);
+    const rel = relative(root, abs);
+    if (rel.startsWith('..') || rel === '..') {
+        throw new Error('Path escapes project root.');
+    }
+}
+
+async function collectProjectRagSourceEntries(
+    absRoot: string,
+    rel = '',
+): Promise<{ relativePath: string; size: number }[]> {
+    const dir = rel ? join(absRoot, rel) : absRoot;
+    const entries = await readdir(dir, { withFileTypes: true });
+    const out: { relativePath: string; size: number }[] = [];
+    for (const entry of entries) {
+        const nextRel = rel ? `${rel}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+            if (entry.name === 'node_modules' || entry.name === '.git') continue;
+            out.push(...await collectProjectRagSourceEntries(absRoot, nextRel));
+        } else if (entry.isFile() && /\.(md|txt|json)$/i.test(entry.name)) {
+            const absFile = join(absRoot, nextRel);
+            const st = await stat(absFile);
+            out.push({ relativePath: normalizeRelativePath(nextRel), size: st.size });
+        }
+    }
+    return out;
 }
 
 function chooseAccentColor(seed: string): string {
@@ -695,6 +725,28 @@ ipcMain.handle('din-projects:reveal', async (_event, projectId: string) => {
     const project = await getProjectRecord(projectId);
     if (project.path) {
         await shell.openPath(project.path);
+    }
+});
+
+ipcMain.handle('din-projects:rag-list', async (_event, projectId: string) => {
+    const project = await getProjectRecord(projectId);
+    if (!project.path) return [];
+    return collectProjectRagSourceEntries(project.path);
+});
+
+ipcMain.handle('din-projects:rag-read', async (_event, projectId: string, relativePath: string) => {
+    const project = await getProjectRecord(projectId);
+    if (!project.path || typeof relativePath !== 'string') return null;
+    const normalized = normalizeRelativePath(relativePath);
+    if (!normalized || normalized.split('/').some((segment) => segment === '..')) {
+        throw new Error('Invalid RAG file path.');
+    }
+    const abs = resolve(join(project.path, normalized));
+    assertPathInsideProjectRoot(project.path, abs);
+    try {
+        return await readFile(abs, 'utf8');
+    } catch {
+        return null;
     }
 });
 

@@ -189,6 +189,12 @@ function createMemoryElectronBridge(): ElectronProjectBridgeApi {
         async revealProject() {
             return undefined;
         },
+        async listProjectRagSources() {
+            return [];
+        },
+        async readProjectRagTextFile() {
+            return null;
+        },
     };
 }
 

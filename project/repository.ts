@@ -12,6 +12,7 @@ import type {
     ProjectController,
     ProjectManifest,
     ProjectOpenResult,
+    ProjectRagTextSource,
     ProjectRepository,
     ProjectStorageKind,
     ProjectWindowKind,
@@ -434,6 +435,64 @@ async function toByteArray(blob: Blob): Promise<number[]> {
 
 function isFsProject(project: ProjectManifest): boolean {
     return project.storageKind === 'browser-fs-handle';
+}
+
+async function collectRagSourcesFromDirectoryHandle(
+    directory: FileSystemDirectoryHandle,
+    pathPrefix: string,
+): Promise<ProjectRagTextSource[]> {
+    const out: ProjectRagTextSource[] = [];
+    for await (const handle of directory.values()) {
+        const name = handle.name;
+        const rel = pathPrefix ? `${pathPrefix}/${name}` : name;
+        if (handle.kind === 'directory') {
+            if (name === 'node_modules' || name === '.git') continue;
+            const sub = await directory.getDirectoryHandle(name);
+            const nested = await collectRagSourcesFromDirectoryHandle(sub, rel);
+            out.push(...nested);
+        } else if (handle.kind === 'file' && /\.(md|txt|json)$/i.test(name)) {
+            const fileHandle = await directory.getFileHandle(name);
+            const file = await fileHandle.getFile();
+            const sourceId = rel.replace(/\\/g, '/');
+            out.push({
+                sourceId,
+                byteSize: file.size,
+                readText: () => file.text(),
+            });
+        }
+    }
+    return out;
+}
+
+/**
+ * Lists `.md`, `.txt`, and `.json` files under the project root (recursive).
+ * - `browser-fs-handle`: File System Access root handle
+ * - `electron-fs`: via {@link ElectronProjectBridgeApi}
+ * - `browser-indexeddb`: empty (no folder on disk)
+ */
+export async function loadProjectRagTextSources(project: ProjectManifest): Promise<ProjectRagTextSource[]> {
+    if (project.storageKind === 'browser-fs-handle' && project.handleId) {
+        const handleRecord = await readHandleRecord(project.handleId);
+        if (!handleRecord) return [];
+        const ok = await requestHandlePermission(handleRecord.handle);
+        if (!ok) {
+            throw new Error('Project folder permission was denied.');
+        }
+        return collectRagSourcesFromDirectoryHandle(handleRecord.handle, '');
+    }
+
+    if (project.storageKind === 'electron-fs') {
+        const bridge = getElectronBridge();
+        if (!bridge) return [];
+        const entries = await bridge.listProjectRagSources(project.id);
+        return entries.map((entry) => ({
+            sourceId: entry.relativePath.replace(/\\/g, '/'),
+            byteSize: entry.size,
+            readText: async () => (await bridge.readProjectRagTextFile(project.id, entry.relativePath)) ?? '',
+        }));
+    }
+
+    return [];
 }
 
 function openProjectsDb(): Promise<IDBDatabase> {

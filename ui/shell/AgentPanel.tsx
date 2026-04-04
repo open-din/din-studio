@@ -3,6 +3,7 @@ import { Trash2, Settings } from 'lucide-react';
 import { useAudioGraphStore } from '../editor/store';
 import { runPatchAgent } from '../ai/agent';
 import { applyOperations } from '../ai/applyOperations';
+import { loadAgentChat, saveAgentChat } from '../ai/agentChatStorage';
 import type { AgentMessage, GraphSnapshot } from '../ai/types';
 
 function buildSnapshot(): GraphSnapshot {
@@ -90,12 +91,33 @@ function MessageBubble({ msg }: { msg: AgentMessage }) {
 export function AgentPanel() {
     const openAiApiKey = useAudioGraphStore((s) => s.openAiApiKey);
     const setOpenAiApiKey = useAudioGraphStore((s) => s.setOpenAiApiKey);
+    const activeGraphId = useAudioGraphStore((s) => s.activeGraphId);
 
     const [messages, setMessages] = useState<AgentMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    /** Avoid persisting stale messages to the newly selected graph before state hydrates from storage. */
+    const skipNextPersistRef = useRef(false);
+
+    useEffect(() => {
+        skipNextPersistRef.current = true;
+        if (!activeGraphId) {
+            setMessages([]);
+            return;
+        }
+        setMessages(loadAgentChat(activeGraphId));
+    }, [activeGraphId]);
+
+    useEffect(() => {
+        if (!activeGraphId) return;
+        if (skipNextPersistRef.current) {
+            skipNextPersistRef.current = false;
+            return;
+        }
+        saveAgentChat(activeGraphId, messages);
+    }, [activeGraphId, messages]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -157,14 +179,19 @@ export function AgentPanel() {
     return (
         <div className="flex h-full flex-col gap-2">
             {/* Header */}
-            <div className="flex flex-none items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-subtle)]">
-                    AI Agent
-                </span>
+            <div className="flex flex-none items-center justify-between gap-2">
+                <div className="min-w-0">
+                    <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-subtle)]">
+                        AI Agent
+                    </span>
+                    <p className="text-[10px] text-[var(--text-subtle)] opacity-80">
+                        Chat is saved per graph (this patch).
+                    </p>
+                </div>
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
-                        title="Clear chat"
+                        title="Clear chat for this graph"
                         onClick={() => setMessages([])}
                         className="p-1 text-[var(--text-subtle)] hover:text-[var(--text)] transition-colors"
                     >

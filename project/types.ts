@@ -83,6 +83,13 @@ export interface ProjectController {
     reveal(): Promise<void>;
 }
 
+/** Plain-text / markdown / JSON files discovered under a on-disk or File System Access project root (for local RAG). */
+export interface ProjectRagTextSource {
+    sourceId: string;
+    byteSize?: number;
+    readText: () => Promise<string>;
+}
+
 export interface ProjectRepository {
     readonly supportsDedicatedWindows: boolean;
     readonly supportsFileSystemAccess: boolean;
@@ -124,6 +131,8 @@ export interface ElectronProjectBridgeApi {
     deleteProjectAsset: (projectId: string, assetId: string) => Promise<void>;
     openProjectWindow: (projectId: string) => Promise<ProjectOpenResult>;
     revealProject: (projectId: string) => Promise<void>;
+    listProjectRagSources: (projectId: string) => Promise<{ relativePath: string; size: number }[]>;
+    readProjectRagTextFile: (projectId: string, relativePath: string) => Promise<string | null>;
 }
 
 declare global {

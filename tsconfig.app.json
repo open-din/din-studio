@@ -26,6 +26,7 @@
     "noUncheckedSideEffectImports": true
   },
   "include": [
+    "src/**/*.ts",
     "bridge/**/*.ts",
     "bridge/**/*.tsx",
     "core/**/*.ts",

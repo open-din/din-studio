@@ -103,6 +103,10 @@ contextBridge.exposeInMainWorld('dinStudioApp', {
         ipcRenderer.invoke('din-projects:open-window', projectId) as Promise<ProjectOpenResult>,
     revealProject: (projectId: string) =>
         ipcRenderer.invoke('din-projects:reveal', projectId) as Promise<void>,
+    listProjectRagSources: (projectId: string) =>
+        ipcRenderer.invoke('din-projects:rag-list', projectId) as Promise<{ relativePath: string; size: number }[]>,
+    readProjectRagTextFile: (projectId: string, relativePath: string) =>
+        ipcRenderer.invoke('din-projects:rag-read', projectId, relativePath) as Promise<string | null>,
 
     // MCP bridge-specific actions
     mcpFocusWindow: () =>

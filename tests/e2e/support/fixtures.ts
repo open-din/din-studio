@@ -384,6 +384,12 @@ export async function installElectronBridge(page: Page, seed: ElectronBridgeSeed
                 bridgeState.revealProjectCalls.push(projectId);
                 persistBridgeState();
             },
+            async listProjectRagSources() {
+                return [];
+            },
+            async readProjectRagTextFile() {
+                return null;
+            },
         };
     }, seed);
 }
