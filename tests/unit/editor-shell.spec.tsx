@@ -45,7 +45,7 @@ describe('editor shell', () => {
         expect(within(bottomDrawer).queryByText('Library')).not.toBeInTheDocument();
 
         fireEvent.click(screen.getByTitle('Explorer'));
-        expect(screen.getByTitle('Reveal in list')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reveal Project' })).toBeInTheDocument();
 
         fireEvent.click(screen.getByTitle('Library'));
         expect(screen.getByLabelText('Search library files')).toBeInTheDocument();

@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import { installMemoryLocalStorage } from './tests/support/memoryLocalStorage';
 
+installMemoryLocalStorage();
 
 // Explicitly mock AudioEngine to the stub to ensure esbuild never tries to transform the 3k line file
 vi.mock('./ui/editor/AudioEngine', async () => {
