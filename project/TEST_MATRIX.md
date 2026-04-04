@@ -25,6 +25,13 @@
 | `F12-S01` | Launcher Entry Flows | Recent work, search, and open actions preserve immediate orientation | e2e | `playwright` | baseline | `Jakob's Law`, `Selective Attention` | - |
 | `F12-S02` | Launcher Entry Flows | Templates, import, and recover stay first-class entry actions | e2e | `playwright` | baseline | `Hick's Law`, `Postel's Law` | - |
 | `F12-S03` | Launcher Entry Flows | Interrupted-work resume stays visible at product entry | e2e | `playwright` | baseline | `Zeigarnik Effect`, `Goal-Gradient Effect` | - |
+| `F13-S01` | AI Agent Panel | Bottom drawer exposes the AI Agent tab alongside Runtime and Diagnostics | e2e | `playwright` | baseline | `Jakob's Law`, `Selective Attention` | - |
+| `F13-S02` | AI Agent Panel | API key setup view is shown when no key is stored | e2e | `playwright` | baseline | `Postel's Law`, `Hick's Law` | - |
+| `F13-S03` | AI Agent Panel | Saving an API key reveals model selectors and chat input | e2e | `playwright` | baseline | `Doherty Threshold`, `Goal-Gradient Effect` | - |
+| `F13-S04` | AI Agent Panel | Chat history is restored from localStorage when navigating back to a graph | e2e | `playwright` | baseline | `Zeigarnik Effect`, `Peak-End Rule` | - |
+| `F13-S05` | AI Agent Panel | Clear chat button removes message history from view | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | - |
+| `F13-S06` | AI Agent Panel | Model selection is persisted and restored from localStorage | e2e | `playwright` | baseline | `Jakob's Law`, `Zeigarnik Effect` | - |
+| `F13-S07` | AI Agent Panel | Thinking selector is disabled for non-reasoning models | e2e | `playwright` | baseline | `Selective Attention`, `Postel's Law` | - |
 | `F20-S01` | Params Node | Params node is discoverable and placeable from the Sources catalog | integration | `vitest` | planned | `Postel's Law`, `Fitts's Law` | VEA-166 |
 | `F20-S02` | Params Node | Params node exposes its contract handles and editable settings | integration | `vitest` | planned | `Selective Attention` | VEA-168 |
 | `F20-S03` | Params Node | Params node stays coherent through graph, runtime, and code generation | integration | `vitest` | planned | `Doherty Threshold` | VEA-171 |
