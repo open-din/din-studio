@@ -61,16 +61,16 @@ export function BottomDrawer({
 
     return (
         <section
-            className="ui-panel bg-[var(--panel-bg)] border-t border-[var(--panel-border)]"
+            className="ui-panel flex min-h-0 flex-col bg-[var(--panel-bg)] border-t border-[var(--panel-border)]"
             style={{ height: `${height}px` }}
             data-testid="bottom-drawer"
         >
             <div
-                className="h-2 cursor-row-resize border-b border-[var(--panel-border)] bg-[var(--panel-bg)]/40"
+                className="h-2 shrink-0 cursor-row-resize border-b border-[var(--panel-border)] bg-[var(--panel-bg)]/40"
                 onMouseDown={startResize}
                 aria-hidden="true"
             />
-            <div className="flex items-center justify-between gap-3 px-4 py-2">
+            <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-2">
                 <div className="flex items-center gap-2 border border-[var(--panel-border)] bg-[var(--panel-bg)] p-1">
                     {DRAWER_TABS.map((tab) => (
                         <button
@@ -88,7 +88,7 @@ export function BottomDrawer({
                     ))}
                 </div>
             </div>
-            <div className="min-h-0 overflow-hidden px-4 pb-4">{content}</div>
+            <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4">{content}</div>
         </section>
     );
 }
