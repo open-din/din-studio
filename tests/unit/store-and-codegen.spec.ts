@@ -142,7 +142,7 @@ describe('editor store and code generation', () => {
 
         expect(state.nodes.find((node) => node.data.type === 'midiNote')?.data).toMatchObject({
             type: 'midiNote',
-            label: 'Midi In',
+            label: 'Piano / keys in',
             inputId: 'default',
             mappingEnabled: false,
             mappings: [],
@@ -150,7 +150,7 @@ describe('editor store and code generation', () => {
         });
         expect(state.nodes.find((node) => node.data.type === 'midiCC')?.data).toMatchObject({
             type: 'midiCC',
-            label: 'Knob / CC In',
+            label: 'Controllers (CC in)',
             cc: 1,
         });
         expect(state.nodes.find((node) => node.data.type === 'midiNoteOutput')?.data).toMatchObject({
@@ -168,6 +168,40 @@ describe('editor store and code generation', () => {
             type: 'midiSync',
             label: 'Sync',
             mode: 'transport-master',
+        });
+
+        refreshConnections.mockRestore();
+    });
+
+    it('F41-S16 pre-fills midiNote inputId when addNode receives data overrides', async () => {
+        vi.resetModules();
+        const { audioEngine } = await import('../../ui/editor/AudioEngine');
+        const refreshConnections = vi.spyOn(audioEngine, 'refreshConnections').mockImplementation(() => {});
+        const { useAudioGraphStore } = await import('../../ui/editor/store');
+
+        useAudioGraphStore.getState().addNode('midiNote', { x: 10, y: 20 }, { inputId: 'hardware-in-1' as never });
+
+        const midiNote = useAudioGraphStore.getState().nodes.find((node) => node.data.type === 'midiNote');
+        expect(midiNote?.data).toMatchObject({
+            type: 'midiNote',
+            inputId: 'hardware-in-1',
+        });
+
+        refreshConnections.mockRestore();
+    });
+
+    it('F41-S17 updates midiNote inputId via updateNodeData', async () => {
+        vi.resetModules();
+        const { audioEngine } = await import('../../ui/editor/AudioEngine');
+        const refreshConnections = vi.spyOn(audioEngine, 'refreshConnections').mockImplementation(() => {});
+        const { useAudioGraphStore } = await import('../../ui/editor/store');
+
+        useAudioGraphStore.getState().addNode('midiNote', { x: 0, y: 0 });
+        const nodeId = useAudioGraphStore.getState().nodes.find((node) => node.data.type === 'midiNote')!.id;
+        useAudioGraphStore.getState().updateNodeData(nodeId, { inputId: 'reassigned-id' as never });
+
+        expect(useAudioGraphStore.getState().nodes.find((node) => node.id === nodeId)?.data).toMatchObject({
+            inputId: 'reassigned-id',
         });
 
         refreshConnections.mockRestore();
@@ -219,7 +253,7 @@ describe('editor store and code generation', () => {
                 id: 'midi-note-1',
                 type: 'midiNoteNode',
                 position: { x: 0, y: 0 },
-                data: { type: 'midiNote', inputId: 'keys-in', channel: 2, noteMode: 'range', note: 60, noteMin: 48, noteMax: 72, mappingEnabled: false, mappings: [], activeMappingId: null, label: 'Midi In' },
+                data: { type: 'midiNote', inputId: 'keys-in', channel: 2, noteMode: 'range', note: 60, noteMin: 48, noteMax: 72, mappingEnabled: false, mappings: [], activeMappingId: null, label: 'Piano / keys in' },
             },
             {
                 id: 'midi-cc-1',
@@ -283,7 +317,7 @@ describe('editor store and code generation', () => {
         expect(code).toContain('useMidiCC({ cc: 74, inputId: "knobs-in", channel: 3 })');
         expect(code).toContain('<MidiNoteOutput');
         expect(code).toContain('outputId="synth-out"');
-        expect(code).toContain('triggerToken={midiIn.triggerToken}');
+        expect(code).toContain('triggerToken={pianoKeysIn.triggerToken}');
         expect(code).toContain('<MidiCCOutput');
         expect(code).toContain('value={knobCCIn.raw}');
         expect(code).toContain('valueFormat="raw"');

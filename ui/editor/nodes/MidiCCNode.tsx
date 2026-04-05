@@ -11,12 +11,17 @@ import {
     NodeWidget,
     NodeWidgetTitle,
 } from '../components/NodeShell';
+import { MIDI_PANEL_COPY } from '../../copy';
 import { useAudioGraphStore } from '../store';
 import type { MidiCCNodeData } from '../types';
+import { useMidiDetectionStore } from '../midiDetectionStore';
 import { buildInputOptions, getChannelFilterValue, getStatusBadge } from './midiNodeUtils';
 
 const MidiCCNode = memo(({ id, data, selected }: NodeProps) => {
     const midiData = data as MidiCCNodeData;
+    const panelLearnCc = useMidiDetectionStore((state) =>
+        state.lastCapture?.kind === 'cc' ? state.lastCapture : null
+    );
     const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);
     const midi = useMidi();
     const midiCC = useMidiCC({
@@ -58,7 +63,7 @@ const MidiCCNode = memo(({ id, data, selected }: NodeProps) => {
     return (
         <NodeShell
             nodeType="midiCC"
-            title={midiData.label?.trim() || 'Knob / CC In'}
+            title={midiData.label?.trim() || 'Controllers (CC in)'}
             selected={selected}
             badge={<NodeValueBadge live={status === 'Receiving'}>{status}</NodeValueBadge>}
         >
@@ -107,9 +112,27 @@ const MidiCCNode = memo(({ id, data, selected }: NodeProps) => {
                     <NodeNumberField min={0} max={127} step={1} value={midiData.cc} onChange={(value) => handleChange({ cc: value })} />
                 </div>
 
-                <button type="button" className={`node-shell__transport-button ${learning ? 'is-live' : ''}`} onClick={() => setLearning((value) => !value)}>
-                    <span>{learning ? 'Waiting...' : 'Learn'}</span>
-                </button>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <button type="button" className={`node-shell__transport-button ${learning ? 'is-live' : ''}`} onClick={() => setLearning((value) => !value)}>
+                        <span>{learning ? 'Waiting...' : 'Learn'}</span>
+                    </button>
+                    {midi.status === 'granted' && panelLearnCc && selected ? (
+                        <button
+                            type="button"
+                            className="node-shell__transport-button"
+                            onClick={() => {
+                                handleChange({
+                                    inputId: panelLearnCc.inputId as MidiCCNodeData['inputId'],
+                                    channel: panelLearnCc.channel,
+                                    cc: panelLearnCc.cc,
+                                });
+                                setLearning(false);
+                            }}
+                        >
+                            <span>{MIDI_PANEL_COPY.nodeApply.useDetectedCc}</span>
+                        </button>
+                    ) : null}
+                </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     <NodeValueBadge live={midiCC.lastEvent !== null}>{midiCC.normalized.toFixed(2)}</NodeValueBadge>

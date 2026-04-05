@@ -62,7 +62,7 @@ export const createDefaultMidiNoteData = (): MidiNoteNodeData => ({
     mappingEnabled: false,
     mappings: [],
     activeMappingId: null,
-    label: 'Midi In',
+    label: 'Piano / keys in',
 });
 
 export const createDefaultMidiCCData = (): MidiCCNodeData => ({
@@ -70,7 +70,7 @@ export const createDefaultMidiCCData = (): MidiCCNodeData => ({
     inputId: 'default',
     channel: 'all',
     cc: 1,
-    label: 'Knob / CC In',
+    label: 'Controllers (CC in)',
 });
 
 export const createDefaultMidiNoteOutputData = (): MidiNoteOutputNodeData => ({

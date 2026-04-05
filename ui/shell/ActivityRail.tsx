@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Boxes, FolderTree, LibraryBig, PlayCircle, GitBranch } from 'lucide-react';
+import { Boxes, FolderTree, LibraryBig, Piano, PlayCircle, GitBranch } from 'lucide-react';
 
 interface ActivityRailItem {
     id: string;
@@ -18,6 +18,7 @@ const ITEM_ICONS: Record<string, typeof FolderTree> = {
     explorer: FolderTree,
     catalog: Boxes,
     library: LibraryBig,
+    midi: Piano,
     runtime: PlayCircle,
     review: GitBranch,
 };

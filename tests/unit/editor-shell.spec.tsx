@@ -58,6 +58,25 @@ describe('editor shell', () => {
         expect(screen.getByText('Import Patch JSON')).toBeInTheDocument();
     });
 
+    it('F41-S19 opens MIDI device panel from the activity rail', async () => {
+        const project = {
+            id: 'project-midi-rail',
+            name: 'MIDI Rail Lab',
+            accentColor: '#68a5ff',
+            onRevealProject: vi.fn(),
+        };
+
+        await renderEditor(project);
+
+        await waitFor(async () => {
+            expect(await getLatestReactFlowProps()).toBeTruthy();
+        });
+
+        fireEvent.click(screen.getByTitle('MIDI'));
+        expect(screen.getByText('MIDI Devices')).toBeInTheDocument();
+        expect(screen.getByTestId('midi-device-panel')).toBeInTheDocument();
+    });
+
     it('migrates the legacy library drawer tab into the left drawer layout', async () => {
         cleanup();
         installEditorShellGlobals({

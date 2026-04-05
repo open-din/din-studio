@@ -86,7 +86,7 @@ interface AudioGraphState {
     finalizeHistoryGroup: (graphId: string, mergeKey?: string) => void;
 
     // Custom actions
-    addNode: (type: EditorNodeType, position?: { x: number; y: number }) => void;
+    addNode: (type: EditorNodeType, position?: { x: number; y: number }, dataOverrides?: Partial<AudioNodeData>) => void;
     addNodeAndConnect: (type: EditorNodeType, connection: NormalizedConnectionDescriptor, position?: { x: number; y: number }) => string | null;
     updateNodeData: (nodeId: string, data: Partial<AudioNodeData>, options?: UpdateNodeDataOptions) => void;
     removeNode: (nodeId: string) => void;
@@ -115,6 +115,17 @@ interface AudioGraphState {
 
 let nodeIdCounter = 0;
 const getNodeId = () => `node_${++nodeIdCounter}`;
+
+const mergeNewNodeData = (data: AudioNodeData, overrides?: Partial<AudioNodeData>): AudioNodeData => {
+    if (!overrides || Object.keys(overrides).length === 0) {
+        return data;
+    }
+    const merged = { ...data, ...overrides } as AudioNodeData;
+    if (merged.type === 'midiNote') {
+        return normalizeMidiNoteNodeData(merged as MidiNoteNodeData) as AudioNodeData;
+    }
+    return merged;
+};
 
 const deepClone = <T>(value: T): T => {
     if (typeof structuredClone === 'function') {
@@ -1130,15 +1141,22 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
         audioEngine.refreshConnections(state.nodes, newEdges);
     },
 
-    addNode: (type, position = { x: 300, y: 200 }) => {
+    addNode: (type, position = { x: 300, y: 200 }, dataOverrides) => {
         const state = get();
         if (getSingletonNodeTypes().has(type) && hasSingletonNode(state.nodes, type)) {
             return;
         }
 
         const id = getNodeId();
-        const newNode = createEditorNode(id, type, position);
+        let newNode = createEditorNode(id, type, position);
         if (!newNode) return;
+
+        if (dataOverrides && Object.keys(dataOverrides).length > 0) {
+            newNode = {
+                ...newNode,
+                data: mergeNewNodeData(newNode.data, dataOverrides),
+            };
+        }
 
         const newNodes = [...state.nodes, newNode];
         const activeGraph = state.graphs.find((graph) => graph.id === state.activeGraphId);

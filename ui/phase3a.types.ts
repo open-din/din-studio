@@ -1,5 +1,5 @@
 export type LauncherSection = 'recent' | 'templates' | 'import' | 'recover';
-export type RailMode = 'explorer' | 'catalog' | 'library' | 'runtime' | 'review';
+export type RailMode = 'explorer' | 'catalog' | 'library' | 'midi' | 'runtime' | 'review';
 export type SourceControlPhase = 'idle' | 'generating' | 'ready' | 'committing' | 'success';
 export type StatusSeverity = 'info' | 'success' | 'warning' | 'danger';
 export type DensityMode = 'compact' | 'comfortable';

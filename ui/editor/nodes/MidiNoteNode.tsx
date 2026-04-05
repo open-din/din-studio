@@ -11,8 +11,10 @@ import {
     NodeWidget,
     NodeWidgetTitle,
 } from '../components/NodeShell';
+import { MIDI_PANEL_COPY } from '../../copy';
 import { useAudioGraphStore } from '../store';
 import type { MidiInMapping, MidiNoteNodeData } from '../types';
+import { useMidiDetectionStore } from '../midiDetectionStore';
 import { buildInputOptions, getChannelFilterValue, getStatusBadge } from './midiNodeUtils';
 
 const createMappingId = (inputId: string, channel: number) => `${inputId}:${channel}`;
@@ -48,6 +50,9 @@ const getMostRecentMapping = (mappings: MidiInMapping[]) =>
 
 const MidiNoteNode = memo(({ id, data, selected }: NodeProps) => {
     const midiData = useMemo(() => normalizeMidiNoteNodeData(data as MidiNoteNodeData), [data]);
+    const panelLearnNote = useMidiDetectionStore((state) =>
+        state.lastCapture?.kind === 'note' ? state.lastCapture : null
+    );
     const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);
     const midi = useMidi();
     const midiNote = useMidiNote({
@@ -176,7 +181,7 @@ const MidiNoteNode = memo(({ id, data, selected }: NodeProps) => {
     return (
         <NodeShell
             nodeType="midiNote"
-            title={midiData.label?.trim() || 'Midi In'}
+            title={midiData.label?.trim() || 'Piano / keys in'}
             selected={selected}
             badge={<NodeValueBadge live={status === 'Receiving'}>{status}</NodeValueBadge>}
         >
@@ -288,6 +293,28 @@ const MidiNoteNode = memo(({ id, data, selected }: NodeProps) => {
                         <option value="range">Range</option>
                     </NodeSelectField>
                 </div>
+
+                {midi.status === 'granted' && panelLearnNote && selected ? (
+                    <div className="node-shell__widget-field">
+                        <button
+                            type="button"
+                            className="node-shell__transport-button"
+                            onClick={() =>
+                                commitPatch(
+                                    {
+                                        inputId: panelLearnNote.inputId as MidiNoteNodeData['inputId'],
+                                        channel: panelLearnNote.channel,
+                                        noteMode: 'single',
+                                        note: panelLearnNote.note,
+                                    },
+                                    { syncActiveMappingFromSelection: true }
+                                )
+                            }
+                        >
+                            <span>{MIDI_PANEL_COPY.nodeApply.useDetectedKey}</span>
+                        </button>
+                    </div>
+                ) : null}
 
                 {midiData.noteMode === 'single' ? (
                     <div className="node-shell__widget-field">

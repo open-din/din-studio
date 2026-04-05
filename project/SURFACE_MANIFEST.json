@@ -38,6 +38,21 @@
       "scenarios": ["F10-S01", "F10-S02", "F10-S03"]
     },
     {
+      "id": "surface:MidiDevicePanel",
+      "kind": "studio-surface",
+      "name": "MidiDevicePanel",
+      "source": "ui/editor/components/MidiDevicePanel.tsx",
+      "docs": "project/features/15_midi_device_panel.feature.md",
+      "tests": [
+        "tests/unit/midi-device-panel.spec.tsx",
+        "tests/unit/midi-preferences.spec.ts",
+        "tests/unit/editor-shell.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/e2e/f41-midi-panel.spec.ts"
+      ],
+      "scenarios": ["F41-S01", "F41-S02", "F41-S07", "F41-S10", "F41-S16", "F41-S18", "F41-S19"]
+    },
+    {
       "id": "surface:AgentPanel",
       "kind": "studio-surface",
       "name": "AgentPanel",

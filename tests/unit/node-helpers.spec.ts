@@ -273,13 +273,13 @@ describe('editor connection assist helpers', () => {
             id: 'midi-note-1',
             type: 'midiNoteNode',
             position: { x: 0, y: 0 },
-            data: { type: 'midiNote', inputId: 'default', channel: 'all', noteMode: 'all', note: 60, noteMin: 48, noteMax: 72, mappingEnabled: false, mappings: [], activeMappingId: null, label: 'Midi In' },
+            data: { type: 'midiNote', inputId: 'default', channel: 'all', noteMode: 'all', note: 60, noteMin: 48, noteMax: 72, mappingEnabled: false, mappings: [], activeMappingId: null, label: 'Piano / keys in' },
         });
         const midiCCNode = createNode({
             id: 'midi-cc-1',
             type: 'midiCCNode',
             position: { x: 0, y: 0 },
-            data: { type: 'midiCC', inputId: 'default', channel: 'all', cc: 1, label: 'Knob / CC In' },
+            data: { type: 'midiCC', inputId: 'default', channel: 'all', cc: 1, label: 'Controllers (CC in)' },
         });
         const voiceNode = createNode({
             id: 'voice-1',

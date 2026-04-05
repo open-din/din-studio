@@ -757,7 +757,7 @@ describe('editor node UIs', () => {
             mappingEnabled: false,
             mappings: [],
             activeMappingId: null,
-            label: 'Midi In',
+            label: 'Piano / keys in',
         };
 
         const { rerender } = render(
@@ -965,7 +965,7 @@ describe('editor node UIs', () => {
                 <MidiCCNode
                     {...(sharedProps as any)}
                     id="midi-cc-1"
-                    data={{ type: 'midiCC', inputId: 'default', channel: 'all', cc: 1, label: 'Knob / CC In' }}
+                    data={{ type: 'midiCC', inputId: 'default', channel: 'all', cc: 1, label: 'Controllers (CC in)' }}
                 />
                 <MidiSyncNode
                     {...(sharedProps as any)}

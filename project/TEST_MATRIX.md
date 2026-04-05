@@ -1,7 +1,7 @@
 | Scenario ID | Feature | Scenario | Layer | Runner | Status | UX Laws | Linear Issue |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `F05-S01` | DIN Editor Shell And Navigation | Shell layout keeps rail, canvas, inspector, and status responsibilities explicit | e2e | `playwright` | baseline | `Jakob's Law`, `Selective Attention` | VEA-88 |
-| `F05-S02` | DIN Editor Shell And Navigation | Navigation changes preserve focus and immediate orientation | e2e | `playwright` | baseline | `Doherty Threshold`, `Selective Attention` | VEA-91 |
+| `F05-S02` | DIN Editor Shell And Navigation | Navigation changes preserve focus and immediate orientation (Catalog, MIDI, Library, Review, Runtime) | e2e | `playwright` | baseline | `Doherty Threshold`, `Selective Attention` | VEA-91 |
 | `F05-S03` | DIN Editor Shell And Navigation | Footer status remains informative without competing with the active task | e2e | `playwright` | baseline | `Selective Attention`, `Von Restorff Effect` | VEA-139 |
 | `F06-S01` | Graph Explorer And Graph Lifecycle | Graph Explorer exposes empty, single-graph, and multi-graph browsing states without competing with launcher entry flows | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | VEA-93 |
 | `F06-S02` | Graph Explorer And Graph Lifecycle | Graph creation and renaming stay immediate and resilient | e2e | `playwright` | baseline | `Doherty Threshold`, `Peak-End Rule` | VEA-95 |
@@ -190,3 +190,16 @@
 | `F03-S06` | Editor Integration | Advanced routing and sidechain remain stable during rewiring | integration | `vitest` | baseline | - | - |
 | `F03-S07` | Editor Integration | MIDI note, CC, and clock flows stay coherent across node UI, runtime, and generated code | integration | `vitest` | baseline | - | - |
 | `F03-S08` | Editor Integration | Patch export and round-trip import stay coherent | integration | `vitest` | baseline | - | - |
+| `F41-S01` | MIDI Device Panel | Left rail opens MIDI Devices drawer | e2e | `playwright` | baseline | `Jakob's Law`, `Selective Attention` | - |
+| `F41-S02` | MIDI Device Panel | Connect MIDI surfaces port list from Web MIDI | e2e | `playwright` | baseline | `Doherty Threshold`, `Postel's Law` | - |
+| `F41-S07` | MIDI Device Panel | Connected device count appears on the rail after access | e2e | `playwright` | baseline | `Selective Attention`, `Von Restorff Effect` | - |
+| `F41-S10` | MIDI Device Panel | MIDI panel exposes connect action while access is idle | integration | `vitest` | baseline | `Hick's Law` | - |
+| `F41-S11` | MIDI Device Panel | Granted access with zero ports shows an empty devices hint | integration | `vitest` | baseline | `Postel's Law` | - |
+| `F41-S12` | MIDI Device Panel | Input and output ports render as draggable rows | integration | `vitest` | baseline | `Fitts's Law` | - |
+| `F41-S13` | MIDI Device Panel | Default input action updates the MIDI runtime selection | integration | `vitest` | baseline | `Doherty Threshold` | - |
+| `F41-S14` | MIDI Device Panel | Default port row shows an explicit default badge | integration | `vitest` | baseline | `Selective Attention` | - |
+| `F41-S15` | MIDI Device Panel | Dragging a port sets React Flow and device payload data | integration | `vitest` | baseline | `Postel's Law` | - |
+| `F41-S16` | MIDI Device Panel | addNode accepts partial MIDI data to pre-fill device ids | integration | `vitest` | baseline | `Postel's Law` | - |
+| `F41-S17` | MIDI Device Panel | updateNodeData reassigns MIDI input on existing nodes | integration | `vitest` | baseline | `Doherty Threshold` | - |
+| `F41-S18` | MIDI Device Panel | Default MIDI port ids persist via localStorage helpers | integration | `vitest` | baseline | `Jakob's Law`, `Zeigarnik Effect` | - |
+| `F41-S19` | MIDI Device Panel | Activity rail reaches the MIDI device manager surface | integration | `vitest` | baseline | `Jakob's Law` | - |

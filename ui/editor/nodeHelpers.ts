@@ -317,7 +317,11 @@ export function normalizeMidiNoteNodeData(data: MidiNoteNodeData): MidiNoteNodeD
         mappingEnabled: Boolean(data.mappingEnabled),
         mappings,
         activeMappingId,
-        label: data.label?.trim() && data.label.trim() !== 'Keyboard In' ? data.label.trim() : 'Midi In',
+        label: data.label?.trim()
+            && data.label.trim() !== 'Keyboard In'
+            && data.label.trim() !== 'Midi In'
+            ? data.label.trim()
+            : 'Piano / keys in',
     };
 }
 

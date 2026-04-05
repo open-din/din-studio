@@ -18,7 +18,19 @@ import './editor/editor.css';
 import Inspector from './editor/Inspector';
 import { CodeGenerator } from './editor/CodeGenerator';
 import ConnectionAssistMenu from './editor/ConnectionAssistMenu';
-import { MidiProvider } from '@open-din/react/midi';
+import { MidiProvider, useMidi } from '@open-din/react/midi';
+import { editorMidiRuntime } from './editor/midiRuntime';
+import { applyStoredMidiDefaults } from './editor/hooks/useMidiPreferences';
+import { MIDI_DEVICE_DRAG_MIME, parseMidiDeviceDragPayload } from './editor/midiDragData';
+import {
+    findMidiAssignableNodeAtFlowPosition,
+    buildMidiNodeDataPatch,
+    buildMidiOverridesForNewNode,
+} from './editor/midiDropTarget';
+import { MidiDevicePanel } from './editor/components/MidiDevicePanel';
+import { MIDI_PANEL_COPY } from './copy';
+import type { EditorNodeType } from './editor/nodeCatalog';
+import { EDITOR_NODE_CATALOG } from './editor/nodeCatalog';
 
 import { useAudioGraphStore } from './editor/store';
 import type { AudioNodeData } from './editor/types';
@@ -225,6 +237,9 @@ function getTopbarPhaseChip(phase: SourceControlPhase) {
     }
 }
 
+const isEditorNodeType = (value: string): value is EditorNodeType =>
+    EDITOR_NODE_CATALOG.some((entry) => entry.type === value);
+
 const EditorContent: FC<EditorProps> = ({ project }) => {
     const nodes = useAudioGraphStore((s) => s.nodes);
     const edges = useAudioGraphStore((s) => s.edges);
@@ -296,6 +311,9 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         updateLeftPanelWidth,
         updateRightPanelWidth,
     } = useEditorLayout();
+
+    const midi = useMidi();
+    const midiDeviceBadgeCount = midi.status === 'granted' ? midi.inputs.length + midi.outputs.length : 0;
 
     const connectionAssist = useAudioGraphStore((s) => s.connectionAssist);
     const assistPosition = useAudioGraphStore((s) => s.assistPosition);
@@ -405,6 +423,10 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
             cancelled = true;
             unsubscribeAssets();
         };
+    }, []);
+
+    useEffect(() => {
+        applyStoredMidiDefaults(editorMidiRuntime);
     }, []);
 
     // Save active graph
@@ -646,7 +668,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
 
         if (resumeIntent.railMode === 'runtime') {
             openBottomDrawerTab('runtime');
-        } else if (resumeIntent.railMode === 'review' || resumeIntent.railMode === 'explorer' || resumeIntent.railMode === 'catalog' || resumeIntent.railMode === 'library') {
+        } else {
             openLeftPanelView(resumeIntent.railMode);
         }
 
@@ -889,9 +911,28 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                 y: event.clientY,
             }) || { x: 0, y: 0 };
 
-            addNode(type as any, position);
+            const midiPayload = parseMidiDeviceDragPayload(event.dataTransfer.getData(MIDI_DEVICE_DRAG_MIME));
+
+            if (midiPayload && isEditorNodeType(type)) {
+                const assignTarget = findMidiAssignableNodeAtFlowPosition(nodes, position, midiPayload.portType);
+                if (assignTarget) {
+                    const patch = buildMidiNodeDataPatch(assignTarget, midiPayload.portType, midiPayload.deviceId);
+                    if (patch) {
+                        updateNodeData(assignTarget.id, patch);
+                        return;
+                    }
+                }
+                const overrides = buildMidiOverridesForNewNode(type, midiPayload);
+                if (overrides && Object.keys(overrides).length > 0) {
+                    addNode(type, position, overrides);
+                    return;
+                }
+            }
+
+            if (!isEditorNodeType(type)) return;
+            addNode(type, position);
         },
-        [reactFlowInstance, addNode]
+        [reactFlowInstance, addNode, nodes, updateNodeData]
     );
 
     const onDragOver = useCallback((event: React.DragEvent) => {
@@ -955,9 +996,11 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         ? 'Graph Explorer'
         : leftPanelView === 'catalog'
             ? 'Catalog'
-            : leftPanelView === 'review'
-                ? 'Source Control'
-                : 'Audio Library';
+            : leftPanelView === 'midi'
+                ? MIDI_PANEL_COPY.drawerTitle
+                : leftPanelView === 'review'
+                    ? 'Source Control'
+                    : 'Audio Library';
     const reviewChip = getTopbarPhaseChip(reviewState.phase);
     const topbarChips = [
         ...(reviewChip ? [{
@@ -995,7 +1038,6 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     const viewportPlayLabel = outputNode?.data.type === 'output' && outputNode.data.playing ? 'Pause graph output' : 'Play graph output';
 
     return (
-        <MidiProvider>
             <div
                 className={`flex h-screen w-screen flex-col overflow-hidden select-none ${isDark ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900'}`}
                 data-testid="editor-root"
@@ -1029,6 +1071,18 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                     { id: 'explorer', label: 'Explorer', shortLabel: 'EXP', active: leftPanelView === 'explorer', onSelect: () => openLeftPanelView('explorer') },
                                     { id: 'catalog', label: 'Catalog', shortLabel: 'CAT', active: leftPanelView === 'catalog', onSelect: () => openLeftPanelView('catalog') },
                                     { id: 'library', label: 'Library', shortLabel: 'LIB', active: leftPanelView === 'library', onSelect: () => openLeftPanelView('library') },
+                                    {
+                                        id: 'midi',
+                                        label: MIDI_PANEL_COPY.activityRailLabel,
+                                        shortLabel: MIDI_PANEL_COPY.activityRailShort,
+                                        active: leftPanelView === 'midi',
+                                        onSelect: () => openLeftPanelView('midi'),
+                                        badge: midiDeviceBadgeCount > 0 ? (
+                                            <span className="border border-current/20 px-1.5 py-0.5 text-[8px] font-semibold" data-testid="midi-rail-badge">
+                                                {midiDeviceBadgeCount}
+                                            </span>
+                                        ) : undefined,
+                                    },
                                     {
                                         id: 'review',
                                         label: 'Review',
@@ -1073,6 +1127,8 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                         onFilterChange={setPaletteFilter}
                                         onAddNode={handleAddNodeFromPalette}
                                     />
+                                ) : leftPanelView === 'midi' ? (
+                                    <MidiDevicePanel />
                                 ) : leftPanelView === 'review' ? (
                                     <SourceControlPanel
                                         phase={reviewState.phase}
@@ -1312,13 +1368,14 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                     onChange={(e) => void handleImportPatchFile(e)}
                 />
             </div>
-        </MidiProvider>
     );
 };
 
 export const Editor: FC<EditorProps> = (props) => (
     <ReactFlowProvider>
-        <EditorContent {...props} />
+        <MidiProvider runtime={editorMidiRuntime}>
+            <EditorContent {...props} />
+        </MidiProvider>
     </ReactFlowProvider>
 );
 

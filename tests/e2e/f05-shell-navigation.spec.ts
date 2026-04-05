@@ -29,6 +29,9 @@ test('F05-S02 rail modes keep browse, runtime, and review responsibilities disti
     await page.getByTitle('Catalog').click();
     await expect(page.getByLabel('Search nodes')).toBeVisible();
 
+    await page.getByTitle('MIDI').click();
+    await expect(page.getByTestId('midi-device-panel')).toBeVisible();
+
     await page.getByTitle('Library').click();
     await expect(page.getByLabel('Search library files')).toBeVisible();
 
