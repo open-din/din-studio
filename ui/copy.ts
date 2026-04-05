@@ -182,4 +182,10 @@ export const MIDI_PANEL_COPY = {
         useDetectedCc: 'Use detected CC',
         useDetectedKey: 'Use detected key',
     },
+    ccNode: {
+        readoutNormalized: 'Normalized',
+        readoutRaw: 'Raw',
+        readoutSource: 'Source',
+        readoutNoSource: '—',
+    },
 } as const;

@@ -305,6 +305,12 @@ describe('editor connection assist helpers', () => {
             position: { x: 0, y: 0 },
             data: { type: 'noiseBurst', noiseType: 'white', duration: 0.1, gain: 1, attack: 0.001, release: 0.05, label: 'Noise Burst' },
         });
+        const oscNode = createNode({
+            id: 'osc-1',
+            type: 'oscNode',
+            position: { x: 0, y: 0 },
+            data: { type: 'osc', frequency: 440, detune: 0, waveform: 'sine', label: 'Oscillator' },
+        });
         const filterNode = createNode({
             id: 'filter-1',
             type: 'filterNode',
@@ -349,6 +355,7 @@ describe('editor connection assist helpers', () => {
             adsrNode,
             samplerNode,
             noiseBurstNode,
+            oscNode,
             filterNode,
             gainNode,
             pannerNode,
@@ -403,6 +410,27 @@ describe('editor connection assist helpers', () => {
             sourceHandle: 'trigger',
             target: 'midi-note-out-1',
             targetHandle: 'trigger',
+        }, nodeById)).toBe(true);
+
+        expect(canConnect({
+            source: 'midi-note-1',
+            sourceHandle: 'frequency',
+            target: 'osc-1',
+            targetHandle: 'frequency',
+        }, nodeById)).toBe(true);
+
+        expect(canConnect({
+            source: 'midi-note-1',
+            sourceHandle: 'gate',
+            target: 'adsr-1',
+            targetHandle: 'gate',
+        }, nodeById)).toBe(true);
+
+        expect(canConnect({
+            source: 'midi-note-1',
+            sourceHandle: 'velocity',
+            target: 'filter-1',
+            targetHandle: 'frequency',
         }, nodeById)).toBe(true);
 
         expect(canConnect({

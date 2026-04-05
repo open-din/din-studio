@@ -134,10 +134,23 @@ const MidiCCNode = memo(({ id, data, selected }: NodeProps) => {
                     ) : null}
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    <NodeValueBadge live={midiCC.lastEvent !== null}>{midiCC.normalized.toFixed(2)}</NodeValueBadge>
-                    <NodeValueBadge>{String(midiCC.raw)}</NodeValueBadge>
-                    {midiCC.source.name ? <NodeValueBadge>{midiCC.source.name}</NodeValueBadge> : null}
+                <div
+                    role="group"
+                    aria-label={`${MIDI_PANEL_COPY.ccNode.readoutNormalized}, ${MIDI_PANEL_COPY.ccNode.readoutRaw}, ${MIDI_PANEL_COPY.ccNode.readoutSource}`}
+                    style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start' }}
+                >
+                    <div className="node-shell__widget-field" style={{ flex: '1 1 72px', minWidth: 0 }}>
+                        <span className="node-shell__widget-field-label">{MIDI_PANEL_COPY.ccNode.readoutNormalized}</span>
+                        <NodeValueBadge live={midiCC.lastEvent !== null}>{midiCC.normalized.toFixed(2)}</NodeValueBadge>
+                    </div>
+                    <div className="node-shell__widget-field" style={{ flex: '1 1 56px', minWidth: 0 }}>
+                        <span className="node-shell__widget-field-label">{MIDI_PANEL_COPY.ccNode.readoutRaw}</span>
+                        <NodeValueBadge>{String(midiCC.raw)}</NodeValueBadge>
+                    </div>
+                    <div className="node-shell__widget-field" style={{ flex: '1 1 96px', minWidth: 0 }}>
+                        <span className="node-shell__widget-field-label">{MIDI_PANEL_COPY.ccNode.readoutSource}</span>
+                        <NodeValueBadge>{midiCC.source.name?.trim() || MIDI_PANEL_COPY.ccNode.readoutNoSource}</NodeValueBadge>
+                    </div>
                 </div>
             </NodeWidget>
         </NodeShell>

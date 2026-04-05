@@ -376,14 +376,15 @@ export function canConnect(
             && TRANSPORT_TARGET_TYPES.has(targetType);
     }
 
-    if (TRIGGER_SOURCE_TYPES.has(sourceType)) {
-        return sourceHandle === 'trigger'
-            && (
-                (targetHandle === 'trigger' && (targetType === 'voice' || targetType === 'sampler'))
-                || (targetHandle === 'gate' && targetType === 'adsr')
-                || (targetHandle === 'trigger' && targetType === 'noiseBurst')
-                || (targetHandle === 'trigger' && targetType === 'midiNoteOutput')
-            );
+    // midiNote also emits frequency / note / gate / velocity; only the trigger output uses
+    // the shared trigger routing below.
+    if (TRIGGER_SOURCE_TYPES.has(sourceType) && sourceHandle === 'trigger') {
+        return (
+            (targetHandle === 'trigger' && (targetType === 'voice' || targetType === 'sampler'))
+            || (targetHandle === 'gate' && targetType === 'adsr')
+            || (targetHandle === 'trigger' && targetType === 'noiseBurst')
+            || (targetHandle === 'trigger' && targetType === 'midiNoteOutput')
+        );
     }
 
     if (sourceType === 'voice') {
