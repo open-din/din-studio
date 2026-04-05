@@ -203,3 +203,10 @@
 | `F41-S17` | MIDI Device Panel | updateNodeData reassigns MIDI input on existing nodes | integration | `vitest` | baseline | `Doherty Threshold` | - |
 | `F41-S18` | MIDI Device Panel | Default MIDI port ids persist via localStorage helpers | integration | `vitest` | baseline | `Jakob's Law`, `Zeigarnik Effect` | - |
 | `F41-S19` | MIDI Device Panel | Activity rail reaches the MIDI device manager surface | integration | `vitest` | baseline | `Jakob's Law` | - |
+| `F16-S01` | Recognized MIDI devices | DDJ-XP2 input shows recognition badge and apply preset in MIDI panel | e2e | `playwright` | baseline | `Selective Attention`, `Von Restorff Effect` | - |
+| `F16-S02` | Recognized MIDI devices | Apply preset adds scaffold nodes to the graph | e2e | `playwright` | baseline | `Doherty Threshold` | - |
+| `F16-S03` | Recognized MIDI devices | Scaffolded pad nodes carry correct input id and note | e2e | `playwright` | baseline | `Postel's Law` | - |
+| `F16-S04` | Recognized MIDI devices | Scaffold forms separated left and right pad clusters | e2e | `playwright` | baseline | `Spatial Memory` | - |
+| `F16-S05` | Recognized MIDI devices | Apply preset keeps existing graph nodes | e2e | `playwright` | baseline | `Jakob's Law` | - |
+| `F16-S06` | Recognized MIDI devices | Device matching, layout, and batched scaffold behave as specified | integration | `vitest` | baseline | `Postel's Law` | - |
+| `F16-S07` | Recognized MIDI devices | MIDI panel recognition affordances and apply preset wiring | integration | `vitest` | baseline | `Hick's Law` | - |

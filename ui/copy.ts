@@ -182,4 +182,9 @@ export const MIDI_PANEL_COPY = {
         useDetectedCc: 'Use detected CC',
         useDetectedKey: 'Use detected key',
     },
+    recognized: {
+        badge: 'Recognized',
+        applyPreset: 'Apply preset',
+        applyPresetTooltip: (deviceName: string) => `Create a full MIDI mapping for ${deviceName}`,
+    },
 } as const;

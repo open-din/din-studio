@@ -12,6 +12,10 @@ vi.mock('@xyflow/react', async () => {
 
     return {
         ReactFlowProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+        useReactFlow: () => ({
+            screenToFlowPosition: (position: { x: number; y: number }) => position,
+            fitView: vi.fn(),
+        }),
         ReactFlow: ({ nodes, nodeTypes, children, onInit, ...props }: any) => {
             reactFlowState.latestProps = props;
 

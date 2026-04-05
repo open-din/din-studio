@@ -108,8 +108,15 @@ const MidiCCNode = memo(({ id, data, selected }: NodeProps) => {
                 </div>
 
                 <div className="node-shell__widget-field">
-                    <span className="node-shell__widget-field-label">Controller</span>
-                    <NodeNumberField min={0} max={127} step={1} value={midiData.cc} onChange={(value) => handleChange({ cc: value })} />
+                    <span className="node-shell__widget-field-label">CC number</span>
+                    <NodeNumberField
+                        min={0}
+                        max={127}
+                        step={1}
+                        value={midiData.cc}
+                        onChange={(value) => handleChange({ cc: value })}
+                        aria-label="MIDI CC number (0–127)"
+                    />
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>

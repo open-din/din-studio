@@ -37,3 +37,7 @@ Centralize Web MIDI access, port listing, default input/output selection, and dr
 ### Integration coverage
 
 Vitest scenarios `F41-S10`–`F41-S19` cover panel copy, defaults, drag payloads, store overrides, preference persistence, and shell navigation wiring documented in `project/TEST_MATRIX.md`.
+
+### Recognized controllers
+
+Supported-device recognition, **Apply preset** scaffolding, and scenario IDs `F16-S01`–`F16-S07` are specified in [`16_midi_recognized_devices.feature.md`](./16_midi_recognized_devices.feature.md).

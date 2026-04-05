@@ -28,6 +28,8 @@ import type { EditorNodeType } from './nodeCatalog';
 import {
     createEditorNode,
 } from './graphBuilders';
+import type { DeviceProfile } from './deviceProfileTypes';
+import { computeDeviceScaffoldPositions } from './deviceScaffoldLayout';
 import type { AgentReasoningMode } from '../ai/agentSettings';
 import { DEFAULT_AGENT_MODEL, parseStoredReasoningMode } from '../ai/agentSettings';
 import { normalizeUiTokensNodeData } from './uiTokens';
@@ -95,7 +97,12 @@ interface AudioGraphState {
     setSelectedNode: (nodeId: string | null) => void;
     initAudioContext: () => void;
     clearAssetReferences: (assetId: string) => void;
-    
+    scaffoldRecognizedMidiDevice: (
+        profile: DeviceProfile,
+        inputId: string,
+        anchor: { x: number; y: number }
+    ) => void;
+
     // Connection Assist State
     connectionAssist: ConnectionAssistStart | null;
     assistPosition: XYPosition | null;
@@ -1159,6 +1166,84 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
         }
 
         const newNodes = [...state.nodes, newNode];
+        const activeGraph = state.graphs.find((graph) => graph.id === state.activeGraphId);
+        const historyByGraph = state.activeGraphId && activeGraph
+            ? appendHistoryEntry(
+                state.historyByGraph,
+                state.activeGraphId,
+                createHistorySnapshot({
+                    name: activeGraph.name,
+                    nodes: state.nodes,
+                    edges: state.edges,
+                }),
+                createHistorySnapshot({
+                    name: activeGraph.name,
+                    nodes: newNodes,
+                    edges: state.edges,
+                })
+            )
+            : state.historyByGraph;
+
+        set({
+            nodes: newNodes,
+            graphs: state.activeGraphId
+                ? state.graphs.map((graph) =>
+                    graph.id === state.activeGraphId
+                        ? { ...graph, nodes: newNodes, updatedAt: Date.now() }
+                        : graph
+                )
+                : state.graphs,
+            historyByGraph,
+            ...getHistoryAvailability(historyByGraph, state.activeGraphId),
+        });
+
+        audioEngine.refreshConnections(newNodes, state.edges);
+    },
+
+    scaffoldRecognizedMidiDevice: (profile, inputId, anchor) => {
+        const state = get();
+        const positions = computeDeviceScaffoldPositions(profile, anchor);
+        const scaffoldNodes: Node<AudioNodeData>[] = [];
+
+        for (let i = 0; i < profile.controls.length; i++) {
+            const control = profile.controls[i];
+            const position = positions[i];
+            const id = getNodeId();
+            const editorType = control.defaultNodeType;
+            let node = createEditorNode(id, editorType, position);
+            if (!node) continue;
+
+            if (editorType === 'midiNote') {
+                node = {
+                    ...node,
+                    data: mergeNewNodeData(node.data, {
+                        inputId: inputId as never,
+                        channel: control.channel,
+                        noteMode: 'single',
+                        note: control.note ?? 60,
+                        label: control.label,
+                    } as Partial<AudioNodeData>),
+                };
+            } else if (editorType === 'midiCC') {
+                node = {
+                    ...node,
+                    data: mergeNewNodeData(node.data, {
+                        inputId: inputId as never,
+                        channel: control.channel,
+                        cc: control.cc ?? 1,
+                        label: control.label,
+                    } as Partial<AudioNodeData>),
+                };
+            }
+
+            scaffoldNodes.push(node);
+        }
+
+        if (scaffoldNodes.length === 0) return;
+
+        const newNodes = [...state.nodes, ...scaffoldNodes];
+        syncNodeIdCounter(newNodes);
+
         const activeGraph = state.graphs.find((graph) => graph.id === state.activeGraphId);
         const historyByGraph = state.activeGraphId && activeGraph
             ? appendHistoryEntry(

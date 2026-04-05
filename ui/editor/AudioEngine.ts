@@ -411,7 +411,8 @@ export class AudioEngine {
 
                 const noteOutput = instance.outputs.get('note');
                 if (noteOutput instanceof ConstantSourceNode) {
-                    noteOutput.offset.setTargetAtTime(current?.note ?? 0, now, 0.01);
+                    noteOutput.offset.cancelScheduledValues(now);
+                    noteOutput.offset.setValueAtTime(current?.note ?? 0, now);
                 }
 
                 const frequencyOutput = instance.outputs.get('frequency');
@@ -419,17 +420,20 @@ export class AudioEngine {
                     const frequency = current
                         ? 440 * Math.pow(2, (current.note - 69) / 12)
                         : 0;
-                    frequencyOutput.offset.setTargetAtTime(frequency, now, 0.01);
+                    frequencyOutput.offset.cancelScheduledValues(now);
+                    frequencyOutput.offset.setValueAtTime(frequency, now);
                 }
 
                 const gateOutput = instance.outputs.get('gate');
                 if (gateOutput instanceof ConstantSourceNode) {
-                    gateOutput.offset.setTargetAtTime(current ? 1 : 0, now, 0.01);
+                    gateOutput.offset.cancelScheduledValues(now);
+                    gateOutput.offset.setValueAtTime(current ? 1 : 0, now);
                 }
 
                 const velocityOutput = instance.outputs.get('velocity');
                 if (velocityOutput instanceof ConstantSourceNode) {
-                    velocityOutput.offset.setTargetAtTime(current?.velocity ?? 0, now, 0.01);
+                    velocityOutput.offset.cancelScheduledValues(now);
+                    velocityOutput.offset.setValueAtTime(current?.velocity ?? 0, now);
                 }
 
                 const event = snapshot.lastInputEvent;

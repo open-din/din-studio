@@ -1,4 +1,5 @@
 import { type DragEvent, type FC, useCallback, useEffect } from 'react';
+import { useReactFlow } from '@xyflow/react';
 import { useMidi, type MidiPortDescriptor } from '@open-din/react/midi';
 import { Crosshair, GripVertical, Radio, Star } from 'lucide-react';
 import { MIDI_PANEL_COPY } from '../../copy';
@@ -9,6 +10,8 @@ import { learnCaptureFromMidiEvent } from '../midiLearnCapture';
 import { useMidiDetectionStore, type MidiDetectionMode } from '../midiDetectionStore';
 import { useAudioGraphStore } from '../store';
 import type { AudioNodeData } from '../types';
+import type { DeviceProfile } from '../deviceProfileTypes';
+import { matchDeviceProfile } from '../deviceProfiles';
 
 function statusMessage(status: string, error: Error | null): string {
     switch (status) {
@@ -45,9 +48,19 @@ interface DeviceRowProps {
     isDefault: boolean;
     onSetDefault: () => void;
     dragNodeType: EditorNodeType;
+    recognizedProfile: DeviceProfile | null;
+    onApplyDevicePreset?: (profile: DeviceProfile, inputId: string) => void;
 }
 
-const DeviceRow: FC<DeviceRowProps> = ({ port, portType, isDefault, onSetDefault, dragNodeType }) => {
+const DeviceRow: FC<DeviceRowProps> = ({
+    port,
+    portType,
+    isDefault,
+    onSetDefault,
+    dragNodeType,
+    recognizedProfile,
+    onApplyDevicePreset,
+}) => {
     const onDragStart = useCallback(
         (event: DragEvent) => {
             event.dataTransfer.setData('application/reactflow', dragNodeType);
@@ -91,6 +104,31 @@ const DeviceRow: FC<DeviceRowProps> = ({ port, portType, isDefault, onSetDefault
                     {MIDI_PANEL_COPY.defaultBadge}
                 </span>
             )}
+            {recognizedProfile && (
+                <span
+                    className="shrink-0 rounded border border-emerald-500/40 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-400"
+                    data-testid="midi-recognized-badge"
+                >
+                    {MIDI_PANEL_COPY.recognized.badge}
+                </span>
+            )}
+            {recognizedProfile &&
+                portType === 'input' &&
+                port.state === 'connected' &&
+                onApplyDevicePreset && (
+                    <button
+                        type="button"
+                        className="shrink-0 rounded border border-[var(--accent)]/60 bg-[var(--accent-soft)]/40 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)] transition hover:bg-[var(--accent-soft)]/60"
+                        data-testid="midi-apply-preset"
+                        title={MIDI_PANEL_COPY.recognized.applyPresetTooltip(recognizedProfile.name)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onApplyDevicePreset(recognizedProfile, port.id);
+                        }}
+                    >
+                        {MIDI_PANEL_COPY.recognized.applyPreset}
+                    </button>
+                )}
             <button
                 type="button"
                 className="shrink-0 rounded border border-[var(--panel-border)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
@@ -122,6 +160,7 @@ function modeLabel(mode: MidiDetectionMode): string {
 }
 
 export const MidiDevicePanel: FC = () => {
+    const { screenToFlowPosition } = useReactFlow();
     const midi = useMidi();
     const {
         supported,
@@ -144,12 +183,31 @@ export const MidiDevicePanel: FC = () => {
     const clearLearnCapture = useMidiDetectionStore((s) => s.clearCapture);
 
     const addNode = useAudioGraphStore((s) => s.addNode);
+    const scaffoldRecognizedMidiDevice = useAudioGraphStore((s) => s.scaffoldRecognizedMidiDevice);
     const nodes = useAudioGraphStore((s) => s.nodes);
 
     const flowPositionForNewNode = useCallback(() => ({
         x: 240 + (nodes.length % 10) * 28,
         y: 160 + Math.floor(nodes.length / 10) * 24,
     }), [nodes.length]);
+
+    const flowAnchorForScaffold = useCallback(() => {
+        if (typeof window === 'undefined') {
+            return { x: 400, y: 300 };
+        }
+        return screenToFlowPosition({
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+        });
+    }, [screenToFlowPosition]);
+
+    const handleApplyDevicePreset = useCallback(
+        (profile: DeviceProfile, inputId: string) => {
+            const anchor = flowAnchorForScaffold();
+            scaffoldRecognizedMidiDevice(profile, inputId, anchor);
+        },
+        [flowAnchorForScaffold, scaffoldRecognizedMidiDevice]
+    );
 
     useEffect(() => {
         if (detectionMode === 'off') return;
@@ -338,6 +396,8 @@ export const MidiDevicePanel: FC = () => {
                                     isDefault={defaultInputId === port.id}
                                     onSetDefault={() => handleDefaultIn(port.id)}
                                     dragNodeType="midiNote"
+                                    recognizedProfile={matchDeviceProfile(port)}
+                                    onApplyDevicePreset={handleApplyDevicePreset}
                                 />
                             ))}
                         </div>
@@ -359,6 +419,7 @@ export const MidiDevicePanel: FC = () => {
                                     isDefault={defaultOutputId === port.id}
                                     onSetDefault={() => handleDefaultOut(port.id)}
                                     dragNodeType="midiNoteOutput"
+                                    recognizedProfile={matchDeviceProfile(port)}
                                 />
                             ))}
                         </div>

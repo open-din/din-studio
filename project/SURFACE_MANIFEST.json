@@ -48,9 +48,12 @@
         "tests/unit/midi-preferences.spec.ts",
         "tests/unit/editor-shell.spec.tsx",
         "tests/unit/store-and-codegen.spec.ts",
-        "tests/e2e/f41-midi-panel.spec.ts"
+        "tests/unit/device-profiles.spec.ts",
+        "tests/unit/midi-scaffold.spec.ts",
+        "tests/e2e/f41-midi-panel.spec.ts",
+        "tests/e2e/f16-midi-recognized-device.spec.ts"
       ],
-      "scenarios": ["F41-S01", "F41-S02", "F41-S07", "F41-S10", "F41-S16", "F41-S18", "F41-S19"]
+      "scenarios": ["F41-S01", "F41-S02", "F41-S07", "F41-S10", "F41-S16", "F41-S18", "F41-S19", "F16-S01", "F16-S02", "F16-S03", "F16-S04", "F16-S05", "F16-S06", "F16-S07"]
     },
     {
       "id": "surface:AgentPanel",

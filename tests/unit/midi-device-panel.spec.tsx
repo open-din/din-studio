@@ -4,6 +4,13 @@ import React from 'react';
 import { MidiDevicePanel } from '../../ui/editor/components/MidiDevicePanel';
 import { MIDI_PANEL_COPY } from '../../ui/copy';
 import { MIDI_DEVICE_DRAG_MIME } from '../../ui/editor/midiDragData';
+import { useAudioGraphStore } from '../../ui/editor/store';
+
+vi.mock('@xyflow/react', () => ({
+    useReactFlow: () => ({
+        screenToFlowPosition: (position: { x: number; y: number }) => position,
+    }),
+}));
 
 type TestPort = {
     id: string;
@@ -147,5 +154,56 @@ describe('MidiDevicePanel', () => {
             MIDI_DEVICE_DRAG_MIME,
             JSON.stringify({ portType: 'input', deviceId: 'in-1' })
         );
+    });
+
+    it('F16-S07 shows recognized badge and apply preset for DDJ-XP2 input when connected', () => {
+        midiHookState.status = 'granted';
+        midiHookState.inputs = [{
+            id: 'xp2-in',
+            type: 'input',
+            name: 'DDJ-XP2',
+            manufacturer: 'Pioneer DJ',
+            state: 'connected',
+            connection: 'open',
+        }];
+        render(<MidiDevicePanel />);
+        expect(screen.getByTestId('midi-recognized-badge')).toHaveTextContent(MIDI_PANEL_COPY.recognized.badge);
+        expect(screen.getByTestId('midi-apply-preset')).toHaveTextContent(MIDI_PANEL_COPY.recognized.applyPreset);
+    });
+
+    it('F16-S07 omits apply preset when input is not connected', () => {
+        midiHookState.status = 'granted';
+        midiHookState.inputs = [{
+            id: 'xp2-in',
+            type: 'input',
+            name: 'DDJ-XP2',
+            manufacturer: 'Pioneer',
+            state: 'disconnected',
+            connection: 'open',
+        }];
+        render(<MidiDevicePanel />);
+        expect(screen.getByTestId('midi-recognized-badge')).toBeInTheDocument();
+        expect(screen.queryByTestId('midi-apply-preset')).toBeNull();
+    });
+
+    it('F16-S07 clicking apply preset calls scaffoldRecognizedMidiDevice', () => {
+        const spy = vi.spyOn(useAudioGraphStore.getState(), 'scaffoldRecognizedMidiDevice');
+        midiHookState.status = 'granted';
+        midiHookState.inputs = [{
+            id: 'xp2-in',
+            type: 'input',
+            name: 'DDJ-XP2',
+            manufacturer: 'Pioneer',
+            state: 'connected',
+            connection: 'open',
+        }];
+        render(<MidiDevicePanel />);
+        fireEvent.click(screen.getByTestId('midi-apply-preset'));
+        expect(spy).toHaveBeenCalledTimes(1);
+        const [profile, inputId, anchor] = spy.mock.calls[0];
+        expect(profile.id).toBe('pioneer-ddj-xp2');
+        expect(inputId).toBe('xp2-in');
+        expect(anchor).toMatchObject({ x: expect.any(Number), y: expect.any(Number) });
+        spy.mockRestore();
     });
 });
