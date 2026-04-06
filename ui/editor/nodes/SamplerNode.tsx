@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
+import { isLikelyAudioFile } from '../audioImport';
 import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../audioLibrary';
 import { audioEngine } from '../AudioEngine';
 import {
@@ -95,20 +96,29 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
     }, [data.fileName, externalAssetPath, id, libraryAssets, updateNodeData]);
 
     const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+        const files = Array.from(event.target.files ?? []).filter(isLikelyAudioFile);
+        if (files.length === 0) return;
 
-        addAssetFromFile(file, { kind: 'sample' })
-            .then((asset) => applyAssetSelection(asset.id, asset.name, asset))
-            .catch(() => {
+        void (async () => {
+            try {
+                let primary: AudioLibraryAsset | undefined;
+                for (const file of files) {
+                    const asset = await addAssetFromFile(file, { kind: 'sample' });
+                    primary ??= asset;
+                }
+                if (primary) {
+                    await applyAssetSelection(primary.id, primary.name, primary);
+                }
+                setLibraryError(null);
+            } catch {
                 setLibraryError('Upload failed');
                 updateNodeData(id, { loaded: false });
-            })
-            .finally(() => {
+            } finally {
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
-            });
+            }
+        })();
     }, [applyAssetSelection, id, updateNodeData]);
 
     const handleLibrarySelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -163,9 +173,10 @@ export const SamplerNode: React.FC<NodeProps<Node<SamplerNodeData>>> = memo(({ i
                     ref={fileInputRef}
                     type="file"
                     accept="audio/*"
+                    multiple
                     onChange={handleFileChange}
                     style={{ display: 'none' }}
-                    title="Select audio file"
+                    title="Select one or more audio files"
                 />
 
                 <button type="button" className="ui-token-trigger-row" onClick={handleBrowseClick}>

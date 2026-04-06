@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { NodeProps } from '@xyflow/react';
+import { isLikelyAudioFile } from '../audioImport';
 import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../audioLibrary';
 import { audioEngine } from '../AudioEngine';
 import {
@@ -83,20 +84,28 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
     }, []);
 
     const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+        const files = Array.from(event.target.files ?? []).filter(isLikelyAudioFile);
+        if (files.length === 0) return;
 
-        setUploadError(null);
-        addAssetFromFile(file, { kind: 'impulse' })
-            .then((asset) => applyImpulseAsset(asset.id, asset.name, asset))
-            .catch(() => {
+        void (async () => {
+            setUploadError(null);
+            try {
+                let primary: AudioLibraryAsset | undefined;
+                for (const file of files) {
+                    const asset = await addAssetFromFile(file, { kind: 'impulse' });
+                    primary ??= asset;
+                }
+                if (primary) {
+                    await applyImpulseAsset(primary.id, primary.name, primary);
+                }
+            } catch {
                 setUploadError('Upload failed');
-            })
-            .finally(() => {
+            } finally {
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
-            });
+            }
+        })();
     }, [applyImpulseAsset]);
 
     const handleLibrarySelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -120,9 +129,10 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
                     ref={fileInputRef}
                     type="file"
                     accept="audio/*"
+                    multiple
                     onChange={handleFileChange}
                     style={{ display: 'none' }}
-                    title="Select impulse response audio file"
+                    title="Select one or more impulse response files"
                 />
 
                 <button type="button" className="ui-token-trigger-row" onClick={handleBrowseClick}>

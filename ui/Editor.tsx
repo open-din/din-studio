@@ -71,6 +71,7 @@ import { SourceControlPanel } from './shell/SourceControlPanel';
 import { useEditorLayout } from './shell/useEditorLayout';
 import { SHELL_LAYOUT } from './shell/shellTokens';
 import { getMiniMapNodeColor } from './editor/nodeColorMap';
+import type { ProjectStorageKind } from '../project';
 import { consumeProjectResumeIntent, readProjectReviewState, writeProjectInterruptedWork, writeProjectReviewState } from './projectUiState';
 import type { ChangedFileSummary, InterruptedWorkSummary, ResumeIntent, ReviewState, SourceControlPhase } from './phase3a.types';
 import { Play, Pause, Circle, Wand2 } from 'lucide-react';
@@ -146,6 +147,8 @@ export interface ProjectMeta {
     name: string;
     accentColor: string;
     path?: string;
+    /** When `browser-fs-handle`, timer-based autosave is disabled (File System Access requires a user gesture). */
+    storageKind?: ProjectStorageKind;
     onRevealProject?: () => void | Promise<void>;
 }
 
@@ -241,6 +244,7 @@ const isEditorNodeType = (value: string): value is EditorNodeType =>
     EDITOR_NODE_CATALOG.some((entry) => entry.type === value);
 
 const EditorContent: FC<EditorProps> = ({ project }) => {
+    const fsAccessProject = project?.storageKind === 'browser-fs-handle';
     const nodes = useAudioGraphStore((s) => s.nodes);
     const edges = useAudioGraphStore((s) => s.edges);
     const graphs = useAudioGraphStore((s) => s.graphs);
@@ -442,8 +446,13 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
             edges,
             updatedAt: Date.now(),
         };
-        await saveGraph(updatedGraph);
-        setSaveStatus('saved');
+        try {
+            await saveGraph(updatedGraph);
+            setSaveStatus('saved');
+        } catch (err) {
+            console.warn('Graph save failed:', err);
+            setSaveStatus('unsaved');
+        }
     }, [activeGraphId, nodes, edges, graphs]);
 
     // Handle graph loading (opens tab + switches active)
@@ -886,19 +895,19 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         setSaveStatus('unsaved');
     }, [nodes, edges, initialDataReady]);
 
-    // Debounced autosave
+    // Debounced autosave (skipped for `browser-fs-handle`: Chrome blocks many FS writes without a user gesture)
     useEffect(() => {
-        if (!autosaveEnabled || !initialDataReady || saveStatus !== 'unsaved') return;
+        if (!autosaveEnabled || fsAccessProject || !initialDataReady || saveStatus !== 'unsaved') return;
         if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current);
         autosaveTimerRef.current = window.setTimeout(async () => {
             setSaveStatus('saving');
             await handleSaveActiveGraph();
-            setSaveStatus('saved');
+            setSaveStatus((s) => (s === 'saving' ? 'unsaved' : s));
         }, 1500);
         return () => {
             if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current);
         };
-    }, [nodes, edges, saveStatus, autosaveEnabled, initialDataReady, handleSaveActiveGraph]);
+    }, [nodes, edges, saveStatus, autosaveEnabled, fsAccessProject, initialDataReady, handleSaveActiveGraph]);
 
     const onDrop = useCallback(
         (event: React.DragEvent) => {

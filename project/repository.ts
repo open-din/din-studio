@@ -803,6 +803,12 @@ async function readBlobFile(root: FileSystemDirectoryHandle, relativePath: strin
 }
 
 async function saveWorkspaceToFileSystem(handle: FileSystemDirectoryHandle, snapshot: ProjectWorkspaceSnapshot): Promise<void> {
+    const allowed = await requestHandlePermission(handle);
+    if (!allowed) {
+        throw new Error(
+            'Cannot write to the project folder (permission denied or expired). Save again from the menu or keyboard after re-authorizing access.',
+        );
+    }
     await ensureDir(handle, GRAPH_DIR);
     await ensureDir(handle, SAMPLE_DIR);
     await ensureDir(handle, IMPULSE_DIR);
@@ -1031,7 +1037,6 @@ function createProjectController(args: {
             const fileName = sanitizeFileName(options?.fileName ?? name);
             const relativePath = buildUniqueRelativePath(fileName, kind, workspace.project.assets, existing);
             const now = Date.now();
-            const durationSec = await detectAudioDuration(blob);
             const draftAsset: ProjectAssetRecord = {
                 id: assetId,
                 name: fileName,
@@ -1040,15 +1045,21 @@ function createProjectController(args: {
                 relativePath,
                 mimeType: blob.type || existing?.mimeType || 'application/octet-stream',
                 size: blob.size,
-                durationSec: durationSec ?? existing?.durationSec,
+                durationSec: existing?.durationSec,
                 createdAt: existing?.createdAt ?? now,
                 updatedAt: now,
             };
 
             const storedAsset = await args.writeAssetBlob(currentProject, draftAsset, blob);
+            const durationSec = await detectAudioDuration(blob);
+            const finalizedAsset: ProjectAssetRecord = {
+                ...storedAsset,
+                durationSec: durationSec ?? storedAsset.durationSec,
+                updatedAt: Date.now(),
+            };
             const nextAssets = [
-                ...workspace.project.assets.filter((asset) => asset.id !== storedAsset.id),
-                storedAsset,
+                ...workspace.project.assets.filter((asset) => asset.id !== finalizedAsset.id),
+                finalizedAsset,
             ];
 
             const nextWorkspace = await persistWorkspace({
@@ -1060,7 +1071,7 @@ function createProjectController(args: {
             });
 
             notifyAssets();
-            return nextWorkspace.project.assets.find((asset) => asset.id === storedAsset.id) ?? storedAsset;
+            return nextWorkspace.project.assets.find((asset) => asset.id === finalizedAsset.id) ?? finalizedAsset;
         },
         async saveAssetById(assetId, blob, name, options) {
             return this.addAssetFromBlob(blob, name ?? assetId, {
@@ -1214,6 +1225,12 @@ class BrowserProjectRepository implements ProjectRepository {
                 const handleRecord = projectRecord.handleId ? await readHandleRecord(projectRecord.handleId) : undefined;
                 if (!handleRecord) {
                     throw new Error('Project directory handle is no longer available.');
+                }
+                const allowed = await requestHandlePermission(handleRecord.handle);
+                if (!allowed) {
+                    throw new Error(
+                        'Cannot write audio into the project folder (permission denied or expired). Try the import again after clicking this page or use Save (⌘/Ctrl+S) to restore access.',
+                    );
                 }
                 await writeBlobFile(handleRecord.handle, asset.relativePath, blob);
                 return asset;

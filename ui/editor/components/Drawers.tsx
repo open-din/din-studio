@@ -1,5 +1,6 @@
-import { type FC, useMemo, useRef, useState } from 'react';
+import { type FC, type InputHTMLAttributes, useMemo, useRef, useState } from 'react';
 import { useAudioGraphStore } from '../store';
+import { isLikelyAudioFile, pickAudioFilesFromNativeDirectory } from '../audioImport';
 import { addAssetFromFile, deleteAsset, listAssets, type AudioLibraryAsset } from '../audioLibrary';
 
 // Custom SVG Icons
@@ -23,6 +24,12 @@ const DownloadIcon = ({ className }: { className?: string }) => (
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
         <polyline points="7 10 12 15 17 10" />
         <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+);
+
+const FolderIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
     </svg>
 );
 
@@ -140,6 +147,7 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [repairingAssetId, setRepairingAssetId] = useState<string | null>(null);
     const uploadInputRef = useRef<HTMLInputElement>(null);
+    const folderInputRef = useRef<HTMLInputElement>(null);
 
     const formatSize = (bytes: number) => {
         if (bytes < 1024) return `${bytes} B`;
@@ -184,15 +192,16 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
         setError(null);
         if (files.length === 0) return;
 
-        const hasNonAudio = files.some(file => !file.type.startsWith('audio/'));
-
-        if (hasNonAudio) {
-            setError('Only audio files are accepted.');
+        const audioFiles = files.filter(isLikelyAudioFile);
+        if (audioFiles.length === 0) {
+            setError('No supported audio files found (check format or file extension).');
             return;
         }
 
         try {
-            await Promise.all(files.map(file => addAssetFromFile(file)));
+            for (const file of audioFiles) {
+                await addAssetFromFile(file);
+            }
             await refreshItems();
         } catch (err) {
             setError('Failed to upload audio files.');
@@ -210,6 +219,29 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
         if (uploadInputRef.current) {
             uploadInputRef.current.value = '';
         }
+    };
+
+    const handleFolderInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const nextFiles = Array.from(event.target.files ?? []);
+        await importFiles(nextFiles);
+        if (folderInputRef.current) {
+            folderInputRef.current.value = '';
+        }
+    };
+
+    const handleImportFolderClick = async () => {
+        setError(null);
+        const result = await pickAudioFilesFromNativeDirectory();
+        if (result === 'unsupported') {
+            folderInputRef.current?.click();
+            return;
+        }
+        if (result === 'cancelled') return;
+        if (result.length === 0) {
+            setError('No supported audio files in that folder.');
+            return;
+        }
+        await importFiles(result);
     };
 
     const handleRepairInputChange = async (item: MissingLibraryReference, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,16 +282,37 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                     multiple
                     onChange={handleImportInputChange}
                     className="sr-only"
-                    aria-label="Import library files"
+                    aria-label="Import library audio files"
                 />
-                <button
-                    type="button"
-                    onClick={() => uploadInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-xs font-bold transition-all active:scale-95"
-                >
-                    <DownloadIcon className="w-3.5 h-3.5" />
-                    <span>IMPORT</span>
-                </button>
+                <input
+                    ref={folderInputRef}
+                    type="file"
+                    {...({ webkitdirectory: '', directory: '' } as InputHTMLAttributes<HTMLInputElement>)}
+                    multiple
+                    onChange={handleFolderInputChange}
+                    className="sr-only"
+                    aria-label="Import audio files from a folder"
+                />
+                <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => uploadInputRef.current?.click()}
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-xs font-bold transition-all active:scale-95"
+                    >
+                        <DownloadIcon className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">FILES</span>
+                        <span className="sm:hidden">ADD</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => void handleImportFolderClick()}
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/15 text-white border border-white/10 rounded-full text-xs font-bold transition-all active:scale-95"
+                        title="Import all supported audio files from a folder (recursive)"
+                    >
+                        <FolderIcon className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">FOLDER</span>
+                    </button>
+                </div>
             </div>
 
             {error && (
@@ -315,7 +368,9 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                     <div className="h-40 flex flex-col items-center justify-center text-zinc-600 gap-3">
                         <MusicIcon className="w-8 h-8 opacity-20" />
                         <span className="text-xs uppercase tracking-widest font-bold opacity-40">No audio files found.</span>
-                        <p className="text-[10px] text-zinc-500">Drag and drop audio files here</p>
+                        <p className="text-[10px] text-zinc-500 text-center max-w-[220px]">
+                            Drag audio files here or use Files / Folder above
+                        </p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-2">

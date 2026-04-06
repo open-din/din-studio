@@ -308,6 +308,7 @@ function App() {
                     name: screen.controller.project.name,
                     accentColor: screen.controller.project.accentColor,
                     path: screen.controller.project.path,
+                    storageKind: screen.controller.project.storageKind,
                     onRevealProject: () => repository.revealProject(screen.controller.project.id),
                 }}
             />
