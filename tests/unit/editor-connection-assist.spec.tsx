@@ -371,7 +371,7 @@ describe('Editor connection assist', () => {
         await waitFor(() => {
             expect(screen.getByLabelText('Search library files')).toBeInTheDocument();
         });
-        const dropzone = screen.getByText('Drag and drop audio files here').closest('.ui-library-dropzone') as HTMLElement;
+        const dropzone = screen.getByText(/Drag audio files here/i).closest('.ui-library-dropzone') as HTMLElement;
         expect(dropzone).toBeTruthy();
 
         const file = new File(['audio-data'], 'kick.mp3', { type: 'audio/mpeg' });
@@ -398,14 +398,14 @@ describe('Editor connection assist', () => {
         await waitFor(() => {
             expect(screen.getByLabelText('Search library files')).toBeInTheDocument();
         });
-        const dropzone = screen.getByText('Drag and drop audio files here').closest('.ui-library-dropzone') as HTMLElement;
+        const dropzone = screen.getByText(/Drag audio files here/i).closest('.ui-library-dropzone') as HTMLElement;
         expect(dropzone).toBeTruthy();
 
         const file = new File(['not-audio'], 'notes.txt', { type: 'text/plain' });
         fireEvent.drop(dropzone, { dataTransfer: { files: [file] } });
 
         await waitFor(() => {
-            expect(screen.getByText(/Only audio files are accepted\./i)).toBeInTheDocument();
+            expect(screen.getByText(/No supported audio files found/i)).toBeInTheDocument();
         });
         expect(audioLibrary.addAssetFromFile).not.toHaveBeenCalled();
     });
