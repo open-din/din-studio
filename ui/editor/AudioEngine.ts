@@ -46,6 +46,7 @@ import type {
     MixNodeData,
     ClampNodeData,
     SwitchNodeData,
+    MidiPlayerNodeData,
 } from './types';
 import { math, compare, mix, clamp, switchValue } from '@open-din/react/data';
 import { editorMidiRuntime } from './midiRuntime';
@@ -149,6 +150,10 @@ interface AudioNodeInstance {
         note: number;
         trackId: string;
         lastEmitAtMs: number;
+    };
+    midiPlayerData?: {
+        loaded: boolean;
+        loop: boolean;
     };
     lfoOsc?: OscillatorNode; // For LFO waveform updates
     lastTriggerValue?: number;
@@ -282,6 +287,15 @@ export class AudioEngine {
     private edges: Edge[] = [];
     private sampleBufferCache: Map<string, AudioBuffer> = new Map();
     private busNodes: Map<string, GainNode> = new Map();
+    /** Parallel output tap: master → tapGain → (destination | MediaStreamDestination | splitter → L/R Analysers) */
+    private recordingTapGain: GainNode | null = null;
+    private recordingStreamDestination: MediaStreamAudioDestinationNode | null = null;
+    private recordingChannelSplitter: ChannelSplitterNode | null = null;
+    private recordingAnalyserL: AnalyserNode | null = null;
+    private recordingAnalyserR: AnalyserNode | null = null;
+    private mediaRecorder: MediaRecorder | null = null;
+    private recordedChunks: Blob[] = [];
+    private recorderMimeType = '';
     private liveControlInputValues: Map<string, number> = new Map();
     private controlValueTimerID: number | undefined = undefined;
     constructor() {
@@ -934,7 +948,11 @@ export class AudioEngine {
         if (outputNode) {
             const outputInstance = this.audioNodes.get(outputNode.id);
             if (outputInstance && this.audioContext) {
-                outputInstance.node.connect(this.audioContext.destination);
+                if (this.recordingTapGain) {
+                    outputInstance.node.connect(this.recordingTapGain);
+                } else {
+                    outputInstance.node.connect(this.audioContext.destination);
+                }
             }
         }
     }
@@ -1340,6 +1358,17 @@ export class AudioEngine {
                         );
                     });
                 }
+
+                if (instance.type === 'midiPlayer' && instance.midiPlayerData && connectedIds.has(id)) {
+                    const { loaded } = instance.midiPlayerData;
+                    if (loaded && instance.node instanceof ConstantSourceNode) {
+                        const node = instance.node;
+                        const vel = 1;
+                        node.offset.setValueAtTime(vel, eventTime);
+                        node.offset.setValueAtTime(0, eventTime + (stepDuration * 0.8));
+                        this.triggerSequencerTargets(id, eventTime, vel, stepDuration * 0.8);
+                    }
+                }
             });
         };
 
@@ -1667,6 +1696,19 @@ export class AudioEngine {
                         baseNote: prData.baseNote,
                         notes: prData.notes || []
                     }
+                };
+            }
+            case 'midiPlayer': {
+                const mpData = data as MidiPlayerNodeData;
+                const source = ctx.createConstantSource();
+                source.offset.value = 0;
+                return {
+                    node: source,
+                    type: 'midiPlayer',
+                    midiPlayerData: {
+                        loaded: Boolean(mpData.loaded && mpData.midiFileId),
+                        loop: Boolean(mpData.loop),
+                    },
                 };
             }
             case 'lfo': {
@@ -2576,7 +2618,8 @@ export class AudioEngine {
                 }
                 case 'adsr':
                 case 'stepSequencer':
-                case 'pianoRoll': {
+                case 'pianoRoll':
+                case 'midiPlayer': {
                     const instance = this.audioNodes.get(sourceNode.id);
                     if (instance?.node instanceof ConstantSourceNode) {
                         return instance.node.offset.value;
@@ -3168,6 +3211,13 @@ export class AudioEngine {
                 if ('octaves' in data && typeof data.octaves === 'number') instance.pianoRollData.octaves = data.octaves;
                 if ('baseNote' in data && typeof data.baseNote === 'number') instance.pianoRollData.baseNote = data.baseNote;
             }
+        } else if (instance.type === 'midiPlayer') {
+            if (!instance.midiPlayerData) return;
+            const mp = this.nodeById.get(nodeId)?.data as MidiPlayerNodeData | undefined;
+            if (mp) {
+                instance.midiPlayerData.loaded = Boolean(mp.loaded && String(mp.midiFileId ?? '').trim().length > 0);
+                instance.midiPlayerData.loop = Boolean(mp.loop);
+            }
         } else if (instance.type === 'adsr') {
             if (instance.adsrData) {
                 if ('attack' in data && typeof data.attack === 'number') instance.adsrData.attack = data.attack;
@@ -3322,6 +3372,195 @@ export class AudioEngine {
 
     get playing(): boolean {
         return this.isPlaying;
+    }
+
+    // -------------------------------------------------------------------------
+    // Graph output recording (MediaRecorder + tap)
+    // -------------------------------------------------------------------------
+
+    private static pickRecorderMimeType(): string {
+        const candidates = [
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/ogg;codecs=opus',
+            'audio/mp4',
+        ];
+        for (const mime of candidates) {
+            if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(mime)) {
+                return mime;
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Creates tap gain + analyser + MediaStreamDestination; connects tap to speakers.
+     * Call while session is stopped or running; if already playing, call {@link refreshConnections} after.
+     */
+    prepareRecordingTap(): void {
+        const ctx = this.init();
+        if (this.recordingTapGain) {
+            return;
+        }
+        const tap = ctx.createGain();
+        tap.gain.value = 1;
+        const dest = ctx.createMediaStreamDestination();
+        const splitter = ctx.createChannelSplitter(2);
+        const analyserL = ctx.createAnalyser();
+        const analyserR = ctx.createAnalyser();
+        analyserL.fftSize = 2048;
+        analyserR.fftSize = 2048;
+        analyserL.smoothingTimeConstant = 0.35;
+        analyserR.smoothingTimeConstant = 0.35;
+        tap.connect(ctx.destination);
+        tap.connect(dest);
+        tap.connect(splitter);
+        splitter.connect(analyserL, 0, 0);
+        splitter.connect(analyserR, 1, 0);
+        this.recordingTapGain = tap;
+        this.recordingStreamDestination = dest;
+        this.recordingChannelSplitter = splitter;
+        this.recordingAnalyserL = analyserL;
+        this.recordingAnalyserR = analyserR;
+    }
+
+    /**
+     * L/R time-domain samples for stereo waveform UI (mono taps duplicate on R via Web Audio routing).
+     */
+    getRecordingStereoTimeDomainData(left: Float32Array, right: Float32Array): void {
+        if (!this.recordingAnalyserL || !this.recordingAnalyserR) {
+            left.fill(0);
+            right.fill(0);
+            return;
+        }
+        const n = Math.min(left.length, right.length);
+        const tmpL = new Float32Array(n);
+        const tmpR = new Float32Array(n);
+        this.recordingAnalyserL.getFloatTimeDomainData(tmpL);
+        this.recordingAnalyserR.getFloatTimeDomainData(tmpR);
+        left.set(tmpL.subarray(0, n));
+        right.set(tmpR.subarray(0, n));
+    }
+
+    getRecordingAnalyser(): AnalyserNode | null {
+        return this.recordingAnalyserL;
+    }
+
+    /**
+     * Starts MediaRecorder on the tapped MediaStream. Requires {@link prepareRecordingTap} and a playing graph.
+     */
+    beginMediaRecorder(): void {
+        if (!this.recordingStreamDestination) {
+            return;
+        }
+        if (this.mediaRecorder) {
+            return;
+        }
+        const stream = this.recordingStreamDestination.stream;
+        this.recordedChunks = [];
+        const mime = AudioEngine.pickRecorderMimeType();
+        this.recorderMimeType = mime;
+        try {
+            this.mediaRecorder = mime
+                ? new MediaRecorder(stream, { mimeType: mime })
+                : new MediaRecorder(stream);
+        } catch {
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.recorderMimeType = this.mediaRecorder.mimeType || '';
+        }
+        this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
+            if (event.data && event.data.size > 0) {
+                this.recordedChunks.push(event.data);
+            }
+        };
+        const timesliceMs = 250;
+        if (this.mediaRecorder.state === 'inactive') {
+            this.mediaRecorder.start(timesliceMs);
+        }
+    }
+
+    pauseRecordingCapture(): void {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+            this.mediaRecorder.pause();
+        }
+    }
+
+    resumeRecordingCapture(): void {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+            this.mediaRecorder.resume();
+        }
+    }
+
+    /**
+     * Stop capture and resolve the recorded blob. Safe if never started.
+     */
+    stopRecordingCapture(): Promise<Blob> {
+        return new Promise((resolve) => {
+            if (!this.mediaRecorder) {
+                resolve(new Blob());
+                return;
+            }
+            const recorder = this.mediaRecorder;
+            const finish = () => {
+                const type = this.recorderMimeType || recorder.mimeType || 'audio/webm';
+                const blob = new Blob(this.recordedChunks, { type });
+                this.recordedChunks = [];
+                this.mediaRecorder = null;
+                resolve(blob);
+            };
+            recorder.onstop = finish;
+            if (recorder.state === 'inactive') {
+                finish();
+                return;
+            }
+            try {
+                recorder.stop();
+            } catch {
+                finish();
+            }
+        });
+    }
+
+    /**
+     * Remove tap nodes and optionally reconnect the output chain when the engine is still playing.
+     */
+    releaseRecordingTap(): void {
+        this.recordedChunks = [];
+        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+            try {
+                this.mediaRecorder.stop();
+            } catch { /* noop */ }
+        }
+        this.mediaRecorder = null;
+
+        const ctx = this.audioContext;
+        try {
+            if (this.recordingTapGain && ctx) {
+                this.recordingTapGain.disconnect();
+            }
+            if (this.recordingStreamDestination) {
+                this.recordingStreamDestination.disconnect();
+            }
+            if (this.recordingAnalyserL) {
+                this.recordingAnalyserL.disconnect();
+            }
+            if (this.recordingAnalyserR) {
+                this.recordingAnalyserR.disconnect();
+            }
+            if (this.recordingChannelSplitter) {
+                this.recordingChannelSplitter.disconnect();
+            }
+        } catch { /* noop */ }
+
+        this.recordingTapGain = null;
+        this.recordingStreamDestination = null;
+        this.recordingChannelSplitter = null;
+        this.recordingAnalyserL = null;
+        this.recordingAnalyserR = null;
+
+        if (this.isPlaying && ctx && this.visualNodes.length > 0) {
+            this.connectGraph(this.visualNodes, this.edges);
+        }
     }
 }
 

@@ -114,6 +114,7 @@ const DATA_NODE_TYPES = new Set<AudioNodeData['type']>([
 const TRANSPORT_TARGET_TYPES = new Set<AudioNodeData['type']>([
     'stepSequencer',
     'pianoRoll',
+    'midiPlayer',
 ]);
 
 const TRIGGER_SOURCE_TYPES = new Set<AudioNodeData['type']>([
@@ -121,6 +122,7 @@ const TRIGGER_SOURCE_TYPES = new Set<AudioNodeData['type']>([
     'pianoRoll',
     'eventTrigger',
     'midiNote',
+    'midiPlayer',
 ]);
 
 const MODULATION_TARGET_HANDLES = new Set([

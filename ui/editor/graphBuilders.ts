@@ -519,6 +519,21 @@ export function createEditorNode(
                 dragHandle: '.node-header',
                 data: createDefaultMidiSyncData() as AudioNodeData,
             };
+        case 'midiPlayer':
+            return {
+                id,
+                type: 'midiPlayerNode',
+                position,
+                dragHandle: '.node-header',
+                data: {
+                    type: 'midiPlayer',
+                    midiFileId: '',
+                    midiFileName: '',
+                    loaded: false,
+                    loop: false,
+                    label: 'MIDI Player',
+                } as AudioNodeData,
+            };
         case 'math':
             return {
                 id,

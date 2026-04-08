@@ -44,7 +44,9 @@ import type {
     UiTokensNodeData,
     TransportNodeData,
     MidiNoteNodeData,
+    RecordingState,
 } from './types';
+import { createInitialRecordingState } from './types';
 
 export * from './types';
 
@@ -92,6 +94,15 @@ interface AudioGraphState {
     removeNode: (nodeId: string) => void;
     loadGraph: (nodes: Node<AudioNodeData>[], edges: Edge[]) => void;
     setPlaying: (playing: boolean) => void;
+    recording: RecordingState;
+    armRecording: () => void;
+    cancelOrStopRecording: () => Promise<void>;
+    dismissRecording: () => void;
+    setRecordingCrop: (start: number | null, end: number | null) => void;
+    toggleRecordingLoop: () => void;
+    setRecordingPreviewState: (
+        partial: Partial<Pick<RecordingState, 'playbackPosition' | 'isPlayingBack'>>,
+    ) => void;
     setSelectedNode: (nodeId: string | null) => void;
     initAudioContext: () => void;
     clearAssetReferences: (assetId: string) => void;
@@ -561,6 +572,8 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
     canUndo: false,
     canRedo: false,
 
+    recording: createInitialRecordingState(),
+
     setHydrated: (isHydrated) => set({ isHydrated }),
 
     clearHistoryForGraph: (graphId) => {
@@ -929,10 +942,123 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
     },
 
     setPlaying: (playing: boolean) => {
-        const outputNode = get().nodes.find((n) => (n.data as AudioNodeData).type === 'output');
-        if (outputNode) {
-            get().updateNodeData(outputNode.id, { playing }, { history: 'skip' });
+        const state = get();
+        const outputNode = state.nodes.find((n) => (n.data as AudioNodeData).type === 'output');
+        if (!outputNode) return;
+
+        const recBefore = state.recording;
+        get().updateNodeData(outputNode.id, { playing }, { history: 'skip' });
+
+        if (playing) {
+            if (recBefore.phase === 'armed') {
+                set({ recording: { ...recBefore, phase: 'recording' } });
+                const next = get();
+                audioEngine.start(next.nodes, next.edges);
+                audioEngine.beginMediaRecorder();
+                return;
+            }
+            if (recBefore.phase === 'paused' && recBefore.blob === null) {
+                const next = get();
+                audioEngine.start(next.nodes, next.edges);
+                audioEngine.resumeRecordingCapture();
+                set({ recording: { ...get().recording, phase: 'recording' } });
+                return;
+            }
+            const next = get();
+            audioEngine.start(next.nodes, next.edges);
+            return;
         }
+
+        const recAfter = get().recording;
+        if (recAfter.phase === 'recording') {
+            audioEngine.pauseRecordingCapture();
+            set({ recording: { ...recAfter, phase: 'paused' } });
+        }
+        audioEngine.stop();
+    },
+
+    armRecording: () => {
+        get().initAudioContext();
+        const state = get();
+        const r = state.recording;
+        if (r.phase === 'armed' || r.phase === 'recording' || r.phase === 'paused') {
+            return;
+        }
+        if (r.phase === 'stopped') {
+            set({ recording: createInitialRecordingState() });
+        }
+        audioEngine.prepareRecordingTap();
+        const outputNode = get().nodes.find((n) => (n.data as AudioNodeData).type === 'output');
+        const sessionPlaying = outputNode?.data.type === 'output' && outputNode.data.playing;
+        if (sessionPlaying && audioEngine.playing) {
+            set({ recording: { ...get().recording, phase: 'recording' } });
+            audioEngine.refreshConnections(get().nodes, get().edges);
+            audioEngine.beginMediaRecorder();
+        } else {
+            set({ recording: { ...get().recording, phase: 'armed' } });
+        }
+    },
+
+    cancelOrStopRecording: async () => {
+        const rec = get().recording;
+        if (rec.phase === 'armed') {
+            audioEngine.releaseRecordingTap();
+            set({ recording: createInitialRecordingState() });
+            return;
+        }
+        if (rec.phase === 'recording' || rec.phase === 'paused') {
+            const blob = await audioEngine.stopRecordingCapture();
+            audioEngine.releaseRecordingTap();
+            let ctx = get().audioContext;
+            if (!ctx && typeof window !== 'undefined') {
+                const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+                ctx = new AC();
+                set({ audioContext: ctx });
+            }
+            let buffer: AudioBuffer | null = null;
+            let decodeError: string | null = null;
+            try {
+                if (ctx && blob.size > 0) {
+                    const ab = await blob.arrayBuffer();
+                    buffer = await ctx.decodeAudioData(ab.slice(0));
+                }
+            } catch (e) {
+                decodeError = e instanceof Error ? e.message : String(e);
+            }
+            const durationSec = buffer?.duration ?? 0;
+            set({
+                recording: {
+                    ...createInitialRecordingState(),
+                    phase: 'stopped',
+                    blob,
+                    audioBuffer: buffer,
+                    durationSec,
+                    mimeType: blob.type || '',
+                    decodeError,
+                    cropStart: buffer ? 0 : null,
+                    cropEnd: buffer ? buffer.duration : null,
+                    playbackPosition: 0,
+                    isPlayingBack: false,
+                    loopEnabled: false,
+                },
+            });
+        }
+    },
+
+    dismissRecording: () => {
+        set({ recording: createInitialRecordingState() });
+    },
+
+    setRecordingCrop: (start, end) => {
+        set((s) => ({ recording: { ...s.recording, cropStart: start, cropEnd: end } }));
+    },
+
+    toggleRecordingLoop: () => {
+        set((s) => ({ recording: { ...s.recording, loopEnabled: !s.recording.loopEnabled } }));
+    },
+
+    setRecordingPreviewState: (partial) => {
+        set((s) => ({ recording: { ...s.recording, ...partial } }));
     },
 
     setSelectedNode: (nodeId: string | null) => {
@@ -1402,6 +1528,18 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
                         }
                     };
                 }
+                if (node.data.type === 'midiPlayer' && node.data.midiFileId === assetId) {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            midiFileId: '',
+                            midiFileName: '',
+                            assetPath: '',
+                            loaded: false,
+                        }
+                    };
+                }
                 return node;
             };
 
@@ -1411,7 +1549,8 @@ export const useAudioGraphStore = create<AudioGraphState>((set, get) => ({
                 nodes: graph.nodes.map(clearNode),
                 updatedAt: graph.id === state.activeGraphId || graph.nodes.some(n => 
                     (n.data.type === 'sampler' && n.data.sampleId === assetId) ||
-                    (n.data.type === 'convolver' && n.data.impulseId === assetId)
+                    (n.data.type === 'convolver' && n.data.impulseId === assetId) ||
+                    (n.data.type === 'midiPlayer' && n.data.midiFileId === assetId)
                 ) ? Date.now() : graph.updatedAt,
             }));
 

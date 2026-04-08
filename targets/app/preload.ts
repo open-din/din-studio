@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-type ProjectAssetKind = 'sample' | 'impulse' | 'audio';
+type ProjectAssetKind = 'sample' | 'impulse' | 'audio' | 'midi';
 
 interface ProjectGraphSummary {
     id: string;

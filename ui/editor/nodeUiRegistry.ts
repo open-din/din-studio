@@ -580,6 +580,21 @@ const NODE_UI_SCHEMAS: Partial<Record<AudioNodeData['type'], NodeUiSchema>> = {
             },
         ],
     }),
+    midiPlayer: nodeSchema('midiPlayer', {
+        handleRoles: { transport: 'trigger', trigger: 'trigger' },
+        inlineControls: ['midiFileName', 'loop'],
+        sections: [
+            {
+                id: 'midi',
+                title: 'MIDI file',
+                fields: [
+                    textField('midiFileName', 'File', { placeholder: 'Library file name' }),
+                    textField('assetPath', 'Asset path', { placeholder: 'Project-relative path' }),
+                    checkboxField('loop', 'Loop'),
+                ],
+            },
+        ],
+    }),
     compressor: nodeSchema('compressor', {
         handleRoles: { in: 'audio', out: 'audio', sidechainIn: 'sidechain', threshold: 'modulation', knee: 'modulation', ratio: 'modulation', attack: 'modulation', release: 'modulation', sidechainStrength: 'modulation' },
         inlineControls: ['threshold', 'ratio', 'attack'],

@@ -46,7 +46,8 @@ import {
     type MidiCCNodeData,
     type MidiNoteOutputNodeData,
     type MidiCCOutputNodeData,
-    type MidiSyncNodeData
+    type MidiSyncNodeData,
+    type MidiPlayerNodeData
 } from './store';
 import { type Node, type Edge } from '@xyflow/react';
 import { toPascalCase } from './graphUtils';
@@ -431,6 +432,7 @@ export function generateCode(
     const midiNoteOutputNodes = nodes.filter((node) => node.data.type === 'midiNoteOutput') as Node<MidiNoteOutputNodeData>[];
     const midiCCOutputNodes = nodes.filter((node) => node.data.type === 'midiCCOutput') as Node<MidiCCOutputNodeData>[];
     const midiSyncNode = nodes.find((node) => node.data.type === 'midiSync') as Node<MidiSyncNodeData> | undefined;
+    const midiPlayerNodes = nodes.filter((node) => node.data.type === 'midiPlayer') as Node<MidiPlayerNodeData>[];
     const hasMidiNodes = midiNoteNodes.length > 0
         || midiCCNodes.length > 0
         || midiNoteOutputNodes.length > 0
@@ -882,6 +884,13 @@ export function generateCode(
         ? `${indent(2)}<MidiTransportSync mode=${JSON.stringify(midiSyncNode.data.mode)}${midiSyncNode.data.inputId ? ` inputId=${JSON.stringify(midiSyncNode.data.inputId)}` : ''}${midiSyncNode.data.outputId ? ` outputId=${JSON.stringify(midiSyncNode.data.outputId)}` : ''}${!midiSyncNode.data.sendStartStop ? ' sendStartStop={false}' : ''}${!midiSyncNode.data.sendClock ? ' sendClock={false}' : ''} />`
         : '';
 
+    const midiPlayerCommentElements = midiPlayerNodes.map((node) => {
+        const mp = node.data;
+        const src = resolveMidiSrcForExport(mp);
+        const loopLit = mp.loop ? 'true' : 'false';
+        return `${indent(2)}{/* MIDI Player (${node.id}): file=${JSON.stringify(src)} loop=${loopLit} — connect Transport to \`transport\`; \`trigger\` drives downstream */}`;
+    });
+
     if (midiSyncElement) {
         usedImports.add('MidiTransportSync');
     }
@@ -893,7 +902,12 @@ export function generateCode(
     const transportNode = nodes.find((node) => node.data.type === 'transport');
 
     const renderGraphContent = (level: number) => {
-        const extraElements = [...midiOutputElements, ...midiCCOutputElements, ...(midiSyncElement ? [midiSyncElement] : [])].join('\n');
+        const extraElements = [
+            ...midiPlayerCommentElements,
+            ...midiOutputElements,
+            ...midiCCOutputElements,
+            ...(midiSyncElement ? [midiSyncElement] : []),
+        ].join('\n');
         let content = `${indent(level)}return (\n`;
 
         const nodesContent = rootNodes
@@ -1231,6 +1245,19 @@ function resolveConvolverImpulseForExport(convolver: ConvolverNodeData): string 
     const safeFileName = fileNameCandidate.replace(/[^a-zA-Z0-9._-]+/g, '-');
     const finalFileName = safeFileName || 'impulse.wav';
     return `/impulses/${finalFileName}`;
+}
+
+function resolveMidiSrcForExport(midi: MidiPlayerNodeData): string {
+    const externalAssetPath = typeof midi.assetPath === 'string' ? midi.assetPath.trim() : '';
+    if (externalAssetPath) {
+        return externalAssetPath;
+    }
+
+    const rawFileName = typeof midi.midiFileName === 'string' ? midi.midiFileName.trim() : '';
+    const fileNameCandidate = rawFileName.split(/[\\/]/).pop() || '';
+    const safeFileName = fileNameCandidate.replace(/[^a-zA-Z0-9._-]+/g, '-');
+    const finalFileName = safeFileName || 'clip.mid';
+    return `/midi/${finalFileName}`;
 }
 
 function resolveSamplerSrcForExport(sampler: SamplerNodeData): string {

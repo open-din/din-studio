@@ -61,6 +61,7 @@ const ICONS: Record<IconName, LucideIcon> = {
     midiNoteOutput: Send,
     midiCCOutput: Send,
     midiSync: Route,
+    midiPlayer: Music2,
     note: Music2,
     voice: AudioLines,
     osc: Activity,

@@ -47,7 +47,11 @@ export function createSeedAsset(
 ): SeedAsset {
     const now = Date.now();
     const relativePath = overrides.relativePath
-        ?? (kind === 'impulse' ? `impulses/${name}` : `samples/${name}`);
+        ?? (kind === 'impulse'
+            ? `impulses/${name}`
+            : kind === 'midi'
+                ? `midi/${name}`
+                : `samples/${name}`);
     return {
         asset: {
             id,

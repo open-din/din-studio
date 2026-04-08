@@ -2,7 +2,7 @@ import type { GraphDocument } from '../ui/editor/store';
 
 export type ProjectStorageKind = 'electron-fs' | 'browser-fs-handle' | 'browser-indexeddb';
 export type ProjectWindowKind = 'launcher' | 'project';
-export type ProjectAssetKind = 'sample' | 'impulse' | 'audio';
+export type ProjectAssetKind = 'sample' | 'impulse' | 'audio' | 'midi';
 
 export interface ProjectGraphSummary {
     id: string;

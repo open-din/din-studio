@@ -823,6 +823,31 @@
         "F40-S02",
         "F40-S03"
       ]
+    },
+    {
+      "id": "editor-node:MidiPlayerNode",
+      "kind": "editor-node",
+      "name": "MidiPlayerNode",
+      "source": "ui/editor/nodes/MidiPlayerNode.tsx",
+      "docs": "project/features/67_node_midi_player.feature.md",
+      "tests": [
+        "tests/unit/midi-import.spec.ts",
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/unit/audio-library.spec.ts",
+        "tests/unit/editor-catalog.spec.tsx",
+        "tests/e2e/f10-asset-library.spec.ts",
+        "tests/e2e/f67-midi-player-node.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S04",
+        "F03-S07",
+        "F10-S04",
+        "F10-S05",
+        "F10-S06",
+        "F67-S01",
+        "F67-S02"
+      ]
     }
   ]
 }

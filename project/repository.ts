@@ -1,7 +1,7 @@
 import { graphDocumentToPatch, patchToGraphDocument } from '@open-din/react/patch';
 import { createInitialGraphDocument } from '../ui/editor/defaultGraph';
 import { sanitizeGraphForStorage } from '../ui/editor/graphUtils';
-import type { AudioNodeData, ConvolverNodeData, GraphDocument, SamplerNodeData } from '../ui/editor/store';
+import type { AudioNodeData, ConvolverNodeData, GraphDocument, MidiPlayerNodeData, SamplerNodeData } from '../ui/editor/store';
 import type {
     CreateProjectOptions,
     ElectronProjectBridgeApi,
@@ -46,6 +46,7 @@ const PROJECT_MANIFEST_FILE = 'din-project.json';
 const GRAPH_DIR = 'graphs';
 const SAMPLE_DIR = 'samples';
 const IMPULSE_DIR = 'impulses';
+const MIDI_DIR = 'midi';
 
 interface StoredWorkspaceRecord {
     projectId: string;
@@ -215,7 +216,9 @@ function pickAssetFolder(kind: ProjectAssetKind, existing?: ProjectAssetRecord):
         const index = normalized.lastIndexOf('/');
         if (index >= 0) return normalized.slice(0, index);
     }
-    return kind === 'impulse' ? IMPULSE_DIR : SAMPLE_DIR;
+    if (kind === 'impulse') return IMPULSE_DIR;
+    if (kind === 'midi') return MIDI_DIR;
+    return SAMPLE_DIR;
 }
 
 function buildUniqueRelativePath(
@@ -349,6 +352,22 @@ function hydrateGraphAssetReferences(
                 };
             }
 
+            if (node.data.type === 'midiPlayer') {
+                const midiPlayer = node.data as MidiPlayerNodeData;
+                const matchedAsset = assetByPath.get(normalizeAssetPathCandidate(midiPlayer.assetPath));
+                if (!matchedAsset) return node;
+                return {
+                    ...node,
+                    data: {
+                        ...midiPlayer,
+                        assetPath: matchedAsset.relativePath,
+                        midiFileId: matchedAsset.id,
+                        midiFileName: matchedAsset.fileName,
+                        loaded: false,
+                    } as AudioNodeData,
+                };
+            }
+
             return node;
         }),
     };
@@ -383,9 +402,11 @@ function fromStoredProjectFile(file: StoredProjectManifestFile): ProjectManifest
 }
 
 function detectAssetKind(record: Pick<ProjectAssetRecord, 'kind' | 'relativePath'>): ProjectAssetKind {
-    if (record.kind === 'impulse' || record.kind === 'sample') return record.kind;
+    if (record.kind === 'impulse' || record.kind === 'sample' || record.kind === 'midi') return record.kind;
     const relativePath = normalizeRelativePath(record.relativePath);
-    return relativePath.startsWith(`${IMPULSE_DIR}/`) ? 'impulse' : 'sample';
+    if (relativePath.startsWith(`${IMPULSE_DIR}/`)) return 'impulse';
+    if (relativePath.startsWith(`${MIDI_DIR}/`)) return 'midi';
+    return 'sample';
 }
 
 async function detectAudioDuration(blob: Blob): Promise<number | undefined> {
@@ -812,6 +833,7 @@ async function saveWorkspaceToFileSystem(handle: FileSystemDirectoryHandle, snap
     await ensureDir(handle, GRAPH_DIR);
     await ensureDir(handle, SAMPLE_DIR);
     await ensureDir(handle, IMPULSE_DIR);
+    await ensureDir(handle, MIDI_DIR);
 
     const graphDirectory = await handle.getDirectoryHandle(GRAPH_DIR, { create: true });
     const currentGraphFiles = new Set(snapshot.project.graphs.map((graph) => normalizeRelativePath(graph.file).split('/').pop() ?? ''));

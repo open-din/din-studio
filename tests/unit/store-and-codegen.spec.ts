@@ -137,6 +137,7 @@ describe('editor store and code generation', () => {
         useAudioGraphStore.getState().addNode('midiCCOutput');
         useAudioGraphStore.getState().addNode('midiSync');
         useAudioGraphStore.getState().addNode('midiSync');
+        useAudioGraphStore.getState().addNode('midiPlayer');
 
         const state = useAudioGraphStore.getState();
 
@@ -169,8 +170,66 @@ describe('editor store and code generation', () => {
             label: 'Sync',
             mode: 'transport-master',
         });
+        expect(state.nodes.find((node) => node.data.type === 'midiPlayer')?.data).toMatchObject({
+            type: 'midiPlayer',
+            label: 'MIDI Player',
+            midiFileId: '',
+            loaded: false,
+            loop: false,
+        });
 
         refreshConnections.mockRestore();
+    });
+
+    it('exposes midiPlayer catalog handles and emits a MIDI Player comment in generated code', async () => {
+        vi.resetModules();
+        const { generateCode } = await import('../../ui/editor/CodeGenerator');
+        const { getNodeHandleDescriptors } = await import('../../ui/editor/nodeCatalog');
+
+        const handles = getNodeHandleDescriptors({
+            type: 'midiPlayer',
+            midiFileId: '',
+            midiFileName: 'clip.mid',
+            assetPath: '/midi/clip.mid',
+            loaded: true,
+            loop: true,
+            label: 'MIDI Player',
+        } as any);
+        expect(handles.map((h) => h.id).sort()).toEqual(['transport', 'trigger'].sort());
+
+        const nodes = [
+            {
+                id: 'transport-1',
+                type: 'transportNode',
+                position: { x: 0, y: 0 },
+                data: { type: 'transport', bpm: 120, playing: false, beatsPerBar: 4, beatUnit: 4, stepsPerBeat: 4, barsPerPhrase: 4, swing: 0, label: 'Transport' },
+            },
+            {
+                id: 'mp-1',
+                type: 'midiPlayerNode',
+                position: { x: 100, y: 0 },
+                data: {
+                    type: 'midiPlayer',
+                    label: 'MIDI Player',
+                    midiFileId: 'asset-1',
+                    midiFileName: 'clip.mid',
+                    assetPath: '/midi/clip.mid',
+                    loaded: true,
+                    loop: true,
+                },
+            },
+            {
+                id: 'output-1',
+                type: 'outputNode',
+                position: { x: 200, y: 0 },
+                data: { type: 'output', playing: false, masterGain: 0.5, label: 'Output' },
+            },
+        ];
+        const edges: any[] = [];
+
+        const code = generateCode(nodes as any, edges, true, 'Midi Asset Graph');
+        expect(code).toContain('MIDI Player (mp-1)');
+        expect(code).toContain('/midi/clip.mid');
     });
 
     it('F41-S16 pre-fills midiNote inputId when addNode receives data overrides', async () => {
@@ -444,6 +503,20 @@ describe('editor store and code generation', () => {
                 data: { type: 'midiSync', label: 'Sync', mode: 'midi-master', inputId: 'clock-in', outputId: 'clock-out', sendStartStop: false, sendClock: false },
             },
             {
+                id: 'midi-player-1',
+                type: 'midiPlayerNode',
+                position: { x: 165, y: 155 },
+                data: {
+                    type: 'midiPlayer',
+                    label: 'Player',
+                    midiFileId: 'midi-asset-1',
+                    midiFileName: 'groove.mid',
+                    assetPath: '/midi/groove.mid',
+                    loaded: true,
+                    loop: false,
+                },
+            },
+            {
                 id: 'sampler-1',
                 type: 'samplerNode',
                 position: { x: 180, y: 150 },
@@ -515,6 +588,10 @@ describe('editor store and code generation', () => {
             assetPath: '/impulses/plate.wav',
             impulseSrc: '',
         });
+        expect(patch.nodes.find((node) => node.id === 'midi-player-1')?.data).toMatchObject({
+            type: 'midiPlayer',
+            assetPath: '/midi/groove.mid',
+        });
 
         const roundTripGraph = patchToGraphDocument(patch, {
             graphId: 'graph-imported',
@@ -548,6 +625,10 @@ describe('editor store and code generation', () => {
             type: 'convolverNode',
             position: { x: 200, y: 170 },
             data: { type: 'convolver', assetPath: '/impulses/plate.wav', impulseSrc: '', impulseId: '', impulseFileName: 'plate.wav' },
+        });
+        expect(roundTripGraph.nodes.find((node) => node.id === 'midi-player-1')).toMatchObject({
+            type: 'midiPlayerNode',
+            data: { type: 'midiPlayer', assetPath: '/midi/groove.mid', midiFileId: '', loaded: false, midiFileName: 'groove.mid' },
         });
         expect(roundTripGraph.edges).toEqual(
             expect.arrayContaining([

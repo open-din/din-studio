@@ -37,9 +37,10 @@ const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
     }, [refreshAssets]);
 
     const filteredAssets = useMemo(() => {
+        const impulses = libraryAssets.filter((asset) => asset.kind === 'impulse');
         const query = libraryQuery.trim().toLowerCase();
-        if (!query) return libraryAssets;
-        return libraryAssets.filter((asset) => asset.name.toLowerCase().includes(query));
+        if (!query) return impulses;
+        return impulses.filter((asset) => asset.name.toLowerCase().includes(query));
     }, [libraryAssets, libraryQuery]);
 
     const applyImpulseUpdate = useCallback((payload: Partial<ConvolverNodeData>) => {

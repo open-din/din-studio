@@ -31,6 +31,7 @@ describe('editor catalog', () => {
         expect(screen.getByRole('heading', { name: 'Math' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Piano / keys in' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Controllers (CC in)' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Add MIDI Player' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Output' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Math' })).toBeInTheDocument();
 

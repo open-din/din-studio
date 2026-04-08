@@ -42,7 +42,7 @@ import {
     MatrixMixerNode, InputNode, UiTokensNode, ConstantSourceNode, MediaStreamNode,
     EventTriggerNode, NoteNode, TransportNode, StepSequencerNode, PianoRollNode,
     LFONode, ADSRNode, VoiceNode, SamplerNode, MidiNoteNode, MidiCCNode,
-    MidiNoteOutputNode, MidiCCOutputNode, MidiSyncNode, MathNode, CompareNode,
+    MidiNoteOutputNode, MidiCCOutputNode, MidiSyncNode, MidiPlayerNode, MathNode, CompareNode,
     MixNode, ClampNode, SwitchNode,
 } from './editor/nodes';
 import { loadActiveGraphId, loadGraphs, saveActiveGraphId, saveGraph, deleteGraph } from './editor/graphStorage';
@@ -74,7 +74,7 @@ import { getMiniMapNodeColor } from './editor/nodeColorMap';
 import type { ProjectStorageKind } from '../project';
 import { consumeProjectResumeIntent, readProjectReviewState, writeProjectInterruptedWork, writeProjectReviewState } from './projectUiState';
 import type { ChangedFileSummary, InterruptedWorkSummary, ResumeIntent, ReviewState, SourceControlPhase } from './phase3a.types';
-import { Play, Pause, Circle, Wand2 } from 'lucide-react';
+import { Play, Pause, Circle, Square, Wand2 } from 'lucide-react';
 
 // Extracted Utilities
 import { computeAutoLayoutPositions } from './editor/layoutUtils';
@@ -85,7 +85,8 @@ import {
 // Extracted Components
 import { NodePalette } from './editor/components/NodePalette';
 import { ExplorerPanel } from './editor/components/ExplorerPanel';
-import { DiagnosticsDrawerContent, LibraryDrawerContent, RuntimeDrawerContent, type AudioPreviewState, type LibraryItem, type MissingLibraryReference } from './editor/components/Drawers';
+import { DiagnosticsDrawerContent, LibraryDrawerContent, RuntimeDrawerContent, mapProjectAssetToLibraryItem, type AudioPreviewState, type LibraryItem, type MissingLibraryReference } from './editor/components/Drawers';
+import { RecordingDrawerContent } from './editor/components/RecordingDrawerContent';
 
 const nodeTypes: NodeTypes = {
     oscNode: OscNode as NodeTypes[string],
@@ -130,6 +131,7 @@ const nodeTypes: NodeTypes = {
     midiNoteOutputNode: MidiNoteOutputNode as NodeTypes[string],
     midiCCOutputNode: MidiCCOutputNode as NodeTypes[string],
     midiSyncNode: MidiSyncNode as NodeTypes[string],
+    midiPlayerNode: MidiPlayerNode as NodeTypes[string],
     mathNode: MathNode as NodeTypes[string],
     compareNode: CompareNode as NodeTypes[string],
     mixNode: MixNode as NodeTypes[string],
@@ -262,6 +264,10 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     const setActiveGraph = useAudioGraphStore((s) => s.setActiveGraph);
     const setSelectedNode = useAudioGraphStore((s) => s.setSelectedNode);
     const setPlaying = useAudioGraphStore((s) => s.setPlaying);
+    const recordingPhase = useAudioGraphStore((s) => s.recording.phase);
+    const armRecording = useAudioGraphStore((s) => s.armRecording);
+    const cancelOrStopRecording = useAudioGraphStore((s) => s.cancelOrStopRecording);
+    const dismissRecording = useAudioGraphStore((s) => s.dismissRecording);
     const updateNodeData = useAudioGraphStore((s) => s.updateNodeData);
     const renameGraph = useAudioGraphStore((s) => s.renameGraph);
     const createGraph = useAudioGraphStore((s) => s.createGraph);
@@ -367,6 +373,27 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     );
     useOnSelectionChange({ onChange: onInspectorSelectionChange });
 
+    const handleTransportRecordClick = useCallback(() => {
+        if (recordingPhase === 'idle') {
+            armRecording();
+            openBottomDrawerTab('recording');
+            return;
+        }
+        if (recordingPhase === 'armed') {
+            void cancelOrStopRecording();
+            return;
+        }
+        if (recordingPhase === 'recording' || recordingPhase === 'paused') {
+            void cancelOrStopRecording();
+            return;
+        }
+        if (recordingPhase === 'stopped') {
+            dismissRecording();
+            armRecording();
+            openBottomDrawerTab('recording');
+        }
+    }, [recordingPhase, armRecording, cancelOrStopRecording, dismissRecording, openBottomDrawerTab]);
+
     // Helpers that wrap store logic
     const clearGraph = useCallback(() => {
         loadGraph([], []);
@@ -406,14 +433,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
 
         const refreshAssets = async () => {
             const assets = await listAssets();
-            setLibraryItems(assets.map((a: any) => ({
-                id: a.id,
-                name: a.name,
-                sizeBytes: a.sizeBytes || 0,
-                type: a.type || 'audio/unknown',
-                addedAt: a.addedAt || Date.now(),
-                durationSec: a.durationSec || 0
-            })));
+            setLibraryItems(assets.map(mapProjectAssetToLibraryItem));
         };
 
         void Promise.all([loadInitialData(), refreshAssets()]).finally(() => {
@@ -604,6 +624,19 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                         nodeId: node.id,
                         nodeLabel: node.data.label || 'Convolver',
                         assetPath: typeof node.data.assetPath === 'string' ? node.data.assetPath : impulseId,
+                    });
+                }
+            }
+
+            if (node.data.type === 'midiPlayer') {
+                const midiFileId = typeof node.data.midiFileId === 'string' ? node.data.midiFileId : '';
+                if (midiFileId && !knownAssetIds.has(midiFileId)) {
+                    missingEntries.push({
+                        assetId: midiFileId,
+                        kind: 'midi',
+                        nodeId: node.id,
+                        nodeLabel: node.data.label || 'MIDI Player',
+                        assetPath: typeof node.data.assetPath === 'string' ? node.data.assetPath : midiFileId,
                     });
                 }
             }
@@ -812,6 +845,22 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
             return;
         }
 
+        if (item.kind === 'midi') {
+            updateNodeData(item.nodeId, {
+                midiFileId: repairedAsset.id,
+                assetPath: repairedAsset.relativePath,
+                midiFileName: repairedAsset.fileName,
+                loaded: Boolean(objectUrl),
+            });
+            audioEngine.updateNode(item.nodeId, {
+                midiFileId: repairedAsset.id,
+                assetPath: repairedAsset.relativePath,
+                midiFileName: repairedAsset.fileName,
+                loaded: Boolean(objectUrl),
+            });
+            return;
+        }
+
         updateNodeData(item.nodeId, {
             impulseId: repairedAsset.id,
             assetPath: repairedAsset.relativePath,
@@ -860,9 +909,9 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                 setCommandPaletteOpen(prev => !prev);
             }
 
-            if (isMod && e.key.toLowerCase() === 's') {
+            if (isMod && (e.key.toLowerCase() === 's' || e.code === 'KeyS')) {
                 e.preventDefault();
-                handleSaveActiveGraph();
+                void handleSaveActiveGraph();
             }
 
             if (isMod && e.key.toLowerCase() === 'l') {
@@ -887,7 +936,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleSaveActiveGraph, handleAutoArrange, setCommandPaletteOpen]);
+    }, [handleSaveActiveGraph, handleAutoArrange, setCommandPaletteOpen, undo, redo]);
 
     // Mark graph as unsaved when nodes/edges change
     useEffect(() => {
@@ -1045,6 +1094,14 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
             ? 'Audio Ready'
             : 'Audio Idle';
     const viewportPlayLabel = outputNode?.data.type === 'output' && outputNode.data.playing ? 'Pause graph output' : 'Play graph output';
+    const recordButtonLabel =
+        recordingPhase === 'idle'
+            ? 'Arm recording'
+            : recordingPhase === 'armed'
+                ? 'Cancel recording (armed)'
+                : recordingPhase === 'stopped'
+                    ? 'Start new recording'
+                    : 'Stop recording';
 
     return (
             <div
@@ -1254,7 +1311,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                             zoomable
                                         />
 
-                                        <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-3">
+                                        <div className="pointer-events-none absolute left-4 top-4 z-20 flex items-center gap-3">
                                             <div className="pointer-events-auto flex items-center gap-1 border border-[var(--panel-border)] bg-[var(--panel-bg)] p-1">
                                                 <button
                                                     type="button"
@@ -1271,11 +1328,25 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    className="flex h-8 w-8 items-center justify-center bg-[var(--panel-muted)] text-[var(--danger)] transition hover:bg-[var(--danger-soft)] cursor-not-allowed opacity-60"
-                                                    aria-label="Record graph output"
-                                                    title="Recording coming soon"
+                                                    onClick={handleTransportRecordClick}
+                                                    className={`flex h-8 w-8 items-center justify-center transition ${
+                                                        recordingPhase === 'recording' || recordingPhase === 'paused'
+                                                            ? 'bg-red-600 text-white hover:bg-red-500'
+                                                            : recordingPhase === 'armed'
+                                                                ? 'animate-pulse bg-[var(--panel-muted)] text-red-500 hover:bg-[var(--danger-soft)]'
+                                                                : recordingPhase === 'stopped'
+                                                                    ? 'border border-red-500/60 bg-[var(--panel-muted)] text-red-500 hover:bg-[var(--danger-soft)]'
+                                                                    : 'bg-[var(--panel-muted)] text-[var(--danger)] hover:bg-[var(--danger-soft)]'
+                                                    }`}
+                                                    aria-label={recordButtonLabel}
+                                                    title={recordButtonLabel}
+                                                    data-testid="transport-record-button"
                                                 >
-                                                    <Circle className="h-4 w-4" />
+                                                    {recordingPhase === 'recording' || recordingPhase === 'paused' ? (
+                                                        <Square className="h-4 w-4 fill-current" />
+                                                    ) : (
+                                                        <Circle className="h-4 w-4" />
+                                                    )}
                                                 </button>
                                             </div>
                                         </div>
@@ -1320,6 +1391,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                 runtimeContent={<RuntimeDrawerContent />}
                                 diagnosticsContent={<DiagnosticsDrawerContent />}
                                 agentContent={<AgentPanel />}
+                                recordingContent={<RecordingDrawerContent />}
                             />
                         )}
                         rightPanel={(

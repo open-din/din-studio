@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { libraryItemMatchesCategory, type LibraryItem } from '../../ui/editor/components/Drawers';
 
 describe('audio library storage', () => {
     it('adds, lists, resolves and deletes cached audio assets', async () => {
@@ -106,5 +107,37 @@ describe('audio library storage', () => {
         unsubscribe();
         setActiveProjectController(null);
         vi.unstubAllGlobals();
+    });
+});
+
+describe('library category filtering', () => {
+    const base: Omit<LibraryItem, 'id' | 'name' | 'kind'> = {
+        sizeBytes: 100,
+        type: 'application/octet-stream',
+        addedAt: 0,
+        durationSec: 0,
+    };
+    const sampleItem: LibraryItem = { ...base, id: 'a1', name: 'kick.wav', kind: 'sample' };
+    const audioKindItem: LibraryItem = { ...base, id: 'a2', name: 'stem.wav', kind: 'audio', type: 'audio/wav' };
+    const impulseItem: LibraryItem = { ...base, id: 'i1', name: 'room.wav', kind: 'impulse' };
+    const midiItem: LibraryItem = { ...base, id: 'm1', name: 'clip.mid', kind: 'midi', type: 'audio/midi' };
+
+    it('Audio tab includes samples and generic audio assets', () => {
+        expect(libraryItemMatchesCategory(sampleItem, 'audio')).toBe(true);
+        expect(libraryItemMatchesCategory(audioKindItem, 'audio')).toBe(true);
+        expect(libraryItemMatchesCategory(impulseItem, 'audio')).toBe(false);
+        expect(libraryItemMatchesCategory(midiItem, 'audio')).toBe(false);
+    });
+
+    it('Convolvers tab includes only impulse assets', () => {
+        expect(libraryItemMatchesCategory(impulseItem, 'convolvers')).toBe(true);
+        expect(libraryItemMatchesCategory(sampleItem, 'convolvers')).toBe(false);
+        expect(libraryItemMatchesCategory(midiItem, 'convolvers')).toBe(false);
+    });
+
+    it('MIDI tab includes only midi assets', () => {
+        expect(libraryItemMatchesCategory(midiItem, 'midi')).toBe(true);
+        expect(libraryItemMatchesCategory(sampleItem, 'midi')).toBe(false);
+        expect(libraryItemMatchesCategory(impulseItem, 'midi')).toBe(false);
     });
 });

@@ -47,3 +47,4 @@ export { default as MidiCCNode } from './MidiCCNode';
 export { default as MidiNoteOutputNode } from './MidiNoteOutputNode';
 export { default as MidiCCOutputNode } from './MidiCCOutputNode';
 export { default as MidiSyncNode } from './MidiSyncNode';
+export { default as MidiPlayerNode } from './MidiPlayerNode';

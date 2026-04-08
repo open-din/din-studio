@@ -82,3 +82,70 @@ test('F10-S02 and F10-S03 missing asset repair stays in the library and ends cle
 
     await expect(page.getByText('Missing asset repair')).not.toBeVisible();
 });
+
+function buildLibraryCategorySeed() {
+    const kick = createSeedAsset('seed-kick', 'kick.wav', 'sample');
+    const plate = createSeedAsset('seed-plate', 'plate.wav', 'impulse');
+    const clip = createSeedAsset('seed-clip', 'clip.mid', 'midi', { mimeType: 'audio/midi' });
+    const project = createSeedProject({
+        id: 'library-categories',
+        name: 'Library Categories',
+        assets: [kick, plate, clip],
+    });
+    return {
+        bootstrap: { windowKind: 'project' as const, projectId: project.snapshot.project.id },
+        projects: [project],
+    };
+}
+
+test('F10-S04 library category tabs switch between Audio, Convolvers, and MIDI views', async ({ page }) => {
+    await installElectronBridge(page, buildLibraryCategorySeed());
+    await page.goto('/');
+
+    await page.getByTitle('Library').click();
+
+    await expect(page.getByRole('button', { name: 'Audio' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('kick.wav')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Convolvers' }).click();
+    await expect(page.getByRole('button', { name: 'Convolvers' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('plate.wav')).toBeVisible();
+    await expect(page.getByText('kick.wav')).not.toBeVisible();
+
+    await page.getByRole('button', { name: 'MIDI' }).click();
+    await expect(page.getByRole('button', { name: 'MIDI' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('clip.mid')).toBeVisible();
+});
+
+test('F10-S05 importing a MIDI file shows it under the MIDI tab', async ({ page }) => {
+    await installElectronBridge(page, buildLibraryCategorySeed());
+    await page.goto('/');
+
+    await page.getByTitle('Library').click();
+    await page.getByRole('button', { name: 'MIDI' }).click();
+
+    const midiBytes = Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 0x06]);
+    await page.getByLabel('Import library files').setInputFiles({
+        name: 'imported.mid',
+        mimeType: 'audio/midi',
+        buffer: midiBytes,
+    });
+
+    await expect(page.getByText('imported.mid')).toBeVisible();
+});
+
+test('F10-S06 importing an impulse file shows it under the Convolvers tab', async ({ page }) => {
+    await installElectronBridge(page, buildLibraryCategorySeed());
+    await page.goto('/');
+
+    await page.getByTitle('Library').click();
+    await page.getByRole('button', { name: 'Convolvers' }).click();
+
+    await page.getByLabel('Import library files').setInputFiles({
+        name: 'new-ir.wav',
+        mimeType: 'audio/wav',
+        buffer: Buffer.from([82, 73, 70, 70, 1, 0, 0, 0, 87, 65, 86, 69]),
+    });
+
+    await expect(page.getByText('new-ir.wav')).toBeVisible();
+});

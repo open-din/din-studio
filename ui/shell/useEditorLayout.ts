@@ -114,7 +114,7 @@ export function useEditorLayout() {
     const [bottomDrawerTab, setBottomDrawerTab] = useState<BottomDrawerTab>(() =>
         migrationRef.current.migrateLibraryTab
             ? 'runtime'
-            : readEnum(STORAGE_KEYS.bottomDrawerTab, ['runtime', 'diagnostics', 'agent'], 'runtime')
+            : readEnum(STORAGE_KEYS.bottomDrawerTab, ['runtime', 'diagnostics', 'agent', 'recording'], 'runtime')
     );
     const [bottomDrawerHeight, setBottomDrawerHeight] = useState(() =>
         clampBottomDrawerHeight(readNumber(STORAGE_KEYS.bottomDrawerHeight, SHELL_LAYOUT.bottomDrawerDefaultHeight))

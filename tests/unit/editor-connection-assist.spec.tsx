@@ -292,7 +292,7 @@ describe('Editor connection assist', () => {
                 mimeType: 'audio/wav',
                 size: 100,
                 fileName: 'kick.wav',
-                kind: 'asset',
+                kind: 'sample',
                 relativePath: 'kick.wav',
                 createdAt: 1,
                 updatedAt: 1,
@@ -344,7 +344,9 @@ describe('Editor connection assist', () => {
 
         vi.spyOn(window, 'confirm').mockReturnValue(true);
         act(() => {
-            fireEvent.click(screen.getByTitle('Delete file from library'));
+            const deleteBtn = document.querySelector<HTMLButtonElement>('[title="Delete file from library"]');
+            expect(deleteBtn).toBeTruthy();
+            fireEvent.click(deleteBtn!);
         });
 
         await waitFor(() => {
@@ -371,7 +373,7 @@ describe('Editor connection assist', () => {
         await waitFor(() => {
             expect(screen.getByLabelText('Search library files')).toBeInTheDocument();
         });
-        const dropzone = screen.getByText(/Drag audio files here/i).closest('.ui-library-dropzone') as HTMLElement;
+        const dropzone = screen.getByText(/Drag files here/i).closest('.ui-library-dropzone') as HTMLElement;
         expect(dropzone).toBeTruthy();
 
         const file = new File(['audio-data'], 'kick.mp3', { type: 'audio/mpeg' });
@@ -379,7 +381,7 @@ describe('Editor connection assist', () => {
         fireEvent.drop(dropzone, { dataTransfer: { files: [file] } });
 
         await waitFor(() => {
-            expect(audioLibrary.addAssetFromFile).toHaveBeenCalledWith(file);
+            expect(audioLibrary.addAssetFromFile).toHaveBeenCalledWith(file, { kind: 'sample' });
         });
     });
 
@@ -398,7 +400,7 @@ describe('Editor connection assist', () => {
         await waitFor(() => {
             expect(screen.getByLabelText('Search library files')).toBeInTheDocument();
         });
-        const dropzone = screen.getByText(/Drag audio files here/i).closest('.ui-library-dropzone') as HTMLElement;
+        const dropzone = screen.getByText(/Drag files here/i).closest('.ui-library-dropzone') as HTMLElement;
         expect(dropzone).toBeTruthy();
 
         const file = new File(['not-audio'], 'notes.txt', { type: 'text/plain' });

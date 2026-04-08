@@ -64,6 +64,7 @@ export const NODE_FAMILY_BY_TYPE: Record<EditorNodeType, NodeColorFamily> = {
     midiNoteOutput: 'midi',
     midiCCOutput: 'midi',
     midiSync: 'midi',
+    midiPlayer: 'midi',
     gain: 'control',
     filter: 'spectral',
     compressor: 'dynamics',

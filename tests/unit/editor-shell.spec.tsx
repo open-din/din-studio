@@ -42,6 +42,7 @@ describe('editor shell', () => {
         const bottomDrawer = screen.getByTestId('bottom-drawer');
         expect(within(bottomDrawer).getByText('Runtime')).toBeInTheDocument();
         expect(within(bottomDrawer).getByText('Diagnostics')).toBeInTheDocument();
+        expect(within(bottomDrawer).getByText('Recording')).toBeInTheDocument();
         expect(within(bottomDrawer).queryByText('Library')).not.toBeInTheDocument();
 
         fireEvent.click(screen.getByTitle('Explorer'));
@@ -95,6 +96,7 @@ describe('editor shell', () => {
 
         const bottomDrawer = screen.getByTestId('bottom-drawer');
         expect(within(bottomDrawer).getByText('Runtime')).toBeInTheDocument();
+        expect(within(bottomDrawer).getByText('Recording')).toBeInTheDocument();
         expect(within(bottomDrawer).queryByText('Library')).not.toBeInTheDocument();
     });
 });

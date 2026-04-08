@@ -58,7 +58,7 @@ function buildUniqueRelativePath(
     assets: ProjectAssetRecord[],
     assetId?: string,
 ): string {
-    const folder = kind === 'impulse' ? 'impulses' : 'samples';
+    const folder = kind === 'impulse' ? 'impulses' : kind === 'midi' ? 'midi' : 'samples';
     const sanitized = sanitizeFileName(fileName);
     const extensionIndex = sanitized.lastIndexOf('.');
     const stem = extensionIndex >= 0 ? sanitized.slice(0, extensionIndex) : sanitized;

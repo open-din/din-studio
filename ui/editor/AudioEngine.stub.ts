@@ -12,6 +12,7 @@ export const audioEngine = {
     clear: vi.fn(),
     refreshConnections: vi.fn(),
     refreshDataValues: vi.fn(),
+    start: vi.fn(),
     stop: vi.fn(),
     subscribe: vi.fn(() => () => {}),
     onSamplerEnd: vi.fn(() => () => {}),
@@ -23,7 +24,23 @@ export const audioEngine = {
     stopSampler: vi.fn(),
     updateSamplerParam: vi.fn(),
     subscribeStep: vi.fn(() => () => {}),
-    init: vi.fn().mockResolvedValue(undefined),
+    init: vi.fn().mockImplementation(() =>
+        (typeof AudioContext !== 'undefined' ? new AudioContext() : ({} as AudioContext)),
+    ),
+    prepareRecordingTap: vi.fn(),
+    releaseRecordingTap: vi.fn(),
+    beginMediaRecorder: vi.fn(),
+    pauseRecordingCapture: vi.fn(),
+    resumeRecordingCapture: vi.fn(),
+    stopRecordingCapture: vi.fn().mockResolvedValue(new Blob()),
+    getRecordingStereoTimeDomainData: vi.fn((left: Float32Array, right: Float32Array) => {
+        left.fill(0);
+        right.fill(0);
+    }),
+    getRecordingAnalyser: vi.fn(() => null),
+    get playing() {
+        return false;
+    },
 };
 
 export default audioEngine;

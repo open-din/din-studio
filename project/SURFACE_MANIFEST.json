@@ -67,6 +67,19 @@
       "scenarios": ["F13-S01", "F13-S02", "F13-S03", "F13-S04", "F13-S05", "F13-S06", "F13-S07"]
     },
     {
+      "id": "surface:RecordingDrawer",
+      "kind": "studio-surface",
+      "name": "RecordingDrawer",
+      "source": "ui/editor/components/RecordingDrawerContent.tsx",
+      "docs": "project/features/68_session_recording.feature.md",
+      "tests": [
+        "tests/unit/audio-export.spec.ts",
+        "tests/unit/recording-store.spec.ts",
+        "tests/e2e/f68-session-recording.spec.ts"
+      ],
+      "scenarios": ["F68-S01", "F68-S02", "F68-S03"]
+    },
+    {
       "id": "mcp-target:StudioMcp",
       "kind": "mcp-target",
       "name": "StudioMcp",

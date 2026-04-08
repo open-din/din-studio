@@ -53,9 +53,19 @@ export const ExplorerPanel: FC<ExplorerPanelProps> = ({ onCreateGraph, onLoadGra
             <div className="flex-1 overflow-y-auto p-3">
                 <div className="space-y-4">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
-                            <FolderOpenIcon className="h-4 w-4" />
-                            <span>Graphs</span>
+                        <div className="flex items-center justify-between gap-2 px-2 py-2">
+                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
+                                <FolderOpenIcon className="h-4 w-4" />
+                                <span>Graphs</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => onCreateGraph?.()}
+                                className="rounded p-1 text-[var(--text-subtle)] transition-colors hover:bg-[var(--panel-muted)] hover:text-[var(--text)]"
+                                title="New graph"
+                            >
+                                <PlusIcon className="h-4 w-4" />
+                            </button>
                         </div>
                         {graphs.map(graph => (
                             <div

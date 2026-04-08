@@ -19,6 +19,9 @@
 | `F10-S01` | Asset Library Actions | Asset search and filtering reduce the visible decision set | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | VEA-156 |
 | `F10-S02` | Asset Library Actions | Asset preview and relink flows recover from imperfect input gracefully | e2e | `playwright` | baseline | `Postel's Law`, `Doherty Threshold` | VEA-158 |
 | `F10-S03` | Asset Library Actions | Missing asset repair ends on a clear and satisfying recovery state | e2e | `playwright` | baseline | `Peak-End Rule`, `Von Restorff Effect` | VEA-160 |
+| `F10-S04` | Asset Library Actions | Library category tabs switch between Audio, Convolvers, and MIDI asset views | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | - |
+| `F10-S05` | Asset Library Actions | Importing a MIDI file routes the asset into the MIDI library category | e2e | `playwright` | baseline | `Postel's Law`, `Doherty Threshold` | - |
+| `F10-S06` | Asset Library Actions | Importing an impulse file routes the asset into the Convolvers library category | e2e | `playwright` | baseline | `Postel's Law`, `Doherty Threshold` | - |
 | `F11-S01` | Editor System Actions | Undo and redo preserve graph intent without corrupting the active session | e2e | `playwright` | baseline | `Zeigarnik Effect`, `Peak-End Rule` | VEA-161 |
 | `F11-S02` | Editor System Actions | Save and reload flows restore durable graph state while sanitizing transient runtime state | e2e | `playwright` | baseline | `Doherty Threshold`, `Zeigarnik Effect` | VEA-163 |
 | `F11-S03` | Editor System Actions | Interrupted work remains visible and resumable until it is completed | e2e | `playwright` | baseline | `Zeigarnik Effect`, `Goal-Gradient Effect` | VEA-164 |
@@ -99,6 +102,8 @@
 | `F40-S02` | Sync Node | Sync node exposes its contract handles and editable settings | integration | `vitest` | planned | `Selective Attention` | VEA-211 |
 | `F40-S03` | Sync Node | Sync node stays coherent through graph, runtime, and code generation | integration | `vitest` | planned | `Doherty Threshold` | VEA-213 |
 | `F40-S04` | Sync Node | Sync node enforces its singleton placement rule without breaking graph authoring | integration | `vitest` | planned | `Postel's Law`, `Zeigarnik Effect` | VEA-215 |
+| `F67-S01` | MIDI Player Node | MIDI Player node is discoverable and placeable from the MIDI catalog | e2e | `playwright` | baseline | `Postel's Law`, `Fitts's Law` | - |
+| `F67-S02` | MIDI Player Node | MIDI Player node exposes transport input and trigger output handles on the canvas | e2e | `playwright` | baseline | `Selective Attention` | - |
 | `F41-S01` | Gain Node | Gain node is discoverable and placeable from the Effects catalog | integration | `vitest` | planned | `Postel's Law`, `Fitts's Law` | VEA-217 |
 | `F41-S02` | Gain Node | Gain node exposes its contract handles and editable settings | integration | `vitest` | planned | `Selective Attention` | VEA-219 |
 | `F41-S03` | Gain Node | Gain node stays coherent through graph, runtime, and code generation | integration | `vitest` | planned | `Doherty Threshold` | VEA-243 |
@@ -203,3 +208,6 @@
 | `F41-S17` | MIDI Device Panel | updateNodeData reassigns MIDI input on existing nodes | integration | `vitest` | baseline | `Doherty Threshold` | - |
 | `F41-S18` | MIDI Device Panel | Default MIDI port ids persist via localStorage helpers | integration | `vitest` | baseline | `Jakob's Law`, `Zeigarnik Effect` | - |
 | `F41-S19` | MIDI Device Panel | Activity rail reaches the MIDI device manager surface | integration | `vitest` | baseline | `Jakob's Law` | - |
+| `F68-S01` | Session Recording | Bottom drawer exposes Recording tab alongside Runtime, Diagnostics, and AI Agent | e2e | `playwright` | baseline | `Jakob's Law`, `Selective Attention` | - |
+| `F68-S02` | Session Recording | Canvas transport record arms capture and surfaces the Recording drawer workflow | e2e | `playwright` | baseline | `Hick's Law`, `Postel's Law` | - |
+| `F68-S03` | Session Recording | WAV export produces valid output for cropped `AudioBuffer` windows | integration | `vitest` | baseline | `Postel's Law` | - |

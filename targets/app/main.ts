@@ -11,7 +11,7 @@ app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
 type ProjectStorageKind = 'electron-fs';
-type ProjectAssetKind = 'sample' | 'impulse' | 'audio';
+type ProjectAssetKind = 'sample' | 'impulse' | 'audio' | 'midi';
 
 interface ProjectGraphSummary {
     id: string;
@@ -78,6 +78,7 @@ const PROJECT_MANIFEST_FILE = 'din-project.json';
 const GRAPH_DIR = 'graphs';
 const SAMPLE_DIR = 'samples';
 const IMPULSE_DIR = 'impulses';
+const MIDI_DIR = 'midi';
 const REGISTRY_FILE = 'din-project-registry.json';
 
 interface StoredProjectManifestFile extends ProjectManifest {
@@ -231,6 +232,7 @@ async function ensureProjectDirectories(projectPath: string): Promise<void> {
     await mkdir(join(projectPath, GRAPH_DIR), { recursive: true });
     await mkdir(join(projectPath, SAMPLE_DIR), { recursive: true });
     await mkdir(join(projectPath, IMPULSE_DIR), { recursive: true });
+    await mkdir(join(projectPath, MIDI_DIR), { recursive: true });
 }
 
 async function readProjectRegistry(): Promise<ProjectManifest[]> {
@@ -501,7 +503,9 @@ function pickAssetFolder(kind: ProjectAssetKind, existing?: ProjectAssetRecord):
         const index = normalized.lastIndexOf('/');
         if (index >= 0) return normalized.slice(0, index);
     }
-    return kind === 'impulse' ? IMPULSE_DIR : SAMPLE_DIR;
+    if (kind === 'impulse') return IMPULSE_DIR;
+    if (kind === 'midi') return MIDI_DIR;
+    return SAMPLE_DIR;
 }
 
 function buildUniqueRelativePath(

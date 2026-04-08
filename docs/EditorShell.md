@@ -57,6 +57,6 @@ Describe the Phase 3A desktop shell for the DIN Studio: a persistent workspace w
 - Shell regions render with stable test ids and labels.
 - Rail modes keep browse, runtime, and review responsibilities distinct.
 - The left drawer restores `explorer`, `catalog`, and migrated `library` state correctly.
-- The bottom drawer exposes `Runtime` and `Diagnostics` only.
+- The bottom drawer exposes `Runtime`, `Diagnostics`, `Recording`, and `AI Agent` tabs.
 - The inspector shows graph defaults when nothing is selected.
 - Footer telemetry remains informational and does not become the primary publish confirmation surface.

@@ -33,6 +33,7 @@ test('F13-S01 bottom drawer exposes the AI Agent tab alongside Runtime and Diagn
     const drawer = page.getByTestId('bottom-drawer');
     await expect(drawer.getByRole('button', { name: 'Runtime' })).toBeVisible();
     await expect(drawer.getByRole('button', { name: 'Diagnostics' })).toBeVisible();
+    await expect(drawer.getByRole('button', { name: 'Recording' })).toBeVisible();
     await expect(drawer.getByRole('button', { name: 'AI Agent' })).toBeVisible();
 });
 

@@ -1,6 +1,12 @@
 import { type FC, type InputHTMLAttributes, useMemo, useRef, useState } from 'react';
+import type { ProjectAssetKind } from '../../../project';
 import { useAudioGraphStore } from '../store';
-import { isLikelyAudioFile, pickAudioFilesFromNativeDirectory } from '../audioImport';
+import {
+    isLikelyAudioFile,
+    isLikelyMidiFile,
+    pickAudioFilesFromNativeDirectory,
+    pickMidiFilesFromNativeDirectory,
+} from '../audioImport';
 import { addAssetFromFile, deleteAsset, listAssets, type AudioLibraryAsset } from '../audioLibrary';
 
 // Custom SVG Icons
@@ -99,6 +105,8 @@ const AlertTriangleIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
+export type LibraryCategory = 'audio' | 'convolvers' | 'midi';
+
 export interface LibraryItem {
     id: string;
     name: string;
@@ -106,6 +114,7 @@ export interface LibraryItem {
     type: string;
     addedAt: number;
     durationSec: number;
+    kind: ProjectAssetKind;
 }
 
 export interface AudioPreviewState {
@@ -115,7 +124,7 @@ export interface AudioPreviewState {
 
 export interface MissingLibraryReference {
     assetId: string;
-    kind: 'sample' | 'impulse';
+    kind: 'sample' | 'impulse' | 'midi';
     nodeId: string;
     nodeLabel: string;
     assetPath: string;
@@ -132,20 +141,29 @@ interface LibraryDrawerContentProps {
     onRepairAsset: (item: MissingLibraryReference, file: File) => Promise<void> | void;
 }
 
-const mapProjectAssetToLibraryItem = (asset: AudioLibraryAsset): LibraryItem => ({
+export const mapProjectAssetToLibraryItem = (asset: AudioLibraryAsset): LibraryItem => ({
     id: asset.id,
     name: asset.name,
     sizeBytes: asset.size,
     type: asset.mimeType,
     addedAt: asset.createdAt,
-    durationSec: asset.durationSec ?? 0
+    durationSec: asset.durationSec ?? 0,
+    kind: asset.kind,
 });
+
+/** @internal Exported for unit tests */
+export function libraryItemMatchesCategory(item: LibraryItem, category: LibraryCategory): boolean {
+    if (category === 'audio') return item.kind === 'sample' || item.kind === 'audio';
+    if (category === 'convolvers') return item.kind === 'impulse';
+    return item.kind === 'midi';
+}
 
 export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({ 
     items, filter, onFilterChange, preview, onPreviewChange, onItemsChange, repairItems, onRepairAsset
 }) => {
     const [error, setError] = useState<string | null>(null);
     const [repairingAssetId, setRepairingAssetId] = useState<string | null>(null);
+    const [libraryCategory, setLibraryCategory] = useState<LibraryCategory>('audio');
     const uploadInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
 
@@ -155,9 +173,12 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
         return `${(bytes/(1024*1024)).toFixed(1)} MB`;
     };
 
-    const filteredItems = useMemo(() => 
-        items.filter(item => item.name.toLowerCase().includes(filter.toLowerCase())),
-    [items, filter]);
+    const filteredItems = useMemo(() =>
+        items.filter((item) =>
+            libraryItemMatchesCategory(item, libraryCategory)
+            && item.name.toLowerCase().includes(filter.toLowerCase()),
+        ),
+    [items, filter, libraryCategory]);
 
     const handleTogglePreview = (id: string) => {
         if (preview.activeId === id) {
@@ -168,7 +189,7 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this audio file? This will clear references in all graphs.')) {
+        if (!window.confirm('Are you sure you want to delete this library file? This will clear references in all graphs.')) {
             return;
         }
         try {
@@ -179,7 +200,7 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
             const assets = await listAssets();
             onItemsChange(assets.map(mapProjectAssetToLibraryItem));
         } catch (err) {
-            setError('Failed to delete audio file.');
+            setError('Failed to delete library file.');
         }
     };
 
@@ -192,19 +213,36 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
         setError(null);
         if (files.length === 0) return;
 
-        const audioFiles = files.filter(isLikelyAudioFile);
-        if (audioFiles.length === 0) {
-            setError('No supported audio files found (check format or file extension).');
+        let accepted: File[] = [];
+        let addKind: ProjectAssetKind = 'sample';
+        let failureMessage = 'No supported files found (check format or file extension).';
+
+        if (libraryCategory === 'midi') {
+            accepted = files.filter(isLikelyMidiFile);
+            addKind = 'midi';
+            failureMessage = 'No supported MIDI files found (check format or file extension).';
+        } else if (libraryCategory === 'convolvers') {
+            accepted = files.filter(isLikelyAudioFile);
+            addKind = 'impulse';
+            failureMessage = 'No supported impulse/audio files found (check format or file extension).';
+        } else {
+            accepted = files.filter(isLikelyAudioFile);
+            addKind = 'sample';
+            failureMessage = 'No supported audio files found (check format or file extension).';
+        }
+
+        if (accepted.length === 0) {
+            setError(failureMessage);
             return;
         }
 
         try {
-            for (const file of audioFiles) {
-                await addAssetFromFile(file);
+            for (const file of accepted) {
+                await addAssetFromFile(file, { kind: addKind });
             }
             await refreshItems();
         } catch (err) {
-            setError('Failed to upload audio files.');
+            setError('Failed to upload files.');
         }
     };
 
@@ -231,14 +269,18 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
 
     const handleImportFolderClick = async () => {
         setError(null);
-        const result = await pickAudioFilesFromNativeDirectory();
+        const result = libraryCategory === 'midi'
+            ? await pickMidiFilesFromNativeDirectory()
+            : await pickAudioFilesFromNativeDirectory();
         if (result === 'unsupported') {
             folderInputRef.current?.click();
             return;
         }
         if (result === 'cancelled') return;
         if (result.length === 0) {
-            setError('No supported audio files in that folder.');
+            setError(libraryCategory === 'midi'
+                ? 'No supported MIDI files in that folder.'
+                : 'No supported audio files in that folder.');
             return;
         }
         await importFiles(result);
@@ -261,14 +303,38 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
         }
     };
 
+    const searchPlaceholder = libraryCategory === 'midi'
+        ? 'Search MIDI library…'
+        : libraryCategory === 'convolvers'
+            ? 'Search convolver library…'
+            : 'Search audio library…';
+    const fileAccept = libraryCategory === 'midi' ? '.mid,.midi,.smf,audio/midi' : 'audio/*';
+
     return (
         <div className="flex flex-col h-full bg-[#080912]">
+            <div className="flex gap-2 px-4 pt-3 border-b border-white/5">
+                {(['audio', 'convolvers', 'midi'] as const).map((cat) => (
+                    <button
+                        key={cat}
+                        type="button"
+                        aria-pressed={libraryCategory === cat}
+                        onClick={() => setLibraryCategory(cat)}
+                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            libraryCategory === cat
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                        }`}
+                    >
+                        {cat === 'audio' ? 'Audio' : cat === 'convolvers' ? 'Convolvers' : 'MIDI'}
+                    </button>
+                ))}
+            </div>
             <div className="flex items-center justify-between gap-4 p-4 border-b border-white/5">
                 <div className="relative flex-1 group">
                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-blue-500 transition-colors" />
                     <input 
                         type="text"
-                        placeholder="Search audio library..."
+                        placeholder={searchPlaceholder}
                         aria-label="Search library files"
                         value={filter}
                         onChange={(e) => onFilterChange(e.target.value)}
@@ -276,13 +342,14 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                     />
                 </div>
                 <input
+                    key={libraryCategory}
                     ref={uploadInputRef}
                     type="file"
-                    accept="audio/*"
+                    accept={fileAccept}
                     multiple
                     onChange={handleImportInputChange}
                     className="sr-only"
-                    aria-label="Import library audio files"
+                    aria-label={libraryCategory === 'midi' ? 'Import MIDI library files' : 'Import library audio files'}
                 />
                 <input
                     ref={folderInputRef}
@@ -291,7 +358,7 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                     multiple
                     onChange={handleFolderInputChange}
                     className="sr-only"
-                    aria-label="Import audio files from a folder"
+                    aria-label={libraryCategory === 'midi' ? 'Import MIDI files from a folder' : 'Import audio files from a folder'}
                 />
                 <div className="flex items-center gap-2 shrink-0">
                     <button
@@ -307,7 +374,9 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                         type="button"
                         onClick={() => void handleImportFolderClick()}
                         className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/15 text-white border border-white/10 rounded-full text-xs font-bold transition-all active:scale-95"
-                        title="Import all supported audio files from a folder (recursive)"
+                        title={libraryCategory === 'midi'
+                            ? 'Import all supported MIDI files from a folder (recursive)'
+                            : 'Import all supported audio files from a folder (recursive)'}
                     >
                         <FolderIcon className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">FOLDER</span>
@@ -334,7 +403,7 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                             <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Missing asset repair</span>
                         </div>
                         <div className="mt-2 text-[12px] leading-6 text-amber-50/90">
-                            Repair missing sample or impulse references directly from the library without leaving the current drawer context.
+                            Repair missing sample, impulse, or MIDI references directly from the library without leaving the current drawer context.
                         </div>
                         <div className="mt-3 grid gap-3">
                             {repairItems.map((item) => (
@@ -353,7 +422,7 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                                     </div>
                                     <input
                                         type="file"
-                                        accept="audio/*"
+                                        accept={item.kind === 'midi' ? '.mid,.midi,.smf,audio/midi' : 'audio/*'}
                                         aria-label={`Repair ${item.nodeLabel}`}
                                         onChange={(event) => void handleRepairInputChange(item, event)}
                                         className="mt-3 block w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-[11px] text-zinc-200 file:mr-3 file:rounded-full file:border-0 file:bg-amber-500/20 file:px-3 file:py-1 file:text-[10px] file:font-bold file:uppercase file:tracking-[0.18em] file:text-amber-50"
@@ -367,9 +436,15 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                 {filteredItems.length === 0 ? (
                     <div className="h-40 flex flex-col items-center justify-center text-zinc-600 gap-3">
                         <MusicIcon className="w-8 h-8 opacity-20" />
-                        <span className="text-xs uppercase tracking-widest font-bold opacity-40">No audio files found.</span>
+                        <span className="text-xs uppercase tracking-widest font-bold opacity-40">
+                            {libraryCategory === 'midi'
+                                ? 'No MIDI files found.'
+                                : libraryCategory === 'convolvers'
+                                    ? 'No convolver files found.'
+                                    : 'No audio files found.'}
+                        </span>
                         <p className="text-[10px] text-zinc-500 text-center max-w-[220px]">
-                            Drag audio files here or use Files / Folder above
+                            Drag files here or use Files / Folder above
                         </p>
                     </div>
                 ) : (

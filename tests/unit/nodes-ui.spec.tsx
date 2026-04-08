@@ -39,6 +39,7 @@ import MidiCCNode from '../../ui/editor/nodes/MidiCCNode';
 import MidiNoteOutputNode from '../../ui/editor/nodes/MidiNoteOutputNode';
 import MidiCCOutputNode from '../../ui/editor/nodes/MidiCCOutputNode';
 import MidiSyncNode from '../../ui/editor/nodes/MidiSyncNode';
+import MidiPlayerNode from '../../ui/editor/nodes/MidiPlayerNode';
 import Inspector from '../../ui/editor/Inspector';
 import { getInputParamHandleId } from '../../ui/editor/handleIds';
 import { audioEngine } from '../../ui/editor/AudioEngine';
@@ -61,8 +62,12 @@ const audioLibraryMock = vi.hoisted(() => ({
         id: `asset-${file.name}`,
         name: file.name,
         fileName: file.name,
-        relativePath: file.name.includes('plate') ? `impulses/${file.name}` : `samples/${file.name}`,
-        kind: file.name.includes('plate') ? 'impulse' : 'sample',
+        relativePath: file.name.includes('plate')
+            ? `impulses/${file.name}`
+            : /\.(mid|midi|smf)$/i.test(file.name)
+                ? `midi/${file.name}`
+                : `samples/${file.name}`,
+        kind: file.name.includes('plate') ? 'impulse' : /\.(mid|midi|smf)$/i.test(file.name) ? 'midi' : 'sample',
         mimeType: file.type || 'audio/wav',
         size: file.size,
         createdAt: 1,
@@ -72,6 +77,7 @@ const audioLibraryMock = vi.hoisted(() => ({
     listAssets: vi.fn(async () => ([
         { id: 'asset-kick', name: 'kick.wav', fileName: 'kick.wav', relativePath: 'samples/kick.wav', kind: 'sample', mimeType: 'audio/wav', size: 256, createdAt: 1, updatedAt: 1 },
         { id: 'asset-plate.wav', name: 'plate.wav', fileName: 'plate.wav', relativePath: 'impulses/plate.wav', kind: 'impulse', mimeType: 'audio/wav', size: 512, createdAt: 1, updatedAt: 1 },
+        { id: 'asset-clip', name: 'clip.mid', fileName: 'clip.mid', relativePath: 'midi/clip.mid', kind: 'midi', mimeType: 'audio/midi', size: 64, createdAt: 1, updatedAt: 1 },
     ])),
     subscribeAssets: vi.fn(() => () => {}),
 }));
@@ -992,6 +998,46 @@ describe('editor node UIs', () => {
         expect(screen.getByText('Clock locked')).toBeInTheDocument();
         expect(screen.getAllByText('Knob Box').length).toBeGreaterThan(0);
         expect(screen.getByText('123.4')).toBeInTheDocument();
+    });
+
+    it('renders MIDI Player title, transport/trigger handles, and library picker', async () => {
+        cleanup();
+        const sharedProps = {
+            dragging: false,
+            selected: false,
+            zIndex: 0,
+            selectable: true,
+            draggable: true,
+            isConnectable: true,
+            positionAbsoluteX: 0,
+            positionAbsoluteY: 0,
+            xPos: 0,
+            yPos: 0,
+        } as const;
+
+        render(
+            <MidiPlayerNode
+                {...(sharedProps as any)}
+                id="midi-player-1"
+                data={{
+                    type: 'midiPlayer',
+                    label: 'MIDI Player',
+                    midiFileId: '',
+                    midiFileName: '',
+                    loaded: false,
+                    loop: false,
+                }}
+            />
+        );
+
+        expect(screen.getByText('MIDI Player')).toBeInTheDocument();
+        expect(screen.getByTestId('handle-trigger')).toBeInTheDocument();
+        expect(screen.getByTestId('handle-transport')).toBeInTheDocument();
+        expect(screen.getByTitle('Select MIDI file from library')).toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(audioLibraryMock.listAssets).toHaveBeenCalled();
+        });
     });
 
     it('replaces MIDI output controls with connected values and shows missing outputs', () => {

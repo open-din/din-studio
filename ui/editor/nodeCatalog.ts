@@ -91,6 +91,7 @@ export const EDITOR_NODE_CATALOG: NodeCatalogEntry[] = [
     { type: 'midiNoteOutput', category: 'MIDI', label: 'Note Out', icon: '📤', color: '#4dd4a0' },
     { type: 'midiCCOutput', category: 'MIDI', label: 'CC Out', icon: '📤', color: '#4dd4a0' },
     { type: 'midiSync', category: 'MIDI', label: 'Sync', icon: '⏱️', color: '#4dd4a0', singleton: true },
+    { type: 'midiPlayer', category: 'MIDI', label: 'MIDI Player', icon: '🎵', color: '#4dd4a0' },
     { type: 'gain', category: 'Effects', label: 'Gain', icon: '◧', color: '#44cc44' },
     { type: 'filter', category: 'Effects', label: 'Filter', icon: '◇', color: '#aa44ff' },
     { type: 'compressor', category: 'Effects', label: 'Compressor', icon: '🗜️', color: '#44cc44' },
@@ -203,6 +204,10 @@ const DEFAULT_HANDLES_BY_TYPE: Record<EditorNodeType, HandleDescriptor[]> = {
         { id: 'value', direction: 'target', label: 'Value' },
     ],
     midiSync: [],
+    midiPlayer: [
+        { id: 'transport', direction: 'target', label: 'Transport' },
+        { id: 'trigger', direction: 'source', label: 'Trigger' },
+    ],
     compressor: [
         { id: 'in', direction: 'target', label: 'In' },
         { id: 'sidechainIn', direction: 'target', label: 'Sidechain' },

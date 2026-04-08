@@ -542,6 +542,17 @@ export interface MidiSyncNodeData {
     [key: string]: unknown;
 }
 
+export interface MidiPlayerNodeData {
+    type: 'midiPlayer';
+    midiFileId: string;
+    midiFileName: string;
+    assetPath?: string;
+    loaded: boolean;
+    loop: boolean;
+    label: string;
+    [key: string]: unknown;
+}
+
 export type AudioNodeData = (
     | OscNodeData
     | GainNodeData
@@ -585,12 +596,50 @@ export type AudioNodeData = (
     | MidiNoteOutputNodeData
     | MidiCCOutputNodeData
     | MidiSyncNodeData
+    | MidiPlayerNodeData
     | MathNodeData
     | CompareNodeData
     | MixNodeData
     | ClampNodeData
     | SwitchNodeData
 ) & Record<string, unknown>;
+
+// ============================================================================
+// Session recording (graph output capture)
+// ============================================================================
+
+export type RecordingPhase = 'idle' | 'armed' | 'recording' | 'paused' | 'stopped';
+
+export interface RecordingState {
+    phase: RecordingPhase;
+    blob: Blob | null;
+    /** Set after stop when decode succeeds */
+    audioBuffer: AudioBuffer | null;
+    durationSec: number;
+    mimeType: string;
+    decodeError: string | null;
+    /** Post-recording preview */
+    playbackPosition: number;
+    isPlayingBack: boolean;
+    loopEnabled: boolean;
+    /** Crop region in seconds (inclusive start, exclusive end), null = full buffer */
+    cropStart: number | null;
+    cropEnd: number | null;
+}
+
+export const createInitialRecordingState = (): RecordingState => ({
+    phase: 'idle',
+    blob: null,
+    audioBuffer: null,
+    durationSec: 0,
+    mimeType: '',
+    decodeError: null,
+    playbackPosition: 0,
+    isPlayingBack: false,
+    loopEnabled: false,
+    cropStart: null,
+    cropEnd: null,
+});
 
 export interface GraphDocument {
     id: string;
