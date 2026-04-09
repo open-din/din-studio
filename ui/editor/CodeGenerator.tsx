@@ -47,7 +47,8 @@ import {
     type MidiNoteOutputNodeData,
     type MidiCCOutputNodeData,
     type MidiSyncNodeData,
-    type MidiPlayerNodeData
+    type MidiPlayerNodeData,
+    type PatchNodeData
 } from './store';
 import { type Node, type Edge } from '@xyflow/react';
 import { toPascalCase } from './graphUtils';
@@ -97,6 +98,7 @@ import {
     useAudio,
     useAudioOut,
     useLFO,
+    Patch,
 } from '@open-din/react';
 import type { LFOOutput, VoiceRenderProps } from '@open-din/react';
 import {
@@ -1112,6 +1114,7 @@ const AUDIO_COMPONENTS: Record<string, string> = {
     noise: 'Noise',
     waveShaper: 'WaveShaper',
     sampler: 'Sampler',
+    patch: 'Patch',
 };
 
 const AUDIO_NODE_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -1142,6 +1145,7 @@ const AUDIO_NODE_COMPONENTS: Record<string, React.ComponentType<any>> = {
     noise: Noise,
     waveShaper: WaveShaper,
     sampler: Sampler,
+    patch: Patch,
 };
 
 function getAudioComponentName(type: string): string | null {
@@ -1779,6 +1783,18 @@ function buildNodeProps(
             addValueProp('outputs', formatNumber(matrix.outputs));
             const matrixLiteral = JSON.stringify(matrix.matrix ?? []);
             props.push(`matrix={${matrixLiteral}}`);
+            break;
+        }
+        case 'patch': {
+            const patch = nodeData as PatchNodeData;
+            if (patch.patchAsset) {
+                addStringProp('patchAsset', patch.patchAsset);
+            } else if (patch.patchInline) {
+                props.push(`patchInline={${JSON.stringify(patch.patchInline)}}`);
+            }
+            if (patch.patchName) {
+                addStringProp('patchName', patch.patchName);
+            }
             break;
         }
         default:

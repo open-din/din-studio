@@ -2539,6 +2539,16 @@ export class AudioEngine {
             }
             case 'midiSync':
                 return null;
+            case 'patch': {
+                // Patch nodes act as audio pass-throughs in the editor preview.
+                // Nested graph execution is delegated to the react-din runtime at export time.
+                const dummy = ctx.createGain();
+                dummy.gain.value = 1;
+                return {
+                    node: dummy,
+                    type: 'patch',
+                };
+            }
             default:
                 return null;
         }

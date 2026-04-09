@@ -232,6 +232,107 @@ describe('editor store and code generation', () => {
         expect(code).toContain('/midi/clip.mid');
     });
 
+    it('adds patch nodes with default boundary metadata and exposes derived slot handles', async () => {
+        vi.resetModules();
+        const { useAudioGraphStore } = await import('../../ui/editor/store');
+        const { getNodeHandleDescriptors } = await import('../../ui/editor/nodeCatalog');
+
+        useAudioGraphStore.getState().addNode('patch');
+        const patchNode = useAudioGraphStore.getState().nodes.find((node) => node.data.type === 'patch');
+
+        expect(patchNode?.data).toMatchObject({
+            type: 'patch',
+            patchSourceId: '',
+            patchSourceKind: null,
+            patchAsset: null,
+            patchName: '',
+            sourceUpdatedAt: 0,
+            label: 'Patch',
+            audio: {
+                input: { id: 'in', label: 'Audio In', type: 'audio' },
+                output: { id: 'out', label: 'Audio Out', type: 'audio' },
+            },
+        });
+
+        const handles = getNodeHandleDescriptors({
+            type: 'patch',
+            label: 'Patch',
+            patchSourceId: 'graph:graph-2',
+            patchSourceKind: 'graph',
+            patchAsset: '/graphs/graph-2.patch.json',
+            patchName: 'Graph 2',
+            patchInline: null,
+            inputs: [{ id: 'bang', label: 'Bang', type: 'midi' }],
+            outputs: [{ id: 'ccOut', label: 'CC Out', type: 'midi' }],
+            audio: {
+                input: { id: 'in', label: 'Audio In', type: 'audio' },
+                output: { id: 'out', label: 'Audio Out', type: 'audio' },
+            },
+            sourceUpdatedAt: 10,
+            sourceError: null,
+        } as any);
+
+        expect(handles.map((handle) => handle.id).sort()).toEqual(['in', 'in:bang', 'out', 'out:ccOut'].sort());
+    });
+
+    it('revalidates patch node edges when source-derived boundary handles change', async () => {
+        vi.resetModules();
+        const { audioEngine } = await import('../../ui/editor/AudioEngine');
+        const refreshConnections = vi.spyOn(audioEngine, 'refreshConnections').mockImplementation(() => {});
+        const { useAudioGraphStore } = await import('../../ui/editor/store');
+
+        useAudioGraphStore.getState().loadGraph(
+            [
+                {
+                    id: 'event-1',
+                    type: 'eventTriggerNode',
+                    position: { x: 0, y: 0 },
+                    data: { type: 'eventTrigger', label: 'Bang', token: 0, mode: 'change', cooldownMs: 0, velocity: 1, duration: 0.1, note: 60, trackId: 'event' },
+                },
+                {
+                    id: 'patch-1',
+                    type: 'patchNode',
+                    position: { x: 120, y: 0 },
+                    data: {
+                        type: 'patch',
+                        label: 'Patch',
+                        patchSourceId: 'graph:graph-2',
+                        patchSourceKind: 'graph',
+                        patchAsset: '/graphs/graph-2.patch.json',
+                        patchName: 'Graph 2',
+                        patchInline: null,
+                        inputs: [{ id: 'bang', label: 'Bang', type: 'midi' }],
+                        outputs: [],
+                        audio: {
+                            input: { id: 'in', label: 'Audio In', type: 'audio' },
+                            output: { id: 'out', label: 'Audio Out', type: 'audio' },
+                        },
+                        sourceUpdatedAt: 1,
+                        sourceError: null,
+                    },
+                },
+            ] as any,
+            [
+                {
+                    id: 'event-patch',
+                    source: 'event-1',
+                    sourceHandle: 'trigger',
+                    target: 'patch-1',
+                    targetHandle: 'in:bang',
+                },
+            ] as any,
+        );
+
+        useAudioGraphStore.getState().updateNodeData('patch-1', {
+            inputs: [{ id: 'other', label: 'Other', type: 'midi' }],
+            sourceUpdatedAt: 2,
+        } as any);
+
+        expect(useAudioGraphStore.getState().edges.some((edge) => edge.id === 'event-patch')).toBe(false);
+        expect(refreshConnections).toHaveBeenCalled();
+        refreshConnections.mockRestore();
+    });
+
     it('F41-S16 pre-fills midiNote inputId when addNode receives data overrides', async () => {
         vi.resetModules();
         const { audioEngine } = await import('../../ui/editor/AudioEngine');
@@ -1207,6 +1308,93 @@ describe('editor store and code generation', () => {
         expect(useAudioGraphStore.getState().canUndo).toBe(false);
 
         refreshConnections.mockRestore();
+    });
+
+    it('generates Patch JSX with patchAsset prop and strips Studio-only metadata on export', async () => {
+        vi.resetModules();
+        const { generateCode } = await import('../../ui/editor/CodeGenerator');
+        const { graphDocumentToPatch } = await import('@open-din/react/patch');
+
+        const patchNodeData = {
+            type: 'patch',
+            label: 'My Patch',
+            patchSourceId: 'source-abc',
+            patchSourceKind: 'asset',
+            patchAsset: '/patches/my-patch.patch.json',
+            patchName: 'My Patch',
+            patchInline: null,
+            inputs: [],
+            outputs: [],
+            audio: { input: { id: 'in', label: 'Audio In', type: 'audio' }, output: { id: 'out', label: 'Audio Out', type: 'audio' } },
+            sourceUpdatedAt: 12345,
+            sourceError: null,
+        };
+
+        const nodes = [
+            {
+                id: 'patch-1',
+                type: 'patchNode',
+                position: { x: 0, y: 0 },
+                data: patchNodeData,
+            },
+        ];
+        const edges: unknown[] = [];
+
+        const code = generateCode(nodes as any, edges as any, false, 'Patch Graph');
+        expect(code).toContain('<Patch');
+        expect(code).toContain('patchAsset="/patches/my-patch.patch.json"');
+        expect(code).toContain('patchName="My Patch"');
+        expect(code).toContain('import { Patch');
+
+        // Verify Studio-only fields are stripped from exported patch documents.
+        const patchDoc = graphDocumentToPatch({
+            name: 'Patch Graph',
+            nodes: nodes as any,
+            edges: edges as any,
+        });
+        const exportedPatchNode = patchDoc.nodes.find((node) => node.id === 'patch-1');
+        expect(exportedPatchNode).toBeDefined();
+        expect((exportedPatchNode?.data as Record<string, unknown>).patchSourceId).toBeUndefined();
+        expect((exportedPatchNode?.data as Record<string, unknown>).patchSourceKind).toBeUndefined();
+        expect((exportedPatchNode?.data as Record<string, unknown>).sourceUpdatedAt).toBeUndefined();
+        expect((exportedPatchNode?.data as Record<string, unknown>).sourceError).toBeUndefined();
+        expect((exportedPatchNode?.data as Record<string, unknown>).patchAsset).toBe('/patches/my-patch.patch.json');
+    });
+
+    it('generates Patch JSX with patchInline prop for inline-backed patch nodes', async () => {
+        vi.resetModules();
+        const { generateCode } = await import('../../ui/editor/CodeGenerator');
+
+        const inlineDoc = { version: 1, name: 'Inline Patch', nodes: [], connections: [], interface: { inputs: [], events: [], midiInputs: [], midiOutputs: [] } };
+
+        const nodes = [
+            {
+                id: 'patch-inline-1',
+                type: 'patchNode',
+                position: { x: 0, y: 0 },
+                data: {
+                    type: 'patch',
+                    label: 'Inline Patch',
+                    patchSourceId: '',
+                    patchSourceKind: null,
+                    patchAsset: null,
+                    patchName: 'Inline Patch',
+                    patchInline: inlineDoc,
+                    inputs: [],
+                    outputs: [],
+                    audio: { input: { id: 'in', label: 'Audio In', type: 'audio' }, output: { id: 'out', label: 'Audio Out', type: 'audio' } },
+                    sourceUpdatedAt: 0,
+                    sourceError: null,
+                },
+            },
+        ];
+        const edges: unknown[] = [];
+
+        const code = generateCode(nodes as any, edges as any, false, 'Inline Patch Graph');
+        expect(code).toContain('<Patch');
+        expect(code).toContain('patchInline=');
+        expect(code).toContain('patchName="Inline Patch"');
+        expect(code).not.toContain('patchAsset=');
     });
 
     it('does not create history entries for selection changes or output playback toggles', async () => {
