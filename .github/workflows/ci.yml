@@ -17,7 +17,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install
+      - run: npm run lint
       - run: npm run typecheck
+      - run: npm run validate:manifests
+      - run: npm run validate:docs
       - run: npm run test
       - run: npm run build:web
       - run: npm run build:mcp

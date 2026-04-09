@@ -22,5 +22,6 @@
   "readme": "none",
   "excludePrivate": true,
   "excludeInternal": true,
+  "excludeExternals": true,
   "hideGenerator": true
 }
