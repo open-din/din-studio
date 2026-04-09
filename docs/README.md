@@ -2,6 +2,10 @@
 
 This folder documents the Phase 3A desktop surfaces, their panels, and the reusable design rules that support launcher and workspace flows.
 
+## Product documentation
+
+Navigable product map (feature scenarios plus links into these contributor docs): [docs/product/README.md](./product/README.md).
+
 ## Included Docs
 
 - [LauncherEntryFlows](./LauncherEntryFlows.md)
