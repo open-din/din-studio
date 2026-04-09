@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "repo": {
+    "id": "din_studio",
+    "display_name": "din-studio",
+    "path": "din-studio",
+    "role": "ui",
+    "tags": [
+      "editor",
+      "ui",
+      "shell",
+      "launcher",
+      "panel",
+      "mcp",
+      "codegen",
+      "surface manifest"
+    ],
+    "depends_on": [
+      "react_din",
+      "din_core"
+    ],
+    "used_by": [
+      "din_agents"
+    ],
+    "entry_points": [
+      "ui/editor/nodeCatalog.ts",
+      "targets/mcp",
+      "project/COVERAGE_MANIFEST.json",
+      "project/SURFACE_MANIFEST.json"
+    ],
+    "owned_contracts": [
+      "editor workflows",
+      "mcp target",
+      "surface manifest",
+      "code generation surface"
+    ],
+    "shared_contracts": [
+      "persisted node ids",
+      "node catalog parity",
+      "public patch surface"
+    ],
+    "hard_boundaries": [
+      "Do not own the public patch schema here.",
+      "Do not own Rust runtime semantics here.",
+      "Do not fork node identifiers away from shared contracts."
+    ],
+    "validation_commands": [
+      "npm run lint",
+      "npm run typecheck",
+      "npm run test",
+      "npm run test:e2e"
+    ],
+    "summary_path": "project/SUMMARY.md",
+    "api_summary_path": "../docs/summaries/din-studio-api.md",
+    "repo_manifest_path": "project/REPO_MANIFEST.json",
+    "skills_path": "project/skills",
+    "linked_manifests": [
+      "project/COVERAGE_MANIFEST.json",
+      "project/SURFACE_MANIFEST.json"
+    ]
+  }
+}

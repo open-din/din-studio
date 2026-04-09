@@ -1,5 +1,27 @@
 # din-studio
 
+## PURPOSE
+
+Editor, shell, MCP target, and code generation workspace for DIN.
+
+## ENTRY FILES
+
+- `project/SUMMARY.md`
+- `ui/editor/nodeCatalog.ts`
+- `targets/mcp`
+- `project/SURFACE_MANIFEST.json`
+
+## DO NOT TOUCH
+
+- Public patch schema or package exports -> `react-din`
+- Runtime semantics, registry, migration, FFI/WASM -> `din-core`
+
+## RELATED REPOS
+
+- `react-din` provides the public patch surface
+- `din-core` provides runtime and registry authority
+- `din-agents` owns routing and quality gates
+
 Standalone DIN Studio editor repository.
 
 `din-studio` contains the editor UI, Electron-facing app target, and MCP server that sit on top of the published `@open-din/react` library.

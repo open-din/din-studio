@@ -1,180 +1,47 @@
-# AGENTS — din-studio (HOT + HOOKS)
+# AGENTS — din-studio
 
-## CORE RULE
-Load MINIMUM context. Use hooks. Do NOT load AGENTS.deep.md unless required.
+## LOAD ORDER
 
----
+1. `AGENTS.md`
+2. `project/SUMMARY.md`
+3. `../docs/summaries/din-studio-api.md`
+4. `project/REPO_MANIFEST.json`
+5. One matching file in `project/skills/`
 
-## 1. ROUTING (FIRST DECISION)
+## ROUTE HERE WHEN
 
-Map task → type:
+- The request changes editor nodes, shell workflows, launcher panels, asset flows, MCP, or code generation.
+- The request changes `project/COVERAGE_MANIFEST.json` or `project/SURFACE_MANIFEST.json`.
 
-- "node" → editor node
-- "UI / panel / flow / asset / launcher" → surface
-- "MCP / bridge / tool" → MCP
-- "agent / prompt / tools" → AI system
+## ROUTE AWAY WHEN
 
-If unclear → choose smallest scope
+- Public API, patch schema, package exports, docs/components -> `react-din`
+- Runtime, compiler, registry, migration, FFI, WASM -> `din-core`
+- Workspace routing or automation -> `din-agents`
 
----
+## ENTRY POINTS
 
-## 2. HOOKS (MANDATORY)
+- `ui/editor/nodeCatalog.ts`
+- `targets/mcp`
+- `project/COVERAGE_MANIFEST.json`
+- `project/SURFACE_MANIFEST.json`
 
-### HOOK: NODE_CHANGE
-IF task mentions node / handle / editor:
+## SKILL MAP
 
-LOAD ONLY:
-- ui/editor/nodeCatalog.ts
-- project/COVERAGE_MANIFEST.json
+- Editor node work -> `project/skills/editor-node-change/SKILL.md`
+- Surface or workflow change -> `project/skills/surface-flow-change/SKILL.md`
+- MCP work -> `project/skills/mcp-target-change/SKILL.md`
+- Manifest maintenance -> `project/skills/surface-manifest-update/SKILL.md`
 
-REQUIRE:
-- project/features/**
-- tests + TEST_MATRIX
+## HARD RULES
 
----
+- `din-studio` owns editor and MCP surfaces, not the public schema or runtime semantics.
+- Keep manifests, feature docs, and tests aligned.
+- Escalate only for shared IDs, public patch surface, or round-trip contract changes.
 
-### HOOK: SURFACE_CHANGE
-IF task mentions UI / workflow / panel / asset:
+## VALIDATION
 
-LOAD ONLY:
-- project/SURFACE_MANIFEST.json
-
-REQUIRE:
-- TEST_MATRIX
-- ≥1 automated test
-
----
-
-### HOOK: MCP_CHANGE
-IF task mentions MCP / bridge:
-
-LOAD ONLY:
-- targets/mcp/**
-- targets/mcp/tests/**
-
-TREAT AS:
-- release surface
-
----
-
-### HOOK: AI_SYSTEM
-IF task mentions agent / prompt / tools:
-
-LOAD ONLY:
-- ui/ai/systemPrompt.ts
-- ui/ai/tools.ts
-- ui/editor/nodeCatalog.ts
-
-FOLLOW:
-- project/skills/agent-prompt-catalog-sync/SKILL.md
-
----
-
-### HOOK: DOCS
-IF missing info:
-
-LOAD (max 2):
-1. docs/summaries
-2. docs/**
-3. docs/generated (last resort)
-
-STOP when sufficient
-
----
-
-### HOOK: CROSS_REPO
-IF mentions:
-schema | serialization | runtime
-
-STOP → switch repo:
-
-- react-din (API)
-- din-core (runtime)
-
----
-
-## 3. HARD CONSTRAINTS
-
-### Node change MUST update:
-- nodeCatalog.ts
-- COVERAGE_MANIFEST.json
-- features/**
-- tests + TEST_MATRIX
-
----
-
-### Surface change MUST update:
-- SURFACE_MANIFEST.json
-- TEST_MATRIX
-- ≥1 test
-
----
-
-### MCP MUST:
-- update tests
-- remain stable
-
----
-
-### NEVER:
-- modify public API (react-din)
-- implement runtime logic (din-core)
-- duplicate contract logic
-
----
-
-## 4. EXECUTION LOOP
-
-1. Detect hook
-2. Load ONLY hook files
-3. Execute minimal change
-4. Validate
-
----
-
-## 5. CONTEXT LIMITS
-
-- max 1 repo
-- max 2 files
-- NEVER scan directories
-- NEVER bulk-load docs
-
-If enough → STOP
-
----
-
-## 6. SELF-OPTIMIZATION
-
-Continuously:
-
-- drop irrelevant context
-- ignore unrelated features
-- reduce reads
-- prefer smallest change
-
-If context grows → compress
-
----
-
-## 7. LOAD DEEP CONTEXT ONLY IF
-
-- ambiguity
-- failing validation
-- cross-repo uncertainty
-
-→ THEN load AGENTS.deep.md
-
----
-
-## 8. VALIDATION
-
-Run:
-
-npm run lint  
-npm run typecheck  
-npm run validate:manifests  
-npm run validate:docs  
-npm run test  
-npm run test:e2e
-
-If e2e skipped → justify
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run test:e2e`

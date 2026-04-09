@@ -1,26 +1,24 @@
-# Skill: editor-node-change
+# SKILL: editor-node-change
 
-## Triggers
+## REPO
 
-- Add, remove, or modify an editor node type.
-- Prompts mentioning `nodeCatalog`, node UI under `ui/editor/nodes/`, codegen, or patch round-trip from the studio side.
+`din-studio`
 
-## Workflow
+## WHEN TO USE
 
-1. Read `project/SUMMARY.md` and `project/TEST_MATRIX.md` for scenario IDs that apply to the node family.
-2. Update `ui/editor/nodeCatalog.ts` and the node component under `ui/editor/nodes/**`.
-3. Extend or adjust codegen coverage via `tests/unit/store-and-codegen.spec.ts` and any affected graph builders.
-4. Update the feature doc in `project/features/**` and add or adjust `project/COVERAGE_MANIFEST.json` (`source`, `docs`, `tests`, `scenarios`).
-5. If the agent or MCP exposes the node, follow `project/skills/agent-prompt-catalog-sync/SKILL.md`.
+- Editor node metadata, UI, or code generation changes
+- `ui/editor/nodeCatalog.ts` or node coverage is in scope
 
-## Checks
+## STEPS
 
-- `npm run validate:manifests`
-- `npm run test` (unit + MCP unit)
-- Relevant e2e if the node changes visible authoring flows (`npm run test:e2e`)
-- `npm run docs:generate` when `nodeCatalog` / TypeDoc entry points shift (`docs/generated/` is gitignored)
+1. Read `project/SUMMARY.md`, `../docs/summaries/din-studio-api.md`, and `project/REPO_MANIFEST.json`.
+2. Update node catalog metadata and the affected editor modules.
+3. Keep feature docs, tests, and `project/COVERAGE_MANIFEST.json` aligned.
+4. Escalate only for shared IDs, public patch surface, or round-trip changes.
 
-## Expected outputs
+## VALIDATION
 
-- PR completes catalog, docs, manifest row, tests, and scenario IDs with no orphan references.
-- `AGENTS.md` rules remain satisfied.
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run test:e2e`

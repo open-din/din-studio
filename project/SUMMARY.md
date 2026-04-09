@@ -1,10 +1,34 @@
-# Product Summary
+# SUMMARY
 
-`din-studio` gives sound designers, creative technologists, and motion designers a shared workspace for real-time audiovisual patching.
+## PURPOSE
 
-## Priority Features
+Standalone DIN editor, shell, MCP target, and code generation workspace.
 
-1. Visual graph editing for reactive audio systems.
-2. Node contracts that mirror the DIN runtime and generate usable code.
-3. Launcher, asset, source-control, and MCP workflows for project-based studio work.
-4. Contributor governance that keeps editor docs, tests, and feature scenarios aligned.
+## OWNS
+
+- Editor graph workflows and node catalog UX
+- Shell, launcher, panel, and asset flows
+- MCP target behavior and tests
+- `project/COVERAGE_MANIFEST.json` and `project/SURFACE_MANIFEST.json`
+
+## DOES NOT OWN
+
+- Public patch schema, package exports, or docs/components
+- Rust runtime semantics, registry, or migration behavior
+- Workspace routing and automation
+
+## USE WHEN
+
+- The task changes editor UI, node metadata, shell flows, MCP, or studio manifests.
+
+## DO NOT USE WHEN
+
+- The task is public API or schema publishing -> `react-din`
+- The task is runtime or registry work -> `din-core`
+- The task is routing or control-plane work -> `din-agents`
+
+## RELATED REPOS
+
+- `react-din` owns public patch types and exports
+- `din-core` owns runtime semantics and registry authority
+- `din-agents` routes workspace ownership and quality gates

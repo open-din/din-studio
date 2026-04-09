@@ -1,24 +1,23 @@
-# Skill: agent-prompt-catalog-sync
+# SKILL: agent-prompt-catalog-sync
 
-## Triggers
+## REPO
 
-- Edits to `ui/ai/systemPrompt.ts`, `ui/ai/tools.ts`, or `ui/editor/nodeCatalog.ts`.
-- New AI capabilities, tools, or node types that the agent must know about.
+`din-studio`
 
-## Workflow
+## WHEN TO USE
 
-1. Read `ui/ai/systemPrompt.ts` and `ui/ai/tools.ts` for current contract boundaries.
-2. Update `ui/editor/nodeCatalog.ts` so `buildAgentNodeCatalogMarkdown` and related exports match the live editor.
-3. Align prompt text and tool schemas: any node or parameter the agent can mutate must be described consistently across all three files.
-4. Update tests: `tests/unit/agent-api.spec.ts`, `tests/unit/agent-settings.spec.ts`, or `tests/unit/agent-chat-storage.spec.ts` as appropriate; extend `tests/e2e/f13-agent-panel.spec.ts` when UI behavior changes.
-5. If coverage rows change, update `project/SURFACE_MANIFEST.json` for `surface:AgentPanel`.
+- Agent-facing node catalog output changes
+- `ui/ai/*` or `ui/editor/nodeCatalog.ts` must stay in sync
 
-## Checks
+## STEPS
 
-- `npm run test` (including unit specs above)
-- `npm run validate:manifests`
-- `npm run docs:generate` after changing AI/catalog exports used by TypeDoc (`docs/generated/` is gitignored)
+1. Read the studio summary, API summary, and repo manifest.
+2. Update catalog metadata, prompt-facing summaries, and any AI tool surface touched.
+3. Keep agent-facing output aligned with the actual node catalog and manifests.
+4. Avoid introducing schema or runtime ownership drift from studio.
 
-## Expected outputs
+## VALIDATION
 
-- Agent prompt, tools, and catalog stay in sync; no stale node names or handles in the system prompt.
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`

@@ -1,24 +1,24 @@
-# Skill: surface-flow-change
+# SKILL: surface-flow-change
 
-## Triggers
+## REPO
 
-- Changes to launcher, shell layout, source control, asset/catalog panels, drawers, or other non-node product surfaces.
-- User flow or UX copy updates under `ui/shell/**`, `ui/ProjectLauncher.tsx`, or related routes.
+`din-studio`
 
-## Workflow
+## WHEN TO USE
 
-1. Read `project/USERFLOW.md` and `project/TEST_MATRIX.md`; pick the scenario IDs that encode the intended behavior.
-2. Implement UI and state changes; keep contributor copy in dedicated modules where the codebase already does so.
-3. Update the feature doc under `project/features/**` for the surface.
-4. Update `project/SURFACE_MANIFEST.json`: `source`, `docs`, `tests`, and `scenarios` must stay aligned.
-5. Add or update at least one automated test (unit, integration, or e2e).
+- A visible workflow, panel, launcher, or asset flow changes
+- `project/SURFACE_MANIFEST.json` should move with the request
 
-## Checks
+## STEPS
 
-- `npm run validate:manifests` and `npm run validate:docs`
-- `npm run test` and affected `npm run test:e2e` cases
-- `npm run docs:generate` when shell/layout entry points in `typedoc.json` change (`docs/generated/` is gitignored)
+1. Read the summary files and `project/SURFACE_MANIFEST.json`.
+2. Update the owned UI workflow in `ui/shell`, `ui/editor`, or related modules.
+3. Update manifest rows, feature docs, and automated tests together.
+4. Keep public schema and runtime concerns out of studio unless explicitly shared.
 
-## Expected outputs
+## VALIDATION
 
-- Visible workflow changes have doc, test, matrix IDs, and manifest row updates together.
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run test:e2e`
