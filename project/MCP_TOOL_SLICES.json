@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "defaults": {
+    "handler_file": "targets/mcp/src/runtime.ts",
+    "primary_test": "targets/mcp/tests/runtime.spec.ts",
+    "surface_manifest": "project/SURFACE_MANIFEST.json",
+    "feature": "project/features/14_mcp_server_target.feature.md"
+  },
+  "tools": [
+    {
+      "name": "editor_list_sessions",
+      "kind": "read"
+    },
+    {
+      "name": "editor_get_state",
+      "kind": "read"
+    },
+    {
+      "name": "editor_list_graphs",
+      "kind": "read"
+    },
+    {
+      "name": "editor_get_graph",
+      "kind": "read"
+    },
+    {
+      "name": "editor_preview_operations",
+      "kind": "read"
+    },
+    {
+      "name": "editor_apply_operations",
+      "kind": "mutation"
+    },
+    {
+      "name": "editor_import_patch",
+      "kind": "mutation"
+    },
+    {
+      "name": "editor_export_patch",
+      "kind": "export"
+    },
+    {
+      "name": "editor_validate_patch",
+      "kind": "validation"
+    },
+    {
+      "name": "editor_generate_code",
+      "kind": "codegen"
+    },
+    {
+      "name": "editor_list_assets",
+      "kind": "read"
+    },
+    {
+      "name": "editor_ingest_asset_file",
+      "kind": "mutation"
+    },
+    {
+      "name": "editor_app_status",
+      "kind": "read"
+    },
+    {
+      "name": "editor_focus_window",
+      "kind": "mutation"
+    },
+    {
+      "name": "editor_open_project",
+      "kind": "mutation"
+    },
+    {
+      "name": "editor_export_file",
+      "kind": "export"
+    }
+  ],
+  "secondary_sources": {
+    "bridge": "targets/mcp/src/bridgeServer.ts",
+    "stdio": "targets/mcp/src/stdioServer.ts",
+    "config": "targets/mcp/src/config.ts"
+  },
+  "notes": [
+    "Start in targets/mcp/src/runtime.ts for new tools and argument handling.",
+    "Open targets/mcp/src/stdioServer.ts only when the MCP transport shape changes.",
+    "Open targets/mcp/src/bridgeServer.ts only when bridge or session transport behavior changes."
+  ]
+}

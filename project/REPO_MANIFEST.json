@@ -50,11 +50,14 @@
       "npm run test",
       "npm run test:e2e"
     ],
+    "route_card_path": "project/ROUTE_CARD.json",
     "summary_path": "project/SUMMARY.md",
     "api_summary_path": "../docs/summaries/din-studio-api.md",
     "repo_manifest_path": "project/REPO_MANIFEST.json",
     "skills_path": "project/skills",
     "linked_manifests": [
+      "project/EDITOR_NODE_SLICES.json",
+      "project/MCP_TOOL_SLICES.json",
       "project/COVERAGE_MANIFEST.json",
       "project/SURFACE_MANIFEST.json"
     ]

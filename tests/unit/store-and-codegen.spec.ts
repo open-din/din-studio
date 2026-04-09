@@ -275,6 +275,39 @@ describe('editor store and code generation', () => {
         expect(handles.map((handle) => handle.id).sort()).toEqual(['in', 'in:bang', 'out', 'out:ccOut'].sort());
     });
 
+    it('expands switch and matrix mixer handles from dynamic counts', async () => {
+        vi.resetModules();
+        const { getNodeHandleDescriptors } = await import('../../ui/editor/nodeCatalog');
+
+        const switchHandles = getNodeHandleDescriptors({
+            type: 'switch',
+            inputs: 5,
+            label: 'Switch',
+        } as any);
+        expect(switchHandles.map((handle) => handle.id)).toEqual(['out', 'index', 'in_0', 'in_1', 'in_2', 'in_3', 'in_4']);
+
+        const matrixHandles = getNodeHandleDescriptors({
+            type: 'matrixMixer',
+            inputs: 2,
+            outputs: 3,
+            label: 'Matrix Mixer',
+        } as any);
+        expect(matrixHandles.map((handle) => handle.id)).toEqual([
+            'in1',
+            'in2',
+            'out',
+            'out1',
+            'out2',
+            'out3',
+            'cell:0:0',
+            'cell:0:1',
+            'cell:0:2',
+            'cell:1:0',
+            'cell:1:1',
+            'cell:1:2',
+        ]);
+    });
+
     it('revalidates patch node edges when source-derived boundary handles change', async () => {
         vi.resetModules();
         const { audioEngine } = await import('../../ui/editor/AudioEngine');

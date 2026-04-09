@@ -93,6 +93,41 @@ function registerSession(registry: SessionRegistry, sessionId: string, state: Ed
 }
 
 describe('DIN Studio MCP runtime', () => {
+    it('lists the expected MCP tools from the handler registry surface', () => {
+        const registry = new SessionRegistry({
+            bridgeToken: 'secret-token',
+            readOnly: false,
+            requestTimeoutMs: 1000,
+            serverVersion: 'test',
+            logger: createLogger(),
+        });
+        const runtime = new DinEditorMcpRuntime(registry, {
+            readOnly: false,
+            serverVersion: 'test',
+            logger: createLogger(),
+        });
+
+        const toolNames = runtime.listTools().tools.map((tool) => tool.name);
+        expect(toolNames).toEqual([
+            'editor_list_sessions',
+            'editor_get_state',
+            'editor_list_graphs',
+            'editor_get_graph',
+            'editor_preview_operations',
+            'editor_apply_operations',
+            'editor_import_patch',
+            'editor_export_patch',
+            'editor_validate_patch',
+            'editor_generate_code',
+            'editor_list_assets',
+            'editor_ingest_asset_file',
+            'editor_app_status',
+            'editor_focus_window',
+            'editor_open_project',
+            'editor_export_file',
+        ]);
+    });
+
     it('validates, reads, and exports offline patches', async () => {
         const registry = new SessionRegistry({
             bridgeToken: 'secret-token',
@@ -157,5 +192,26 @@ describe('DIN Studio MCP runtime', () => {
         const result = await runtime.callTool('editor_get_state', {});
         expect(result.isError).toBe(true);
         expect(result.content[0]?.text).toContain('Multiple DIN Studio sessions are connected');
+    });
+
+    it('rejects mutation tools while running in read-only mode', async () => {
+        const registry = new SessionRegistry({
+            bridgeToken: 'secret-token',
+            readOnly: true,
+            requestTimeoutMs: 1000,
+            serverVersion: 'test',
+            logger: createLogger(),
+        });
+        registerSession(registry, 'session-a', createState('A'));
+
+        const runtime = new DinEditorMcpRuntime(registry, {
+            readOnly: true,
+            serverVersion: 'test',
+            logger: createLogger(),
+        });
+
+        const result = await runtime.callTool('editor_import_patch', { sessionId: 'session-a', text: '{"version":1}' });
+        expect(result.isError).toBe(true);
+        expect(result.content[0]?.text).toContain('read-only mode');
     });
 });

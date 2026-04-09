@@ -69,6 +69,12 @@ for (const [label, rel, kindCheck] of [
     }
 }
 
+for (const rel of ['project/ROUTE_CARD.json', 'project/EDITOR_NODE_SLICES.json', 'project/MCP_TOOL_SLICES.json']) {
+    if (!fs.existsSync(path.join(root, rel))) {
+        errors.push(`missing ${rel}`);
+    }
+}
+
 if (errors.length) {
     console.error(errors.join('\n'));
     process.exit(1);

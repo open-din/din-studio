@@ -11,8 +11,8 @@
 
 ## STEPS
 
-1. Read the studio summary, API summary, and repo manifest.
-2. Update `targets/mcp` and the exact tests that cover the changed surface.
+1. Read `project/ROUTE_CARD.json` and `project/MCP_TOOL_SLICES.json`.
+2. Update `targets/mcp/src/runtime.ts` and the exact tests that cover the changed tool or transport surface.
 3. Keep protocol-facing behavior stable and documented.
 4. Escalate only if the MCP change depends on shared contract ownership elsewhere.
 

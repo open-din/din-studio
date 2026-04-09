@@ -11,8 +11,8 @@
 
 ## STEPS
 
-1. Read `project/SUMMARY.md`, `../docs/summaries/din-studio-api.md`, and `project/REPO_MANIFEST.json`.
-2. Update node catalog metadata and the affected editor modules.
+1. Read `project/ROUTE_CARD.json` and the matching item in `project/EDITOR_NODE_SLICES.json`.
+2. Update the node source first, then touch shared editor files only if the slice says they are needed.
 3. Keep feature docs, tests, and `project/COVERAGE_MANIFEST.json` aligned.
 4. Escalate only for shared IDs, public patch surface, or round-trip changes.
 

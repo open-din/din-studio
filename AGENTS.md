@@ -3,10 +3,10 @@
 ## LOAD ORDER
 
 1. `AGENTS.md`
-2. `project/SUMMARY.md`
-3. `../docs/summaries/din-studio-api.md`
-4. `project/REPO_MANIFEST.json`
-5. One matching file in `project/skills/`
+2. `project/ROUTE_CARD.json`
+3. One matching file in `project/EDITOR_NODE_SLICES.json`, `project/MCP_TOOL_SLICES.json`, or `project/SURFACE_MANIFEST.json`
+4. One matching file in `project/skills/`
+5. The exact source file and exact test file
 
 ## ROUTE HERE WHEN
 
@@ -21,9 +21,9 @@
 
 ## ENTRY POINTS
 
-- `ui/editor/nodeCatalog.ts`
-- `targets/mcp`
-- `project/COVERAGE_MANIFEST.json`
+- `project/ROUTE_CARD.json`
+- `project/EDITOR_NODE_SLICES.json`
+- `project/MCP_TOOL_SLICES.json`
 - `project/SURFACE_MANIFEST.json`
 
 ## SKILL MAP
@@ -36,6 +36,7 @@
 ## HARD RULES
 
 - `din-studio` owns editor and MCP surfaces, not the public schema or runtime semantics.
+- Use slice manifests before opening broad editor or MCP modules.
 - Keep manifests, feature docs, and tests aligned.
 - Escalate only for shared IDs, public patch surface, or round-trip contract changes.
 

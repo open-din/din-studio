@@ -11,7 +11,7 @@
 
 ## STEPS
 
-1. Read the target manifest plus the repo summary files.
+1. Read `project/ROUTE_CARD.json` and the target manifest.
 2. Update the exact row for the changed surface, source, docs, tests, and scenarios.
 3. Remove orphan rows and keep manifest scope limited to studio-owned surfaces.
 4. Escalate only if the manifest change exposes a shared contract mismatch.

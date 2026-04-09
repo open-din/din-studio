@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "defaults": {
+    "shared_sources": [
+      "ui/editor/nodeCatalog.ts",
+      "ui/editor/types.ts",
+      "ui/editor/nodeUiRegistry.ts"
+    ],
+    "shared_tests": [
+      "tests/unit/nodes-ui.spec.tsx",
+      "tests/unit/store-and-codegen.spec.ts"
+    ]
+  },
+  "items": [
+    {
+      "type": "osc",
+      "coverage_id": "editor-node:OscNode",
+      "source": "ui/editor/nodes/OscNode.tsx",
+      "feature": "project/features/32_node_osc.feature.md"
+    },
+    {
+      "type": "gain",
+      "coverage_id": "editor-node:GainNode",
+      "source": "ui/editor/nodes/GainNode.tsx",
+      "feature": "project/features/41_node_gain.feature.md"
+    },
+    {
+      "type": "filter",
+      "coverage_id": "editor-node:FilterNode",
+      "source": "ui/editor/nodes/FilterNode.tsx",
+      "feature": "project/features/42_node_filter.feature.md"
+    },
+    {
+      "type": "transport",
+      "coverage_id": "editor-node:TransportNode",
+      "source": "ui/editor/nodes/TransportNode.tsx",
+      "feature": "project/features/23_node_transport.feature.md"
+    },
+    {
+      "type": "midiPlayer",
+      "coverage_id": "editor-node:MidiPlayerNode",
+      "source": "ui/editor/nodes/MidiPlayerNode.tsx",
+      "feature": "project/features/67_node_midi_player.feature.md",
+      "extra_sources": [
+        "ui/editor/midiDropTarget.ts",
+        "project/repository.ts"
+      ]
+    },
+    {
+      "type": "patch",
+      "coverage_id": "editor-node:PatchNode",
+      "source": "ui/editor/nodes/PatchNode.tsx",
+      "feature": "project/features/69_node_patch.feature.md",
+      "extra_sources": [
+        "ui/editor/CodeGenerator.tsx",
+        "ui/editor/AudioEngine.ts"
+      ]
+    }
+  ],
+  "add_node_checklist": [
+    "Add or update the node row in project/COVERAGE_MANIFEST.json.",
+    "Start from the nearest matching node source in ui/editor/nodes/.",
+    "Touch shared_sources only if the node type, catalog label, handles, or inspector schema changes.",
+    "Open shared_tests only after the node source or shared_sources are localized."
+  ]
+}

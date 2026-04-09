@@ -6,9 +6,9 @@ Editor, shell, MCP target, and code generation workspace for DIN.
 
 ## ENTRY FILES
 
-- `project/SUMMARY.md`
-- `ui/editor/nodeCatalog.ts`
-- `targets/mcp`
+- `project/ROUTE_CARD.json`
+- `project/EDITOR_NODE_SLICES.json`
+- `project/MCP_TOOL_SLICES.json`
 - `project/SURFACE_MANIFEST.json`
 
 ## DO NOT TOUCH

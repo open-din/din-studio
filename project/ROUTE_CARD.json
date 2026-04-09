@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "repo": "din-studio",
+  "role": "ui",
+  "route_when": [
+    "editor nodes",
+    "shell workflows",
+    "launcher panels",
+    "asset flows",
+    "MCP target",
+    "code generation",
+    "coverage manifest",
+    "surface manifest"
+  ],
+  "load_order": [
+    "project/ROUTE_CARD.json",
+    "project/EDITOR_NODE_SLICES.json or project/MCP_TOOL_SLICES.json or project/SURFACE_MANIFEST.json",
+    "project/skills/<matching-skill>/SKILL.md",
+    "exact source file",
+    "exact test file"
+  ],
+  "do_not_route": {
+    "react-din": [
+      "public patch schema",
+      "package exports",
+      "docs/components"
+    ],
+    "din-core": [
+      "runtime semantics",
+      "registry",
+      "migration",
+      "FFI",
+      "WASM"
+    ],
+    "din-agents": [
+      "workspace routing",
+      "quality gates",
+      "automation"
+    ]
+  },
+  "entry_points": [
+    "ui/editor/nodeCatalog.ts",
+    "ui/editor/nodeUiRegistry.ts",
+    "targets/mcp/src/runtime.ts",
+    "project/EDITOR_NODE_SLICES.json",
+    "project/MCP_TOOL_SLICES.json",
+    "project/SURFACE_MANIFEST.json"
+  ],
+  "task_slices": {
+    "editor_node": "project/EDITOR_NODE_SLICES.json",
+    "mcp_tool": "project/MCP_TOOL_SLICES.json",
+    "surface_flow": "project/SURFACE_MANIFEST.json"
+  },
+  "hard_boundaries": [
+    "Do not own the public patch schema here.",
+    "Do not own Rust runtime semantics here.",
+    "Do not fork node identifiers away from shared contracts."
+  ],
+  "shared_contract_escalation": [
+    "public patch surface",
+    "persisted node ids",
+    "round-trip parity"
+  ],
+  "validation_commands": [
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test",
+    "npm run test:e2e"
+  ]
+}
