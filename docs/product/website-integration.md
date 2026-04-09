@@ -5,6 +5,10 @@ The [user guide](./README.md) is plain Markdown with **relative links**. To publ
 1. Copy the `docs/product/` tree (and optionally parent `docs/*.md` for cross-links like [MCP](../MCP.md)).  
 2. Preserve relative paths between `docs/product/`, `docs/`, and the repo root if you also host `project/features/` for spec links from [Contributor reference](./contributor-reference.md).
 
+## Refreshing screenshots
+
+Playwright can rewrite most files under `images/` (except `launcher.png`—usually captured from `npm run dev:web`). See [images/README.md](./images/README.md).
+
 ## Optional front matter
 
 If your static site generator expects YAML, you can prepend stable metadata without changing the body:

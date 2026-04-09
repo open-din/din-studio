@@ -2,6 +2,8 @@
 
 The **Audio Library** opens from the activity rail (**Library**). It shares the same **left drawer** as Explorer and Catalog, so you always see one browsing context at a time.
 
+![Audio Library in the left drawer with search and file tiles.](./images/audio-library.png)
+
 ## What it is for
 
 - **Upload** audio files your graphs can reference by stable IDs.  

@@ -2,6 +2,10 @@
 
 The Phase 3A layout keeps one main task in focus: **editing the graph**. Surroundings stay stable so you do not have to relearn where things are.
 
+![Editor workspace: activity rail and left drawer (Explorer), graph canvas with nodes and tabs, inspector on the right, bottom drawer, footer.](./images/editor-workspace.png)
+
+*Main workspace after opening a project. **Left**: rail + browse drawer. **Center**: graph tabs, transport strip, canvas. **Right**: inspector (Inspect / Code). **Bottom**: runtime drawer. **Footer**: quiet status.*
+
 ## Regions at a glance
 
 | Region | Role |
@@ -20,15 +24,25 @@ The Phase 3A layout keeps one main task in focus: **editing the graph**. Surroun
 - **Catalog** — Find nodes by category, search, **drag onto the canvas** or use add-to-graph flows. Categories match the node guides (Sources, MIDI, Effects, Routing, Math).  
 - **Library** — Manage **audio files** used by Samplers and Convolvers (upload, preview, search, delete).  
 
+![Node catalog in the left drawer with category list and search field.](./images/node-catalog.png)
+
+*Catalog mode: search nodes and open a category (Sources, MIDI, Effects, Routing, Math) before dragging a node to the canvas.*
+
 ## Right inspector
 
 - **Inspect** — Primary view when a node is selected. Detailed parameters live here so the node stays compact on the canvas.  
 - **Code** — Read-only generated code for the current graph; updates as you edit.  
 - With **no node selected**, use the empty state to adjust **graph-level** settings (such as name and defaults).
 
+![Inspector with a node selected (Oscillator): parameters on the right while the canvas shows the patch.](./images/inspector-node.png)
+
+*Selecting a node on the canvas fills the inspector with that node’s parameters; use **Code** to see generated output.*
+
 ## Command palette
 
 Press **Cmd+K** (macOS) or **Ctrl+K** (Windows/Linux) to open a **searchable list** of editor commands (layout, view, graph utilities). Choose a command by typing part of its name. **Escape** closes the palette.
+
+![Command palette overlay with Search commands field and command list.](./images/command-palette.png)
 
 ## Bottom drawer (under the canvas)
 

@@ -1,5 +1,9 @@
 # Building graphs
 
+The canvas in context: nodes (here Oscillator → Gain → Output), tabs, and transport. Open the **Catalog** rail mode to add more blocks.
+
+![Simple patch on the canvas with three nodes wired in sequence.](./images/editor-workspace.png)
+
 ## Adding nodes
 
 1. Open the **Catalog** from the activity rail.  

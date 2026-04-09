@@ -37,6 +37,10 @@ Nodes are grouped the same way as in the editor catalog:
 
 Technical specs, scenarios, and architecture live elsewhere: [DIN Studio docs index](../README.md) (design notes, data flow, MCP). A compact map from feature IDs to spec files is in [Contributor reference](./contributor-reference.md).
 
+## Screenshots
+
+Contextual UI captures live in [`images/`](./images/README.md) (launcher, workspace, catalog, command palette, inspector, library). Regenerate Playwright shots with `CAPTURE_PRODUCT_DOCS=1` (see `images/README.md`).
+
 ## Website integration
 
 To publish these pages on a static site, see [Website integration](./website-integration.md).

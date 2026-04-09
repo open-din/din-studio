@@ -1,5 +1,9 @@
 # First steps
 
+![DIN Studio launcher with Recent, Templates, Import, Recover, project name field, and workspace status chips.](./images/launcher.png)
+
+*The launcher is the first screen: pick an entry path (recent work, template, import, recovery) or create a named project.*
+
 ## Launcher
 
 When you start DIN Studio, you land on the **launcher**. From here you can:
