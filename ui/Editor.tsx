@@ -42,13 +42,20 @@ import {
     MatrixMixerNode, InputNode, UiTokensNode, ConstantSourceNode, MediaStreamNode,
     EventTriggerNode, NoteNode, TransportNode, StepSequencerNode, PianoRollNode,
     LFONode, ADSRNode, VoiceNode, SamplerNode, MidiNoteNode, MidiCCNode,
-    MidiNoteOutputNode, MidiCCOutputNode, MidiSyncNode, MidiPlayerNode, MathNode, CompareNode,
+    MidiNoteOutputNode, MidiCCOutputNode, MidiSyncNode, MidiPlayerNode, PatchNode, MathNode, CompareNode,
     MixNode, ClampNode, SwitchNode,
 } from './editor/nodes';
 import { loadActiveGraphId, loadGraphs, saveActiveGraphId, saveGraph, deleteGraph } from './editor/graphStorage';
 import { graphDocumentToPatch, patchToGraphDocument } from '@open-din/react/patch';
 import { validateOfflinePatchText } from '../core/offline';
-import { addAssetFromFile, getAssetObjectUrl, subscribeAssets, listAssets } from './editor/audioLibrary';
+import {
+    addAssetFromFile,
+    getAssetObjectUrl,
+    listAssets,
+    listPatchSources,
+    subscribeAssets,
+    type ProjectPatchSourceRecord,
+} from './editor/audioLibrary';
 import { audioEngine } from './editor/AudioEngine';
 import {
     getCompatibleNodeSuggestions,
@@ -132,6 +139,7 @@ const nodeTypes: NodeTypes = {
     midiCCOutputNode: MidiCCOutputNode as NodeTypes[string],
     midiSyncNode: MidiSyncNode as NodeTypes[string],
     midiPlayerNode: MidiPlayerNode as NodeTypes[string],
+    patchNode: PatchNode as NodeTypes[string],
     mathNode: MathNode as NodeTypes[string],
     compareNode: CompareNode as NodeTypes[string],
     mixNode: MixNode as NodeTypes[string],
@@ -282,6 +290,8 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     const [paletteFilter, setPaletteFilter] = useState('');
     const [libraryFilter, setLibraryFilter] = useState('');
     const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
+    const [patchSources, setPatchSources] = useState<ProjectPatchSourceRecord[]>([]);
+    const [selectedPatchSourceId, setSelectedPatchSourceId] = useState<string | null>(null);
     const [audioPreview, setAudioPreview] = useState<AudioPreviewState>({ activeId: null, playing: false });
     const [nameDraft, setNameDraft] = useState('');
     const [reviewState, setReviewState] = useState<ReviewState>(() => createDefaultReviewState());
@@ -436,18 +446,49 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
             setLibraryItems(assets.map(mapProjectAssetToLibraryItem));
         };
 
-        void Promise.all([loadInitialData(), refreshAssets()]).finally(() => {
+        const refreshPatchSourceItems = async () => {
+            const sources = await listPatchSources();
+            setPatchSources(sources);
+        };
+
+        void Promise.all([loadInitialData(), refreshAssets(), refreshPatchSourceItems()]).finally(() => {
             if (!cancelled) {
                 setInitialDataReady(true);
             }
         });
-        const unsubscribeAssets = subscribeAssets(refreshAssets);
+        const unsubscribeAssets = subscribeAssets(() => {
+            void refreshAssets();
+            void refreshPatchSourceItems();
+        });
 
         return () => {
             cancelled = true;
             unsubscribeAssets();
         };
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const refreshPatchSourceItems = async () => {
+            const sources = await listPatchSources();
+            if (!cancelled) {
+                setPatchSources(sources);
+            }
+        };
+
+        void refreshPatchSourceItems();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [graphs]);
+
+    useEffect(() => {
+        if (!selectedPatchSourceId) return;
+        if (patchSources.some((source) => source.id === selectedPatchSourceId)) return;
+        setSelectedPatchSourceId(null);
+    }, [patchSources, selectedPatchSourceId]);
 
     useEffect(() => {
         applyStoredMidiDefaults(editorMidiRuntime);
@@ -1175,6 +1216,9 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                         onCreateGraph={handleCreateGraph}
                                         onLoadGraph={handleLoadGraph}
                                         onDeleteGraph={handleDeleteGraph}
+                                        patchSources={patchSources}
+                                        selectedPatchSourceId={selectedPatchSourceId}
+                                        onSelectPatchSource={(source) => setSelectedPatchSourceId(source.id)}
                                         onLoadTemplate={(id) => {
                                             if (id === 'atmospheric-breakbeat-arc') {
                                                 loadTemplate(createAtmosphericBreakbeatArcTemplate());

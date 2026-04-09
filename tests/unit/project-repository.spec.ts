@@ -42,6 +42,10 @@ function syncSnapshotProject(snapshot: ProjectWorkspaceSnapshot): ProjectWorkspa
 
 function sanitizeFileName(name: string): string {
     const trimmed = name.trim().toLowerCase();
+    if (trimmed.endsWith('.patch.json')) {
+        const stem = trimmed.slice(0, -'.patch.json'.length).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'patch-file';
+        return `${stem}.patch.json`;
+    }
     const segments = trimmed.split('.');
     if (segments.length === 1) {
         return trimmed.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'audio-file';
@@ -58,7 +62,7 @@ function buildUniqueRelativePath(
     assets: ProjectAssetRecord[],
     assetId?: string,
 ): string {
-    const folder = kind === 'impulse' ? 'impulses' : kind === 'midi' ? 'midi' : 'samples';
+    const folder = kind === 'patch' ? 'patches' : kind === 'impulse' ? 'impulses' : kind === 'midi' ? 'midi' : 'samples';
     const sanitized = sanitizeFileName(fileName);
     const extensionIndex = sanitized.lastIndexOf('.');
     const stem = extensionIndex >= 0 ? sanitized.slice(0, extensionIndex) : sanitized;
@@ -289,5 +293,59 @@ describe('project repository', () => {
             projectId: project.id,
             focusedExisting: true,
         });
+    });
+
+    it('detects patch assets and exposes patch assets plus sibling graphs through one source model', async () => {
+        Object.defineProperty(window, 'dinStudioApp', {
+            configurable: true,
+            writable: true,
+            value: createMemoryElectronBridge(),
+        });
+
+        const projectModule = await import('../../project');
+        const repository = projectModule.getProjectRepository();
+        const project = await repository.createProject({ name: 'Patch Sources' });
+        const controller = await repository.openProject(project.id);
+
+        const siblingGraph = createInitialGraphDocument('patch-graph-2', 'Drum Subgraph', 1);
+        await controller.saveGraph(siblingGraph);
+
+        const patchAsset = await controller.addAssetFromBlob(
+            new Blob(['{"version":1}'], { type: 'application/json' }),
+            'Drum Bus.patch.json',
+        );
+        const compactPatch = await controller.addAssetFromBlob(
+            new Blob(['{"version":1}'], { type: 'application/json' }),
+            'voice-stack.din',
+        );
+
+        expect(patchAsset.kind).toBe('patch');
+        expect(patchAsset.relativePath).toBe('patches/drum-bus.patch.json');
+        expect(compactPatch.kind).toBe('patch');
+        expect(compactPatch.relativePath).toBe('patches/voice-stack.din');
+
+        const patchSources = await controller.listPatchSources();
+        expect(patchSources).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    id: 'graph:patch-graph-2',
+                    kind: 'graph',
+                    graphId: 'patch-graph-2',
+                    relativePath: 'graphs/patch-graph-2.patch.json',
+                }),
+                expect.objectContaining({
+                    id: `asset:${patchAsset.id}`,
+                    kind: 'asset',
+                    assetId: patchAsset.id,
+                    relativePath: 'patches/drum-bus.patch.json',
+                }),
+                expect.objectContaining({
+                    id: `asset:${compactPatch.id}`,
+                    kind: 'asset',
+                    assetId: compactPatch.id,
+                    relativePath: 'patches/voice-stack.din',
+                }),
+            ]),
+        );
     });
 });

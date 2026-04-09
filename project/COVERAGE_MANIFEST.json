@@ -848,6 +848,25 @@
         "F67-S01",
         "F67-S02"
       ]
+    },
+    {
+      "id": "editor-node:PatchNode",
+      "kind": "editor-node",
+      "name": "PatchNode",
+      "source": "ui/editor/nodes/PatchNode.tsx",
+      "docs": "project/features/69_node_patch.feature.md",
+      "tests": [
+        "tests/unit/nodes-ui.spec.tsx",
+        "tests/unit/store-and-codegen.spec.ts",
+        "tests/unit/node-helpers.spec.ts",
+        "tests/e2e/f69-patch-node.spec.ts"
+      ],
+      "scenarios": [
+        "F02-S01",
+        "F69-S01",
+        "F69-S02",
+        "F69-S03"
+      ]
     }
   ]
 }

@@ -33,3 +33,13 @@ Describe how DIN Editor users create, name, browse, switch, and recover graphs t
 **Given** multiple graphs are open in the editor
 **When** the contributor switches tabs or closes one graph
 **Then** the active graph, unsaved state, and fallback selection remain coherent
+
+### F06-S04 Graph Explorer can select a sibling graph as a reusable patch source
+
+**User Story** As a contributor, I want persisted sibling graphs to be selectable as patch sources so I can reuse graph boundaries without browsing the filesystem manually.
+**Future Test Layer** `e2e` via `playwright`
+**UX Laws** `Jakob's Law`, `Selective Attention`
+
+**Given** a project contains multiple saved graphs
+**When** the contributor opens the Graph Explorer patch-source section and selects one sibling graph
+**Then** the explorer exposes the persisted `graphs/*.patch.json` path and keeps the selected source explicit for the next patch-authoring step

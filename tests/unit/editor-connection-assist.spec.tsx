@@ -121,6 +121,7 @@ vi.mock('../../ui/editor/audioLibrary', () => ({
     deleteAsset: vi.fn().mockResolvedValue(undefined),
     getAssetObjectUrl: vi.fn().mockResolvedValue(null),
     listAssets: vi.fn().mockResolvedValue([]),
+    listPatchSources: vi.fn().mockResolvedValue([]),
     subscribeAssets: vi.fn(() => () => {}),
 }));
 

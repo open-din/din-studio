@@ -4,8 +4,10 @@ import { useAudioGraphStore } from '../store';
 import {
     isLikelyAudioFile,
     isLikelyMidiFile,
+    isLikelyPatchFile,
     pickAudioFilesFromNativeDirectory,
     pickMidiFilesFromNativeDirectory,
+    pickPatchFilesFromNativeDirectory,
 } from '../audioImport';
 import { addAssetFromFile, deleteAsset, listAssets, type AudioLibraryAsset } from '../audioLibrary';
 
@@ -105,7 +107,7 @@ const AlertTriangleIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
-export type LibraryCategory = 'audio' | 'convolvers' | 'midi';
+export type LibraryCategory = 'audio' | 'convolvers' | 'midi' | 'patches';
 
 export interface LibraryItem {
     id: string;
@@ -155,7 +157,8 @@ export const mapProjectAssetToLibraryItem = (asset: AudioLibraryAsset): LibraryI
 export function libraryItemMatchesCategory(item: LibraryItem, category: LibraryCategory): boolean {
     if (category === 'audio') return item.kind === 'sample' || item.kind === 'audio';
     if (category === 'convolvers') return item.kind === 'impulse';
-    return item.kind === 'midi';
+    if (category === 'midi') return item.kind === 'midi';
+    return item.kind === 'patch';
 }
 
 export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({ 
@@ -221,6 +224,10 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
             accepted = files.filter(isLikelyMidiFile);
             addKind = 'midi';
             failureMessage = 'No supported MIDI files found (check format or file extension).';
+        } else if (libraryCategory === 'patches') {
+            accepted = files.filter(isLikelyPatchFile);
+            addKind = 'patch';
+            failureMessage = 'No supported patch files found (use .patch.json or .din).';
         } else if (libraryCategory === 'convolvers') {
             accepted = files.filter(isLikelyAudioFile);
             addKind = 'impulse';
@@ -271,16 +278,22 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
         setError(null);
         const result = libraryCategory === 'midi'
             ? await pickMidiFilesFromNativeDirectory()
-            : await pickAudioFilesFromNativeDirectory();
+            : libraryCategory === 'patches'
+                ? await pickPatchFilesFromNativeDirectory()
+                : await pickAudioFilesFromNativeDirectory();
         if (result === 'unsupported') {
             folderInputRef.current?.click();
             return;
         }
         if (result === 'cancelled') return;
         if (result.length === 0) {
-            setError(libraryCategory === 'midi'
-                ? 'No supported MIDI files in that folder.'
-                : 'No supported audio files in that folder.');
+            setError(
+                libraryCategory === 'midi'
+                    ? 'No supported MIDI files in that folder.'
+                    : libraryCategory === 'patches'
+                        ? 'No supported patch files in that folder.'
+                        : 'No supported audio files in that folder.',
+            );
             return;
         }
         await importFiles(result);
@@ -305,15 +318,21 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
 
     const searchPlaceholder = libraryCategory === 'midi'
         ? 'Search MIDI library…'
+        : libraryCategory === 'patches'
+            ? 'Search patch library…'
         : libraryCategory === 'convolvers'
             ? 'Search convolver library…'
             : 'Search audio library…';
-    const fileAccept = libraryCategory === 'midi' ? '.mid,.midi,.smf,audio/midi' : 'audio/*';
+    const fileAccept = libraryCategory === 'midi'
+        ? '.mid,.midi,.smf,audio/midi'
+        : libraryCategory === 'patches'
+            ? '.patch.json,.din,application/json,text/json'
+            : 'audio/*';
 
     return (
         <div className="flex flex-col h-full bg-[#080912]">
             <div className="flex gap-2 px-4 pt-3 border-b border-white/5">
-                {(['audio', 'convolvers', 'midi'] as const).map((cat) => (
+                {(['audio', 'convolvers', 'midi', 'patches'] as const).map((cat) => (
                     <button
                         key={cat}
                         type="button"
@@ -325,7 +344,7 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                                 : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
                         }`}
                     >
-                        {cat === 'audio' ? 'Audio' : cat === 'convolvers' ? 'Convolvers' : 'MIDI'}
+                        {cat === 'audio' ? 'Audio' : cat === 'convolvers' ? 'Convolvers' : cat === 'midi' ? 'MIDI' : 'Patches'}
                     </button>
                 ))}
             </div>
@@ -349,7 +368,11 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                     multiple
                     onChange={handleImportInputChange}
                     className="sr-only"
-                    aria-label={libraryCategory === 'midi' ? 'Import MIDI library files' : 'Import library audio files'}
+                    aria-label={libraryCategory === 'midi'
+                        ? 'Import library files (MIDI)'
+                        : libraryCategory === 'patches'
+                            ? 'Import library files (Patches)'
+                            : 'Import library files'}
                 />
                 <input
                     ref={folderInputRef}
@@ -358,7 +381,11 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                     multiple
                     onChange={handleFolderInputChange}
                     className="sr-only"
-                    aria-label={libraryCategory === 'midi' ? 'Import MIDI files from a folder' : 'Import audio files from a folder'}
+                    aria-label={libraryCategory === 'midi'
+                        ? 'Import library files from a folder (MIDI)'
+                        : libraryCategory === 'patches'
+                            ? 'Import library files from a folder (Patches)'
+                            : 'Import audio files from a folder'}
                 />
                 <div className="flex items-center gap-2 shrink-0">
                     <button
@@ -376,7 +403,9 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                         className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/15 text-white border border-white/10 rounded-full text-xs font-bold transition-all active:scale-95"
                         title={libraryCategory === 'midi'
                             ? 'Import all supported MIDI files from a folder (recursive)'
-                            : 'Import all supported audio files from a folder (recursive)'}
+                            : libraryCategory === 'patches'
+                                ? 'Import all supported patch files from a folder (recursive)'
+                                : 'Import all supported audio files from a folder (recursive)'}
                     >
                         <FolderIcon className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">FOLDER</span>
@@ -452,22 +481,28 @@ export const LibraryDrawerContent: FC<LibraryDrawerContentProps> = ({
                         {filteredItems.map(item => (
                             <div key={item.id} className="group flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all">
                                 <div className="flex items-center gap-4">
-                                    <button 
-                                        onClick={() => handleTogglePreview(item.id)}
-                                        className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90 ${
-                                            preview.activeId === item.id && preview.playing 
-                                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' 
-                                                : 'bg-zinc-800 text-zinc-400 hover:text-white'
-                                        }`}
-                                    >
-                                        {preview.activeId === item.id && preview.playing ? <SquareIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
-                                    </button>
+                                    {item.kind === 'patch' ? (
+                                        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400">
+                                            <LayersIcon className="w-4 h-4" />
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={() => handleTogglePreview(item.id)}
+                                            className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90 ${
+                                                preview.activeId === item.id && preview.playing 
+                                                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' 
+                                                    : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                                            }`}
+                                        >
+                                            {preview.activeId === item.id && preview.playing ? <SquareIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
+                                        </button>
+                                    )}
                                     <div className="flex flex-col">
                                         <span className="text-[13px] font-semibold text-zinc-200">{item.name}</span>
                                         <div className="flex items-center gap-3 text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
                                             <span>{formatSize(item.sizeBytes)}</span>
                                             <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                                            <span>{item.durationSec.toFixed(1)}s</span>
+                                            <span>{item.kind === 'patch' ? 'PATCH' : `${item.durationSec.toFixed(1)}s`}</span>
                                         </div>
                                     </div>
                                 </div>

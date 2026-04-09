@@ -6,6 +6,7 @@
 | `F06-S01` | Graph Explorer And Graph Lifecycle | Graph Explorer exposes empty, single-graph, and multi-graph browsing states without competing with launcher entry flows | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | VEA-93 |
 | `F06-S02` | Graph Explorer And Graph Lifecycle | Graph creation and renaming stay immediate and resilient | e2e | `playwright` | baseline | `Doherty Threshold`, `Peak-End Rule` | VEA-95 |
 | `F06-S03` | Graph Explorer And Graph Lifecycle | Graph tabs preserve context while switching between working surfaces | e2e | `playwright` | baseline | `Zeigarnik Effect`, `Selective Attention` | VEA-97 |
+| `F06-S04` | Graph Explorer And Graph Lifecycle | Graph Explorer can select a sibling graph as a reusable patch source | e2e | `playwright` | baseline | `Jakob's Law`, `Selective Attention` | - |
 | `F07-S01` | Workspace Canvas Actions | Node placement from the canvas flow stays discoverable and direct | e2e | `playwright` | baseline | `Hick's Law`, `Fitts's Law` | VEA-99 |
 | `F07-S02` | Workspace Canvas Actions | Compatible handle connection and assist flows stay visible while dragging | e2e | `playwright` | baseline | `Selective Attention`, `Fitts's Law` | VEA-140 |
 | `F07-S03` | Workspace Canvas Actions | Canvas selection preserves one dominant focus target at a time | e2e | `playwright` | baseline | `Selective Attention`, `Hick's Law` | VEA-142 |
@@ -19,9 +20,10 @@
 | `F10-S01` | Asset Library Actions | Asset search and filtering reduce the visible decision set | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | VEA-156 |
 | `F10-S02` | Asset Library Actions | Asset preview and relink flows recover from imperfect input gracefully | e2e | `playwright` | baseline | `Postel's Law`, `Doherty Threshold` | VEA-158 |
 | `F10-S03` | Asset Library Actions | Missing asset repair ends on a clear and satisfying recovery state | e2e | `playwright` | baseline | `Peak-End Rule`, `Von Restorff Effect` | VEA-160 |
-| `F10-S04` | Asset Library Actions | Library category tabs switch between Audio, Convolvers, and MIDI asset views | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | - |
+| `F10-S04` | Asset Library Actions | Library category tabs switch between Audio, Convolvers, MIDI, and Patches asset views | e2e | `playwright` | baseline | `Hick's Law`, `Selective Attention` | - |
 | `F10-S05` | Asset Library Actions | Importing a MIDI file routes the asset into the MIDI library category | e2e | `playwright` | baseline | `Postel's Law`, `Doherty Threshold` | - |
 | `F10-S06` | Asset Library Actions | Importing an impulse file routes the asset into the Convolvers library category | e2e | `playwright` | baseline | `Postel's Law`, `Doherty Threshold` | - |
+| `F10-S07` | Asset Library Actions | Importing a patch file routes the asset into the Patches library category | e2e | `playwright` | baseline | `Postel's Law`, `Doherty Threshold` | - |
 | `F11-S01` | Editor System Actions | Undo and redo preserve graph intent without corrupting the active session | e2e | `playwright` | baseline | `Zeigarnik Effect`, `Peak-End Rule` | VEA-161 |
 | `F11-S02` | Editor System Actions | Save and reload flows restore durable graph state while sanitizing transient runtime state | e2e | `playwright` | baseline | `Doherty Threshold`, `Zeigarnik Effect` | VEA-163 |
 | `F11-S03` | Editor System Actions | Interrupted work remains visible and resumable until it is completed | e2e | `playwright` | baseline | `Zeigarnik Effect`, `Goal-Gradient Effect` | VEA-164 |
@@ -211,3 +213,6 @@
 | `F68-S01` | Session Recording | Bottom drawer exposes Recording tab alongside Runtime, Diagnostics, and AI Agent | e2e | `playwright` | baseline | `Jakob's Law`, `Selective Attention` | - |
 | `F68-S02` | Session Recording | Canvas transport record arms capture and surfaces the Recording drawer workflow | e2e | `playwright` | baseline | `Hick's Law`, `Postel's Law` | - |
 | `F68-S03` | Session Recording | WAV export produces valid output for cropped `AudioBuffer` windows | integration | `vitest` | baseline | `Postel's Law` | - |
+| `F69-S01` | Patch Node | Patch node is discoverable and placeable from the Sources catalog | e2e | `playwright` | baseline | `Postel's Law`, `Fitts's Law` | - |
+| `F69-S02` | Patch Node | Patch node derives source-specific handles after selecting a sibling graph or patch asset | e2e | `playwright` | baseline | `Selective Attention`, `Postel's Law` | - |
+| `F69-S03` | Patch Node | Patch source sync revalidates stale edges when boundary handles change | integration | `vitest` | baseline | `Doherty Threshold`, `Postel's Law` | - |

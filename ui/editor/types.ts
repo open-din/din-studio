@@ -240,6 +240,39 @@ export interface MixerNodeData {
     [key: string]: unknown;
 }
 
+export type PatchSlotType = 'audio' | 'midi';
+
+export interface PatchSlot {
+    id: string;
+    label: string;
+    type: PatchSlotType;
+    [key: string]: unknown;
+}
+
+export interface PatchAudioMetadata {
+    input: PatchSlot;
+    output: PatchSlot;
+    [key: string]: unknown;
+}
+
+export type PatchSourceKind = 'asset' | 'graph';
+
+export interface PatchNodeData {
+    type: 'patch';
+    patchSourceId: string;
+    patchSourceKind: PatchSourceKind | null;
+    patchAsset: string | null;
+    patchName: string;
+    patchInline?: unknown | null;
+    inputs: PatchSlot[];
+    outputs: PatchSlot[];
+    audio: PatchAudioMetadata;
+    sourceUpdatedAt: number;
+    sourceError?: string | null;
+    label: string;
+    [key: string]: unknown;
+}
+
 export interface AuxSendNodeData {
     type: 'auxSend';
     busId: string;
@@ -575,6 +608,7 @@ export type AudioNodeData = (
     | Panner3DNodeData
     | ConstantSourceNodeData
     | MediaStreamNodeData
+    | PatchNodeData
     | EventTriggerNodeData
     | StereoPannerNodeData
     | MixerNodeData

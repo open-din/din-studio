@@ -5,6 +5,7 @@ import type {
     MathNodeData,
     SwitchNodeData,
     MatrixMixerNodeData,
+    PatchNodeData,
 } from './types';
 import { getInputParamHandleId } from './handleIds';
 
@@ -26,6 +27,11 @@ export interface NodeCatalogEntry {
     color: string;
     singleton?: boolean;
 }
+
+const PATCH_AUDIO_INPUT_HANDLE = 'in';
+const PATCH_AUDIO_OUTPUT_HANDLE = 'out';
+const PATCH_INPUT_HANDLE_PREFIX = 'in:';
+const PATCH_OUTPUT_HANDLE_PREFIX = 'out:';
 
 const MATH_OPERATION_INPUT_LABELS: Record<MathNodeData['operation'], Array<{ id: 'a' | 'b' | 'c'; label: string }>> = {
     add: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
@@ -79,6 +85,7 @@ export const EDITOR_NODE_CATALOG: NodeCatalogEntry[] = [
     { type: 'lfo', category: 'Sources', label: 'LFO', icon: '🌀', color: '#aa44ff' },
     { type: 'constantSource', category: 'Sources', label: 'Constant Source', icon: '━', color: '#7bd1ff' },
     { type: 'mediaStream', category: 'Sources', label: 'Media Stream', icon: '🎙️', color: '#7bd1ff' },
+    { type: 'patch', category: 'Sources', label: 'Patch', icon: '🧩', color: '#7bd1ff' },
     { type: 'voice', category: 'Sources', label: 'Voice', icon: '🗣️', color: '#ff4466' },
     { type: 'adsr', category: 'Sources', label: 'ADSR', icon: '📈', color: '#dddddd' },
     { type: 'note', category: 'Sources', label: 'Note', icon: '🎵', color: '#ffcc00' },
@@ -176,6 +183,10 @@ const DEFAULT_HANDLES_BY_TYPE: Record<EditorNodeType, HandleDescriptor[]> = {
         { id: 'offset', direction: 'target', label: 'Offset' },
     ],
     mediaStream: [{ id: 'out', direction: 'source', label: 'Out' }],
+    patch: [
+        { id: PATCH_AUDIO_INPUT_HANDLE, direction: 'target', label: 'Audio In' },
+        { id: PATCH_AUDIO_OUTPUT_HANDLE, direction: 'source', label: 'Audio Out' },
+    ],
     sampler: [
         { id: 'out', direction: 'source', label: 'Out' },
         { id: 'trigger', direction: 'target', label: 'Trigger' },
@@ -464,6 +475,38 @@ export function getNodeHandleDescriptors(data: AudioNodeData): HandleDescriptor[
             }
             return handles;
         }
+        case 'patch': {
+            const patchData = data as PatchNodeData;
+            const handles: HandleDescriptor[] = [];
+            const seen = new Set<string>();
+
+            const pushHandle = (id: string, direction: HandleDirection, label: string) => {
+                if (!id || seen.has(id)) return;
+                seen.add(id);
+                handles.push({ id, direction, label });
+            };
+
+            const audioInputLabel = patchData.audio?.input?.label?.trim() || 'Audio In';
+            const audioOutputLabel = patchData.audio?.output?.label?.trim() || 'Audio Out';
+            pushHandle(PATCH_AUDIO_INPUT_HANDLE, 'target', audioInputLabel);
+            pushHandle(PATCH_AUDIO_OUTPUT_HANDLE, 'source', audioOutputLabel);
+
+            for (const slot of patchData.inputs ?? []) {
+                const slotId = String(slot?.id ?? '').trim();
+                if (!slotId) continue;
+                const slotLabel = String(slot?.label ?? '').trim() || slotId;
+                pushHandle(`${PATCH_INPUT_HANDLE_PREFIX}${slotId}`, 'target', slotLabel);
+            }
+
+            for (const slot of patchData.outputs ?? []) {
+                const slotId = String(slot?.id ?? '').trim();
+                if (!slotId) continue;
+                const slotLabel = String(slot?.label ?? '').trim() || slotId;
+                pushHandle(`${PATCH_OUTPUT_HANDLE_PREFIX}${slotId}`, 'source', slotLabel);
+            }
+
+            return handles;
+        }
         default:
             return DEFAULT_HANDLES_BY_TYPE[data.type];
     }
@@ -499,6 +542,8 @@ export function buildAgentNodeCatalogMarkdown(): string {
                 ports = '**out** (source). Targets **index**, **in_0…in_k** where k = `data.inputs` − 1 (2–8).';
             } else if (entry.type === 'matrixMixer') {
                 ports = '**in1…**, **out**, **out1…**, plus **cell:row:col** gains; counts from `data.inputs` / `data.outputs`.';
+            } else if (entry.type === 'patch') {
+                ports = 'Implicit audio handles: `in` / `out`; dynamic boundary handles from source metadata: `in:<slotId>` and `out:<slotId>`.';
             } else if (entry.type === 'stepSequencer') {
                 const handles = DEFAULT_HANDLES_BY_TYPE.stepSequencer;
                 const sources = handles.filter((h) => h.direction === 'source').map((h) => `\`${h.id}\``);

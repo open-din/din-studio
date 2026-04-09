@@ -11,7 +11,7 @@ app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
 type ProjectStorageKind = 'electron-fs';
-type ProjectAssetKind = 'sample' | 'impulse' | 'audio' | 'midi';
+type ProjectAssetKind = 'sample' | 'impulse' | 'audio' | 'midi' | 'patch';
 
 interface ProjectGraphSummary {
     id: string;
@@ -79,6 +79,7 @@ const GRAPH_DIR = 'graphs';
 const SAMPLE_DIR = 'samples';
 const IMPULSE_DIR = 'impulses';
 const MIDI_DIR = 'midi';
+const PATCH_DIR = 'patches';
 const REGISTRY_FILE = 'din-project-registry.json';
 
 interface StoredProjectManifestFile extends ProjectManifest {
@@ -159,6 +160,10 @@ function slugifySegment(value: string, fallback: string): string {
 function sanitizeFileName(name: string): string {
     const trimmed = name.trim();
     if (!trimmed) return 'audio-file';
+    if (/\.patch\.json$/i.test(trimmed)) {
+        const stem = trimmed.slice(0, -'.patch.json'.length);
+        return `${slugifySegment(stem, 'patch-file')}.patch.json`;
+    }
 
     const segments = trimmed.split('.');
     if (segments.length === 1) {
@@ -233,6 +238,7 @@ async function ensureProjectDirectories(projectPath: string): Promise<void> {
     await mkdir(join(projectPath, SAMPLE_DIR), { recursive: true });
     await mkdir(join(projectPath, IMPULSE_DIR), { recursive: true });
     await mkdir(join(projectPath, MIDI_DIR), { recursive: true });
+    await mkdir(join(projectPath, PATCH_DIR), { recursive: true });
 }
 
 async function readProjectRegistry(): Promise<ProjectManifest[]> {
@@ -503,6 +509,7 @@ function pickAssetFolder(kind: ProjectAssetKind, existing?: ProjectAssetRecord):
         const index = normalized.lastIndexOf('/');
         if (index >= 0) return normalized.slice(0, index);
     }
+    if (kind === 'patch') return PATCH_DIR;
     if (kind === 'impulse') return IMPULSE_DIR;
     if (kind === 'midi') return MIDI_DIR;
     return SAMPLE_DIR;

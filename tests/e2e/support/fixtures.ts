@@ -47,7 +47,9 @@ export function createSeedAsset(
 ): SeedAsset {
     const now = Date.now();
     const relativePath = overrides.relativePath
-        ?? (kind === 'impulse'
+        ?? (kind === 'patch'
+            ? `patches/${name}`
+            : kind === 'impulse'
             ? `impulses/${name}`
             : kind === 'midi'
                 ? `midi/${name}`
@@ -59,7 +61,7 @@ export function createSeedAsset(
             fileName: overrides.fileName ?? name,
             kind,
             relativePath,
-            mimeType: overrides.mimeType ?? 'audio/wav',
+            mimeType: overrides.mimeType ?? (kind === 'patch' ? 'application/json' : 'audio/wav'),
             size: overrides.size ?? FAKE_AUDIO_BYTES.length,
             durationSec: overrides.durationSec ?? 1.2,
             createdAt: overrides.createdAt ?? now,
@@ -321,9 +323,13 @@ export async function installElectronBridge(page: Page, seed: ElectronBridgeSeed
                 counterState.assetCounter += 1;
                 const assetId = payload.assetId ?? `asset-${counterState.assetCounter}`;
                 const now = Date.now();
-                const relativePath = payload.kind === 'impulse'
-                    ? `impulses/${payload.fileName}`
-                    : `samples/${payload.fileName}`;
+                const relativePath = payload.kind === 'patch'
+                    ? `patches/${payload.fileName}`
+                    : payload.kind === 'impulse'
+                        ? `impulses/${payload.fileName}`
+                        : payload.kind === 'midi'
+                            ? `midi/${payload.fileName}`
+                            : `samples/${payload.fileName}`;
                 const asset: ProjectAssetRecord = {
                     id: assetId,
                     name: payload.fileName,

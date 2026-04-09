@@ -10,6 +10,7 @@ import type {
     ProjectController,
     ProjectManifest,
     ProjectOpenResult,
+    ProjectPatchSourceRecord,
     ProjectRagTextSource,
     ProjectRepository,
     ProjectStorageKind,
@@ -47,6 +48,7 @@ const GRAPH_DIR = 'graphs';
 const SAMPLE_DIR = 'samples';
 const IMPULSE_DIR = 'impulses';
 const MIDI_DIR = 'midi';
+const PATCH_DIR = 'patches';
 
 interface StoredWorkspaceRecord {
     projectId: string;
@@ -165,6 +167,10 @@ function slugifySegment(value: string, fallback: string): string {
 function sanitizeFileName(name: string): string {
     const trimmed = name.trim();
     if (!trimmed) return 'audio-file';
+    if (/\.patch\.json$/i.test(trimmed)) {
+        const stem = trimmed.slice(0, -'.patch.json'.length);
+        return `${slugifySegment(stem, 'patch-file')}.patch.json`;
+    }
 
     const segments = trimmed.split('.');
     if (segments.length === 1) {
@@ -216,9 +222,44 @@ function pickAssetFolder(kind: ProjectAssetKind, existing?: ProjectAssetRecord):
         const index = normalized.lastIndexOf('/');
         if (index >= 0) return normalized.slice(0, index);
     }
+    if (kind === 'patch') return PATCH_DIR;
     if (kind === 'impulse') return IMPULSE_DIR;
     if (kind === 'midi') return MIDI_DIR;
     return SAMPLE_DIR;
+}
+
+function isPatchFileName(name: string): boolean {
+    return /\.patch\.json$/i.test(name) || /\.din$/i.test(name);
+}
+
+function detectAssetKindFromFileName(fileName: string, fallback: ProjectAssetKind = 'audio'): ProjectAssetKind {
+    if (isPatchFileName(fileName)) return 'patch';
+    if (/\.(mid|midi|smf)$/i.test(fileName)) return 'midi';
+    return fallback;
+}
+
+function buildGraphPatchSource(graph: GraphDocument): ProjectPatchSourceRecord {
+    return {
+        id: `graph:${graph.id}`,
+        kind: 'graph',
+        name: graph.name,
+        fileName: `${graph.id}.patch.json`,
+        relativePath: `${GRAPH_DIR}/${graph.id}.patch.json`,
+        updatedAt: graph.updatedAt,
+        graphId: graph.id,
+    };
+}
+
+function buildAssetPatchSource(asset: ProjectAssetRecord): ProjectPatchSourceRecord {
+    return {
+        id: `asset:${asset.id}`,
+        kind: 'asset',
+        name: asset.name,
+        fileName: asset.fileName,
+        relativePath: asset.relativePath,
+        updatedAt: asset.updatedAt,
+        assetId: asset.id,
+    };
 }
 
 function buildUniqueRelativePath(
@@ -402,8 +443,9 @@ function fromStoredProjectFile(file: StoredProjectManifestFile): ProjectManifest
 }
 
 function detectAssetKind(record: Pick<ProjectAssetRecord, 'kind' | 'relativePath'>): ProjectAssetKind {
-    if (record.kind === 'impulse' || record.kind === 'sample' || record.kind === 'midi') return record.kind;
+    if (record.kind === 'impulse' || record.kind === 'sample' || record.kind === 'midi' || record.kind === 'patch') return record.kind;
     const relativePath = normalizeRelativePath(record.relativePath);
+    if (relativePath.startsWith(`${PATCH_DIR}/`) || isPatchFileName(relativePath)) return 'patch';
     if (relativePath.startsWith(`${IMPULSE_DIR}/`)) return 'impulse';
     if (relativePath.startsWith(`${MIDI_DIR}/`)) return 'midi';
     return 'sample';
@@ -834,6 +876,7 @@ async function saveWorkspaceToFileSystem(handle: FileSystemDirectoryHandle, snap
     await ensureDir(handle, SAMPLE_DIR);
     await ensureDir(handle, IMPULSE_DIR);
     await ensureDir(handle, MIDI_DIR);
+    await ensureDir(handle, PATCH_DIR);
 
     const graphDirectory = await handle.getDirectoryHandle(GRAPH_DIR, { create: true });
     const currentGraphFiles = new Set(snapshot.project.graphs.map((graph) => normalizeRelativePath(graph.file).split('/').pop() ?? ''));
@@ -1049,14 +1092,26 @@ function createProjectController(args: {
             const workspace = await ensureWorkspace();
             return workspace.project.assets;
         },
+        async listPatchSources() {
+            const workspace = await ensureWorkspace();
+            const graphSources = workspace.graphs
+                .slice()
+                .sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+                .map(buildGraphPatchSource);
+            const assetSources = workspace.project.assets
+                .filter((asset) => detectAssetKind(asset) === 'patch')
+                .map(buildAssetPatchSource);
+            return [...graphSources, ...assetSources];
+        },
         async addAssetFromBlob(blob, name, options) {
             const workspace = await ensureWorkspace();
             const existing = options?.preserveAssetId
                 ? workspace.project.assets.find((asset) => asset.id === options.preserveAssetId)
                 : undefined;
             const assetId = existing?.id ?? options?.preserveAssetId ?? createAssetId();
-            const kind = options?.kind ?? existing?.kind ?? 'audio';
-            const fileName = sanitizeFileName(options?.fileName ?? name);
+            const requestedFileName = options?.fileName ?? name;
+            const kind = options?.kind ?? existing?.kind ?? detectAssetKindFromFileName(requestedFileName);
+            const fileName = sanitizeFileName(requestedFileName);
             const relativePath = buildUniqueRelativePath(fileName, kind, workspace.project.assets, existing);
             const now = Date.now();
             const draftAsset: ProjectAssetRecord = {
@@ -1073,7 +1128,9 @@ function createProjectController(args: {
             };
 
             const storedAsset = await args.writeAssetBlob(currentProject, draftAsset, blob);
-            const durationSec = await detectAudioDuration(blob);
+            const durationSec = kind === 'sample' || kind === 'impulse' || kind === 'audio'
+                ? await detectAudioDuration(blob)
+                : undefined;
             const finalizedAsset: ProjectAssetRecord = {
                 ...storedAsset,
                 durationSec: durationSec ?? storedAsset.durationSec,

@@ -32,6 +32,7 @@ describe('audio library storage', () => {
             loadActiveGraphId: async () => null,
             saveActiveGraphId: async () => undefined,
             listAssets: async () => Array.from(assets.values()),
+            listPatchSources: async () => [],
             addAssetFromBlob: async (blob, name) => {
                 const asset = {
                     id: `asset-${assets.size + 1}`,

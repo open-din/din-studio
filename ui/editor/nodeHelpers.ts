@@ -5,6 +5,7 @@ import type {
     InputParam,
     MidiInMapping,
     MidiNoteNodeData,
+    PatchNodeData,
     TransportNodeData,
     UiTokensNodeData,
 } from './types';
@@ -99,6 +100,7 @@ const AUDIO_NODE_TYPES = new Set<AudioNodeData['type']>([
     'noise',
     'constantSource',
     'mediaStream',
+    'patch',
     'sampler',
     'output',
 ]);
@@ -176,6 +178,26 @@ const MODULATION_TARGET_HANDLES = new Set([
     't',
     'index',
 ]);
+
+const PATCH_INPUT_HANDLE_PREFIX = 'in:';
+const PATCH_OUTPUT_HANDLE_PREFIX = 'out:';
+
+function getPatchSlotTypeFromHandle(
+    data: PatchNodeData,
+    direction: 'input' | 'output',
+    handleId: string,
+): 'audio' | 'midi' | null {
+    const prefix = direction === 'input' ? PATCH_INPUT_HANDLE_PREFIX : PATCH_OUTPUT_HANDLE_PREFIX;
+    if (!handleId.startsWith(prefix)) return null;
+    const slotId = handleId.slice(prefix.length).trim();
+    if (!slotId) return null;
+    const slots = direction === 'input' ? data.inputs : data.outputs;
+    const slot = Array.isArray(slots)
+        ? slots.find((entry) => String(entry?.id ?? '').trim() === slotId)
+        : undefined;
+    if (!slot) return null;
+    return slot.type === 'audio' ? 'audio' : 'midi';
+}
 
 const SINGLETON_NODE_TYPES = new Set(
     EDITOR_NODE_CATALOG
@@ -341,7 +363,7 @@ export function isAudioConnection(
     const isAudioOutHandle = sourceHandle === 'out' || /^out\d+$/.test(sourceHandle);
     return isAudioOutHandle
         && !!connection.target
-        && (connection.targetHandle === 'in' || connection.targetHandle?.startsWith('in') === true);
+        && (connection.targetHandle === 'in' || /^in\d+$/.test(connection.targetHandle ?? ''));
 }
 
 export function canConnect(
@@ -362,6 +384,39 @@ export function canConnect(
     const { type: targetType } = targetNode.data;
     const sourceHandle = connection.sourceHandle ?? '';
     const targetHandle = connection.targetHandle;
+
+    if (sourceType === 'patch') {
+        const patchSource = sourceNode.data as PatchNodeData;
+        if (sourceHandle === 'out' || /^out\d+$/.test(sourceHandle)) {
+            return targetHandle === 'in' || targetHandle.startsWith('in');
+        }
+        const outputSlotType = getPatchSlotTypeFromHandle(patchSource, 'output', sourceHandle);
+        if (!outputSlotType) return false;
+        if (outputSlotType === 'audio') {
+            return targetHandle === 'in' || targetHandle.startsWith('in');
+        }
+        if (targetType === 'patch') {
+            const patchTarget = targetNode.data as PatchNodeData;
+            return getPatchSlotTypeFromHandle(patchTarget, 'input', targetHandle) === 'midi';
+        }
+        return targetHandle !== 'transport'
+            && targetHandle !== 'in'
+            && targetHandle !== 'sidechainIn'
+            && !targetHandle.startsWith('in');
+    }
+
+    if (targetType === 'patch') {
+        const patchTarget = targetNode.data as PatchNodeData;
+        if (targetHandle === 'in') {
+            return sourceHandle === 'out' || /^out\d+$/.test(sourceHandle);
+        }
+        const inputSlotType = getPatchSlotTypeFromHandle(patchTarget, 'input', targetHandle);
+        if (!inputSlotType) return false;
+        if (inputSlotType === 'audio') {
+            return sourceHandle === 'out' || /^out\d+$/.test(sourceHandle);
+        }
+        return sourceHandle !== 'out' && !/^out\d+$/.test(sourceHandle);
+    }
 
     if (
         isAudioNodeType(sourceType)

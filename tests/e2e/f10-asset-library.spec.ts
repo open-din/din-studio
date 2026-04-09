@@ -87,10 +87,11 @@ function buildLibraryCategorySeed() {
     const kick = createSeedAsset('seed-kick', 'kick.wav', 'sample');
     const plate = createSeedAsset('seed-plate', 'plate.wav', 'impulse');
     const clip = createSeedAsset('seed-clip', 'clip.mid', 'midi', { mimeType: 'audio/midi' });
+    const patch = createSeedAsset('seed-patch', 'bass-bus.patch.json', 'patch', { mimeType: 'application/json' });
     const project = createSeedProject({
         id: 'library-categories',
         name: 'Library Categories',
-        assets: [kick, plate, clip],
+        assets: [kick, plate, clip, patch],
     });
     return {
         bootstrap: { windowKind: 'project' as const, projectId: project.snapshot.project.id },
@@ -98,7 +99,7 @@ function buildLibraryCategorySeed() {
     };
 }
 
-test('F10-S04 library category tabs switch between Audio, Convolvers, and MIDI views', async ({ page }) => {
+test('F10-S04 library category tabs switch between Audio, Convolvers, MIDI, and Patches views', async ({ page }) => {
     await installElectronBridge(page, buildLibraryCategorySeed());
     await page.goto('/');
 
@@ -115,6 +116,12 @@ test('F10-S04 library category tabs switch between Audio, Convolvers, and MIDI v
     await page.getByRole('button', { name: 'MIDI' }).click();
     await expect(page.getByRole('button', { name: 'MIDI' })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByText('clip.mid')).toBeVisible();
+    await expect(page.getByText('kick.wav')).not.toBeVisible();
+
+    await page.getByRole('button', { name: 'Patches' }).click();
+    await expect(page.getByRole('button', { name: 'Patches' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('bass-bus.patch.json')).toBeVisible();
+    await expect(page.getByText('clip.mid')).not.toBeVisible();
 });
 
 test('F10-S05 importing a MIDI file shows it under the MIDI tab', async ({ page }) => {
@@ -148,4 +155,20 @@ test('F10-S06 importing an impulse file shows it under the Convolvers tab', asyn
     });
 
     await expect(page.getByText('new-ir.wav')).toBeVisible();
+});
+
+test('F10-S07 importing a patch file shows it under the Patches tab', async ({ page }) => {
+    await installElectronBridge(page, buildLibraryCategorySeed());
+    await page.goto('/');
+
+    await page.getByTitle('Library').click();
+    await page.getByRole('button', { name: 'Patches' }).click();
+
+    await page.getByLabel('Import library files (Patches)').setInputFiles({
+        name: 'nested-drum.din',
+        mimeType: 'application/json',
+        buffer: Buffer.from('{"version":1,"nodes":[],"connections":[]}', 'utf8'),
+    });
+
+    await expect(page.getByText('nested-drum.din')).toBeVisible();
 });

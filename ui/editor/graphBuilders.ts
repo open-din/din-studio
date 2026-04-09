@@ -8,6 +8,7 @@ import type {
     MidiNoteOutputNodeData,
     MidiSyncNodeData,
     OutputNodeData,
+    PatchNodeData,
     TransportNodeData,
     UiTokensNodeData,
 } from './types';
@@ -102,6 +103,24 @@ export const createDefaultMidiSyncData = (): MidiSyncNodeData => ({
     sendStartStop: true,
     sendClock: true,
     label: 'Sync',
+});
+
+export const createDefaultPatchData = (): PatchNodeData => ({
+    type: 'patch',
+    patchSourceId: '',
+    patchSourceKind: null,
+    patchAsset: null,
+    patchName: '',
+    patchInline: null,
+    inputs: [],
+    outputs: [],
+    audio: {
+        input: { id: 'in', label: 'Audio In', type: 'audio' },
+        output: { id: 'out', label: 'Audio Out', type: 'audio' },
+    },
+    sourceUpdatedAt: 0,
+    sourceError: null,
+    label: 'Patch',
 });
 
 export function createEditorNode(
@@ -294,6 +313,14 @@ export function createEditorNode(
                 position,
                 dragHandle: '.node-header',
                 data: { type: 'mediaStream', requestMic: false, label: 'Media Stream' } as AudioNodeData,
+            };
+        case 'patch':
+            return {
+                id,
+                type: 'patchNode',
+                position,
+                dragHandle: '.node-header',
+                data: createDefaultPatchData() as AudioNodeData,
             };
         case 'eventTrigger':
             return {

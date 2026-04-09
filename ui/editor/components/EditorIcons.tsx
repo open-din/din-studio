@@ -80,6 +80,7 @@ const ICONS: Record<IconName, LucideIcon> = {
     distortion: Gauge,
     sampler: Mic,
     mediaStream: Mic,
+    patch: Grid2x2,
     adsr: TrendingUp,
     panner: MoveHorizontal,
     panner3d: MoveHorizontal,

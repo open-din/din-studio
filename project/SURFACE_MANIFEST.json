@@ -29,13 +29,22 @@
       "scenarios": ["F09-S01", "F09-S02", "F09-S03", "F09-S04"]
     },
     {
-      "id": "surface:CatalogExplorerPanel",
+      "id": "surface:AssetLibraryDrawer",
       "kind": "studio-surface",
-      "name": "CatalogExplorerPanel",
-      "source": "ui/shell/CatalogExplorerPanel.tsx",
+      "name": "AssetLibraryDrawer",
+      "source": "ui/editor/components/Drawers.tsx",
       "docs": "project/features/10_asset_library_actions.feature.md",
-      "tests": ["tests/unit/editor-connection-assist.spec.tsx", "tests/e2e/f10-asset-library.spec.ts"],
-      "scenarios": ["F10-S01", "F10-S02", "F10-S03"]
+      "tests": ["tests/unit/project-repository.spec.ts", "tests/e2e/f10-asset-library.spec.ts"],
+      "scenarios": ["F10-S01", "F10-S02", "F10-S03", "F10-S04", "F10-S05", "F10-S06", "F10-S07"]
+    },
+    {
+      "id": "surface:GraphExplorerPanel",
+      "kind": "studio-surface",
+      "name": "GraphExplorerPanel",
+      "source": "ui/editor/components/ExplorerPanel.tsx",
+      "docs": "project/features/06_graph_explorer_and_graph_lifecycle.feature.md",
+      "tests": ["tests/e2e/f06-graph-explorer.spec.ts"],
+      "scenarios": ["F06-S01", "F06-S02", "F06-S03", "F06-S04"]
     },
     {
       "id": "surface:MidiDevicePanel",

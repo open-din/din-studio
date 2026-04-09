@@ -498,6 +498,7 @@ const requiresConnectionRefresh = (
     if (!node) return false;
     if (node.data.type === 'input' && 'params' in data) return true;
     if (node.data.type === 'uiTokens' && 'params' in data) return true;
+    if (node.data.type === 'patch' && ('inputs' in data || 'outputs' in data || 'audio' in data || 'patchSourceId' in data || 'patchSourceKind' in data)) return true;
     if (node.data.type === 'switch' && 'inputs' in data) return true;
     if (node.data.type === 'matrixMixer' && ('inputs' in data || 'outputs' in data)) return true;
     return false;

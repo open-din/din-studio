@@ -2,7 +2,8 @@ import type { GraphDocument } from '../ui/editor/store';
 
 export type ProjectStorageKind = 'electron-fs' | 'browser-fs-handle' | 'browser-indexeddb';
 export type ProjectWindowKind = 'launcher' | 'project';
-export type ProjectAssetKind = 'sample' | 'impulse' | 'audio' | 'midi';
+export type ProjectAssetKind = 'sample' | 'impulse' | 'audio' | 'midi' | 'patch';
+export type ProjectPatchSourceKind = 'asset' | 'graph';
 
 export interface ProjectGraphSummary {
     id: string;
@@ -27,6 +28,17 @@ export interface ProjectAssetRecord {
 }
 
 export type AudioLibraryAsset = ProjectAssetRecord;
+
+export interface ProjectPatchSourceRecord {
+    id: string;
+    kind: ProjectPatchSourceKind;
+    name: string;
+    fileName: string;
+    relativePath: string;
+    updatedAt: number;
+    assetId?: string;
+    graphId?: string;
+}
 
 export interface ProjectManifest {
     id: string;
@@ -74,6 +86,7 @@ export interface ProjectController {
     loadActiveGraphId(): Promise<string | null>;
     saveActiveGraphId(graphId: string | null): Promise<void>;
     listAssets(): Promise<AudioLibraryAsset[]>;
+    listPatchSources(): Promise<ProjectPatchSourceRecord[]>;
     addAssetFromBlob(blob: Blob, name: string, options?: AddProjectAssetOptions): Promise<AudioLibraryAsset>;
     saveAssetById(assetId: string, blob: Blob, name?: string, options?: Omit<AddProjectAssetOptions, 'preserveAssetId'>): Promise<AudioLibraryAsset>;
     getAssetObjectUrl(assetId: string): Promise<string | null>;

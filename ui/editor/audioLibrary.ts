@@ -2,9 +2,11 @@ import {
     requireActiveProjectController,
     type AudioLibraryAsset,
     type AddProjectAssetOptions,
+    type ProjectPatchSourceRecord,
 } from '../../project';
 
 export type { AudioLibraryAsset };
+export type { ProjectPatchSourceRecord };
 
 export async function listAssets(): Promise<AudioLibraryAsset[]> {
     return requireActiveProjectController().listAssets();
@@ -13,6 +15,10 @@ export async function listAssets(): Promise<AudioLibraryAsset[]> {
 export async function getAsset(assetId: string): Promise<AudioLibraryAsset | null> {
     const assets = await listAssets();
     return assets.find((asset) => asset.id === assetId) ?? null;
+}
+
+export async function listPatchSources(): Promise<ProjectPatchSourceRecord[]> {
+    return requireActiveProjectController().listPatchSources();
 }
 
 export async function addAssetFromBlob(

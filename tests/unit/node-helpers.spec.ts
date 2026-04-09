@@ -268,6 +268,74 @@ describe('editor connection assist helpers', () => {
         }, nodeById)).toBe(true);
     });
 
+    it('accepts patch slot links for derived audio and midi handles', () => {
+        const nodes = [
+            createNode({
+                id: 'osc-1',
+                type: 'oscNode',
+                position: { x: 0, y: 0 },
+                data: { type: 'osc', frequency: 440, detune: 0, waveform: 'sine', label: 'Oscillator' },
+            }),
+            createNode({
+                id: 'event-1',
+                type: 'eventTriggerNode',
+                position: { x: 0, y: 0 },
+                data: { type: 'eventTrigger', token: 0, mode: 'change', cooldownMs: 0, velocity: 1, duration: 0.1, note: 60, trackId: 'event', label: 'Bang' },
+            }),
+            createNode({
+                id: 'patch-1',
+                type: 'patchNode',
+                position: { x: 0, y: 0 },
+                data: {
+                    type: 'patch',
+                    label: 'Patch',
+                    patchSourceId: 'graph:graph-2',
+                    patchSourceKind: 'graph',
+                    patchAsset: '/graphs/graph-2.patch.json',
+                    patchName: 'Graph 2',
+                    patchInline: null,
+                    inputs: [{ id: 'bang', label: 'Bang', type: 'midi' }],
+                    outputs: [{ id: 'mix', label: 'Mix', type: 'audio' }],
+                    audio: {
+                        input: { id: 'in', label: 'Audio In', type: 'audio' },
+                        output: { id: 'out', label: 'Audio Out', type: 'audio' },
+                    },
+                    sourceUpdatedAt: 1,
+                    sourceError: null,
+                },
+            }),
+            createNode({
+                id: 'output-1',
+                type: 'outputNode',
+                position: { x: 0, y: 0 },
+                data: { type: 'output', playing: false, masterGain: 0.5, label: 'Output' },
+            }),
+        ];
+
+        const nodeById = new Map(nodes.map((node) => [node.id, node]));
+
+        expect(canConnect({
+            source: 'event-1',
+            sourceHandle: 'trigger',
+            target: 'patch-1',
+            targetHandle: 'in:bang',
+        }, nodeById)).toBe(true);
+
+        expect(canConnect({
+            source: 'osc-1',
+            sourceHandle: 'out',
+            target: 'patch-1',
+            targetHandle: 'in:bang',
+        }, nodeById)).toBe(false);
+
+        expect(canConnect({
+            source: 'patch-1',
+            sourceHandle: 'out:mix',
+            target: 'output-1',
+            targetHandle: 'in',
+        }, nodeById)).toBe(true);
+    });
+
     it('prioritizes MIDI suggestions and supports MIDI output targets', () => {
         const midiNoteNode = createNode({
             id: 'midi-note-1',

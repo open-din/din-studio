@@ -43,3 +43,14 @@ test('F06-S02 graph creation and renaming stay immediate', async ({ page }) => {
 
     await expect(page.getByRole('button', { name: 'Bass Lab' })).toBeVisible();
 });
+
+test('F06-S04 graph explorer can select a sibling graph as a patch source', async ({ page }) => {
+    await installElectronBridge(page, buildMultiGraphSeed());
+    await page.goto('/');
+
+    await expect(page.getByText('Patch Sources')).toBeVisible();
+    await page.getByRole('button', { name: 'Select patch source Drum Bus' }).click();
+
+    await expect(page.getByRole('button', { name: 'Select patch source Drum Bus' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('graphs/graph-shell-2.patch.json')).toBeVisible();
+});

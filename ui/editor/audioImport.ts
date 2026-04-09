@@ -8,6 +8,7 @@ export const AUDIO_FILE_EXTENSION_RE =
 
 /** Case-insensitive match on file basename for Standard MIDI File */
 export const MIDI_FILE_EXTENSION_RE = /\.(mid|midi|smf)$/i;
+export const PATCH_FILE_EXTENSION_RE = /\.(patch\.json|din)$/i;
 
 export function isLikelyAudioFile(file: File): boolean {
     if (file.type.startsWith('audio/')) return true;
@@ -25,6 +26,16 @@ export function isLikelyMidiFile(file: File): boolean {
         return MIDI_FILE_EXTENSION_RE.test(file.name);
     }
     return false;
+}
+
+export function isLikelyPatchFile(file: File): boolean {
+    if (file.type === 'application/json' || file.type === 'text/json' || file.type === 'text/plain') {
+        return PATCH_FILE_EXTENSION_RE.test(file.name);
+    }
+    if (!file.type || file.type === 'application/octet-stream') {
+        return PATCH_FILE_EXTENSION_RE.test(file.name);
+    }
+    return PATCH_FILE_EXTENSION_RE.test(file.name);
 }
 
 async function walkDirectoryForAudioFiles(
@@ -67,6 +78,26 @@ async function walkDirectoryForMidiFiles(
     }
 }
 
+async function walkDirectoryForPatchFiles(
+    dir: FileSystemDirectoryHandle,
+    accumulator: File[],
+): Promise<void> {
+    for await (const entry of dir.values()) {
+        const name = entry.name;
+        if (entry.kind === 'directory') {
+            if (name === 'node_modules' || name === '.git') continue;
+            const sub = await dir.getDirectoryHandle(name);
+            await walkDirectoryForPatchFiles(sub, accumulator);
+        } else if (entry.kind === 'file' && PATCH_FILE_EXTENSION_RE.test(name)) {
+            const fh = await dir.getFileHandle(name);
+            const file = await fh.getFile();
+            if (isLikelyPatchFile(file)) {
+                accumulator.push(file);
+            }
+        }
+    }
+}
+
 export async function collectAudioFilesFromDirectoryHandle(
     root: FileSystemDirectoryHandle,
 ): Promise<File[]> {
@@ -80,6 +111,14 @@ export async function collectMidiFilesFromDirectoryHandle(
 ): Promise<File[]> {
     const out: File[] = [];
     await walkDirectoryForMidiFiles(root, out);
+    return out;
+}
+
+export async function collectPatchFilesFromDirectoryHandle(
+    root: FileSystemDirectoryHandle,
+): Promise<File[]> {
+    const out: File[] = [];
+    await walkDirectoryForPatchFiles(root, out);
     return out;
 }
 
@@ -113,6 +152,19 @@ export async function pickMidiFilesFromNativeDirectory(): Promise<'unsupported' 
     try {
         const handle = await picker({ mode: 'read' });
         return await collectMidiFilesFromDirectoryHandle(handle);
+    } catch {
+        return 'cancelled';
+    }
+}
+
+export async function pickPatchFilesFromNativeDirectory(): Promise<'unsupported' | 'cancelled' | File[]> {
+    const picker = (globalThis as unknown as { showDirectoryPicker?: ShowDirectoryPickerFn }).showDirectoryPicker;
+    if (typeof picker !== 'function') {
+        return 'unsupported';
+    }
+    try {
+        const handle = await picker({ mode: 'read' });
+        return await collectPatchFilesFromDirectoryHandle(handle);
     } catch {
         return 'cancelled';
     }

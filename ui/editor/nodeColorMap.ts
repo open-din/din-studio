@@ -52,6 +52,7 @@ export const NODE_FAMILY_BY_TYPE: Record<EditorNodeType, NodeColorFamily> = {
     lfo: 'control',
     constantSource: 'source',
     mediaStream: 'source',
+    patch: 'source',
     voice: 'source',
     adsr: 'control',
     note: 'source',

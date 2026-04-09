@@ -1,11 +1,15 @@
 import { useState, useEffect, type FC } from 'react';
 import { useAudioGraphStore } from '../store';
+import type { ProjectPatchSourceRecord } from '../../../project';
 
 interface ExplorerPanelProps {
     onCreateGraph?: () => void;
     onLoadGraph: (id: string) => void;
     onLoadTemplate?: (templateId: string) => void;
     onDeleteGraph?: (id: string) => void;
+    patchSources?: ProjectPatchSourceRecord[];
+    selectedPatchSourceId?: string | null;
+    onSelectPatchSource?: (source: ProjectPatchSourceRecord) => void;
 }
 
 const FileCodeIcon = ({ className }: { className?: string }) => (
@@ -36,10 +40,19 @@ interface ContextMenuState {
     y: number;
 }
 
-export const ExplorerPanel: FC<ExplorerPanelProps> = ({ onCreateGraph, onLoadGraph, onLoadTemplate, onDeleteGraph }) => {
+export const ExplorerPanel: FC<ExplorerPanelProps> = ({
+    onCreateGraph,
+    onLoadGraph,
+    onLoadTemplate,
+    onDeleteGraph,
+    patchSources = [],
+    selectedPatchSourceId = null,
+    onSelectPatchSource,
+}) => {
     const graphs = useAudioGraphStore((s) => s.graphs);
     const activeGraphId = useAudioGraphStore((s) => s.activeGraphId);
     const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+    const siblingPatchSources = patchSources.filter((source) => source.kind === 'graph');
 
     useEffect(() => {
         if (!contextMenu) return;
@@ -138,6 +151,47 @@ export const ExplorerPanel: FC<ExplorerPanelProps> = ({ onCreateGraph, onLoadGra
                                 </div>
                                 <span className="text-xs font-semibold">West Coast GFunk 64</span>
                             </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1 mt-6">
+                        <div className="flex items-center justify-between px-2 py-2">
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Patch Sources</h4>
+                        </div>
+                        <div className="px-2 space-y-2">
+                            {siblingPatchSources.length === 0 ? (
+                                <div className="rounded-xl border border-[var(--panel-border)] bg-[var(--panel-muted)]/40 px-3 py-2 text-[11px] text-[var(--text-subtle)]">
+                                    Save or create another graph to expose it as a reusable patch source.
+                                </div>
+                            ) : siblingPatchSources.map((source) => {
+                                const selected = selectedPatchSourceId === source.id;
+                                return (
+                                    <button
+                                        key={source.id}
+                                        type="button"
+                                        aria-pressed={selected}
+                                        aria-label={`Select patch source ${source.name}`}
+                                        onClick={() => onSelectPatchSource?.(source)}
+                                        className={`flex w-full items-start justify-between gap-3 rounded-xl border p-3 text-left transition-all ${
+                                            selected
+                                                ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                                                : 'border-transparent bg-[var(--panel-muted)]/30 hover:border-[var(--panel-border)] hover:bg-[var(--panel-muted)]/60'
+                                        }`}
+                                    >
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-semibold text-[var(--text)]">{source.name}</div>
+                                            <div className="mt-1 font-mono text-[10px] text-[var(--text-subtle)]">{source.relativePath}</div>
+                                        </div>
+                                        <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                                            selected
+                                                ? 'bg-[var(--accent)] text-[var(--panel-bg)]'
+                                                : 'bg-[var(--panel-bg)] text-[var(--text-subtle)]'
+                                        }`}>
+                                            {selected ? 'Selected' : 'Source'}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

@@ -40,6 +40,7 @@ import MidiNoteOutputNode from '../../ui/editor/nodes/MidiNoteOutputNode';
 import MidiCCOutputNode from '../../ui/editor/nodes/MidiCCOutputNode';
 import MidiSyncNode from '../../ui/editor/nodes/MidiSyncNode';
 import MidiPlayerNode from '../../ui/editor/nodes/MidiPlayerNode';
+import PatchNode from '../../ui/editor/nodes/PatchNode';
 import Inspector from '../../ui/editor/Inspector';
 import { getInputParamHandleId } from '../../ui/editor/handleIds';
 import { audioEngine } from '../../ui/editor/AudioEngine';
@@ -49,6 +50,8 @@ const storeState = {
     updateNodeData,
     nodes: [] as any[],
     edges: [] as any[],
+    graphs: [] as any[],
+    activeGraphId: null as string | null,
     selectedNodeId: null as string | null,
 };
 const audioEngineMock = vi.hoisted(() => ({
@@ -78,6 +81,11 @@ const audioLibraryMock = vi.hoisted(() => ({
         { id: 'asset-kick', name: 'kick.wav', fileName: 'kick.wav', relativePath: 'samples/kick.wav', kind: 'sample', mimeType: 'audio/wav', size: 256, createdAt: 1, updatedAt: 1 },
         { id: 'asset-plate.wav', name: 'plate.wav', fileName: 'plate.wav', relativePath: 'impulses/plate.wav', kind: 'impulse', mimeType: 'audio/wav', size: 512, createdAt: 1, updatedAt: 1 },
         { id: 'asset-clip', name: 'clip.mid', fileName: 'clip.mid', relativePath: 'midi/clip.mid', kind: 'midi', mimeType: 'audio/midi', size: 64, createdAt: 1, updatedAt: 1 },
+    ])),
+    listPatchSources: vi.fn(async () => ([
+        { id: 'graph:graph-1', kind: 'graph', graphId: 'graph-1', name: 'Graph 1', fileName: 'graph-1.patch.json', relativePath: 'graphs/graph-1.patch.json', updatedAt: 1 },
+        { id: 'graph:graph-2', kind: 'graph', graphId: 'graph-2', name: 'Graph 2', fileName: 'graph-2.patch.json', relativePath: 'graphs/graph-2.patch.json', updatedAt: 2 },
+        { id: 'asset:asset-patch', kind: 'asset', assetId: 'asset-patch', name: 'nested.patch.json', fileName: 'nested.patch.json', relativePath: 'patches/nested.patch.json', updatedAt: 1 },
     ])),
     subscribeAssets: vi.fn(() => () => {}),
 }));
@@ -191,6 +199,8 @@ describe('editor node UIs', () => {
     afterEach(() => {
         storeState.nodes = [];
         storeState.edges = [];
+        storeState.graphs = [];
+        storeState.activeGraphId = null;
         storeState.selectedNodeId = null;
         updateNodeData.mockClear();
         vi.mocked(audioEngine.updateNode).mockClear();
@@ -230,6 +240,122 @@ describe('editor node UIs', () => {
         midiHookState.clock.lastTickAt = null;
         midiHookState.clock.source = { id: null, name: null };
         vi.unstubAllGlobals();
+    });
+
+    it('derives patch boundary metadata from a selected sibling graph source', async () => {
+        const sharedProps = {
+            dragging: false,
+            selected: false,
+            zIndex: 0,
+            selectable: true,
+            draggable: true,
+            isConnectable: true,
+            positionAbsoluteX: 0,
+            positionAbsoluteY: 0,
+            xPos: 0,
+            yPos: 0,
+        } as const;
+
+        storeState.activeGraphId = 'graph-1';
+        storeState.graphs = [
+            {
+                id: 'graph-1',
+                name: 'Graph 1',
+                nodes: [],
+                edges: [],
+                createdAt: 1,
+                updatedAt: 1,
+                order: 0,
+            },
+            {
+                id: 'graph-2',
+                name: 'Graph 2',
+                nodes: [
+                    {
+                        id: 'event-1',
+                        type: 'eventTriggerNode',
+                        position: { x: 0, y: 0 },
+                        data: {
+                            type: 'eventTrigger',
+                            label: 'Bang',
+                            token: 0,
+                            mode: 'change',
+                            cooldownMs: 0,
+                            velocity: 1,
+                            duration: 0.1,
+                            note: 60,
+                            trackId: 'event',
+                        },
+                    },
+                    {
+                        id: 'midi-cc-out-1',
+                        type: 'midiCCOutputNode',
+                        position: { x: 160, y: 0 },
+                        data: {
+                            type: 'midiCCOutput',
+                            label: 'CC Out',
+                            outputId: null,
+                            channel: 1,
+                            cc: 74,
+                            value: 0,
+                            valueFormat: 'normalized',
+                        },
+                    },
+                ],
+                edges: [],
+                createdAt: 1,
+                updatedAt: 2,
+                order: 1,
+            },
+        ];
+
+        render(
+            <PatchNode
+                {...(sharedProps as any)}
+                id="patch-1"
+                data={{
+                    type: 'patch',
+                    label: 'Patch',
+                    patchSourceId: '',
+                    patchSourceKind: null,
+                    patchAsset: null,
+                    patchName: '',
+                    patchInline: null,
+                    inputs: [],
+                    outputs: [],
+                    audio: {
+                        input: { id: 'in', label: 'Audio In', type: 'audio' },
+                        output: { id: 'out', label: 'Audio Out', type: 'audio' },
+                    },
+                    sourceUpdatedAt: 0,
+                    sourceError: null,
+                }}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('option', { name: 'Graph · Graph 2' })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByTitle('Select patch source'), { target: { value: 'graph:graph-2' } });
+
+        await waitFor(() => {
+            expect(updateNodeData).toHaveBeenCalledWith(
+                'patch-1',
+                expect.objectContaining({
+                    patchSourceId: 'graph:graph-2',
+                    patchSourceKind: 'graph',
+                    patchAsset: '/graphs/graph-2.patch.json',
+                    patchName: 'Graph 2',
+                    inputs: expect.arrayContaining([
+                        expect.objectContaining({ id: 'bang', type: 'midi' }),
+                    ]),
+                    outputs: expect.arrayContaining([
+                        expect.objectContaining({ label: 'CC Out', type: 'midi' }),
+                    ]),
+                }),
+            );
+        });
     });
 
     it('keeps OscNode default and named exports aligned', () => {
