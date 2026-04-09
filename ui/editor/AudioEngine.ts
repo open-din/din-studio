@@ -1,4 +1,5 @@
 import type { Node, Edge } from '@xyflow/react';
+import { migratePatchDocument, type PatchDocument } from '@open-din/react/patch';
 import type {
     AudioNodeData,
     ADSRNodeData,
@@ -122,6 +123,10 @@ interface AudioNodeInstance {
     params?: Map<string, AudioParam>;
     // Map output handle ID to AudioNode (for InputNode multiple outputs)
     outputs?: Map<string, AudioNode>;
+    // Patch input handle maps for nested graph routing
+    patchAudioInputs?: Map<string, AudioNode>;
+    patchControlInputs?: Map<string, ConstantSourceNode>;
+    internalInstances?: AudioNodeInstance[];
     // Custom data
     sequencerData?: Pick<StepSequencerNodeData, 'steps' | 'pattern' | 'activeSteps'>;
     pianoRollData?: Pick<PianoRollNodeData, 'steps' | 'octaves' | 'baseNote' | 'notes'>;
@@ -168,6 +173,23 @@ interface AudioNodeInstance {
         signature: string;
     };
     lastMidiEventSeq?: number;
+}
+
+function normalizePatchHandleSegment(value: string, fallback: string): string {
+    const cleaned = value
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    return cleaned || fallback;
+}
+
+function getPatchInputHandleId(entry: { key?: unknown; id?: unknown }): string {
+    const raw = typeof entry.key === 'string' && entry.key.trim()
+        ? entry.key
+        : typeof entry.id === 'string' && entry.id.trim()
+            ? entry.id
+            : 'input';
+    return `in:${normalizePatchHandleSegment(raw, 'input')}`;
 }
 
 /**
@@ -619,6 +641,8 @@ export class AudioEngine {
     }
 
     private startInstance(instance: AudioNodeInstance) {
+        instance.internalInstances?.forEach((nested) => this.startInstance(nested));
+
         if (instance.node instanceof OscillatorNode) {
             instance.node.start();
         } else if (instance.node instanceof AudioBufferSourceNode) {
@@ -641,7 +665,51 @@ export class AudioEngine {
         }
     }
 
+    private teardownInstance(instance: AudioNodeInstance): void {
+        instance.internalInstances?.forEach((nested) => this.teardownInstance(nested));
+
+        try {
+            if (instance.node instanceof OscillatorNode
+                || instance.node instanceof AudioBufferSourceNode
+                || instance.node instanceof ConstantSourceNode) {
+                try { instance.node.stop(); } catch { /* noop */ }
+            }
+
+            if (instance.outputs) {
+                instance.outputs.forEach((output) => {
+                    if (output instanceof ConstantSourceNode || output instanceof OscillatorNode) {
+                        try { output.stop(); } catch { /* noop */ }
+                    }
+                });
+            }
+
+            if (instance.patchControlInputs) {
+                instance.patchControlInputs.forEach((output) => {
+                    try { output.stop(); } catch { /* noop */ }
+                });
+            }
+
+            if (instance.lfoOsc) {
+                try { instance.lfoOsc.stop(); } catch { /* noop */ }
+            }
+
+            if (instance.mediaStream) {
+                instance.mediaStream.getTracks().forEach((track) => track.stop());
+                instance.mediaStream = undefined;
+            }
+            if (instance.mediaStreamSource) {
+                try { instance.mediaStreamSource.disconnect(); } catch { /* noop */ }
+                instance.mediaStreamSource = undefined;
+            }
+
+            this.disconnectInstance(instance);
+        } catch {
+            // Ignore cleanup failures while removing nodes.
+        }
+    }
+
     private disconnectInstance(instance: AudioNodeInstance) {
+        instance.internalInstances?.forEach((nested) => this.disconnectInstance(nested));
         if (instance.type === 'compressor') {
             this.clearCompressorSidechain(instance);
         }
@@ -922,6 +990,15 @@ export class AudioEngine {
                     return;
                 }
 
+                if (
+                    targetInstance.type === 'patch'
+                    && edge.targetHandle
+                    && targetInstance.patchAudioInputs?.has(edge.targetHandle)
+                ) {
+                    sourceNode.connect(targetInstance.patchAudioInputs.get(edge.targetHandle)!);
+                    return;
+                }
+
                 if (targetInstance.params && edge.targetHandle && targetInstance.params.has(edge.targetHandle)) {
                     const param = targetInstance.params.get(edge.targetHandle);
                     if (param) {
@@ -955,6 +1032,162 @@ export class AudioEngine {
                 }
             }
         }
+    }
+
+    private connectPatchInternalGraph(
+        nodes: Node<AudioNodeData>[],
+        edges: Edge[],
+        instances: Map<string, AudioNodeInstance>
+    ): void {
+        const nodeById = new Map(nodes.map((node) => [node.id, node]));
+
+        instances.forEach((instance) => {
+            this.disconnectInstance(instance);
+        });
+        instances.forEach((instance) => {
+            this.restoreInternalConnections(instance);
+        });
+
+        edges.forEach((edge) => {
+            const sourceInstance = instances.get(edge.source);
+            const targetInstance = instances.get(edge.target);
+            if (!sourceInstance || !targetInstance) return;
+
+            try {
+                let sourceNode: AudioNode = sourceInstance.node;
+                if (edge.sourceHandle && sourceInstance.outputs) {
+                    const specificOutput = sourceInstance.outputs.get(edge.sourceHandle);
+                    if (specificOutput) {
+                        sourceNode = specificOutput;
+                    }
+                }
+
+                if (
+                    targetInstance.type === 'matrixMixer'
+                    && edge.targetHandle
+                    && /^in\d+$/.test(edge.targetHandle)
+                ) {
+                    const channelIndex = Math.max(0, Number(edge.targetHandle.slice(2)) - 1);
+                    sourceNode.connect(this.getInputNode(targetInstance), 0, channelIndex);
+                    return;
+                }
+
+                if (targetInstance.params && edge.targetHandle && targetInstance.params.has(edge.targetHandle)) {
+                    const param = targetInstance.params.get(edge.targetHandle);
+                    if (param) {
+                        sourceNode.connect(param);
+                        if ((sourceInstance.type === 'note' || sourceInstance.type === 'voice') && edge.targetHandle === 'frequency') {
+                            param.value = 0;
+                        }
+                    }
+                } else if (isAudioConnection(edge, nodeById)) {
+                    sourceNode.connect(this.getInputNode(targetInstance));
+                }
+            } catch (error) {
+                console.warn('Failed to connect nested patch nodes:', error);
+            }
+        });
+    }
+
+    private createPatchAudioNode(ctx: AudioContext, node: Node<AudioNodeData>, data: { patchInline?: unknown | null }): AudioNodeInstance {
+        const fallbackInput = ctx.createGain();
+        const fallbackOutput = ctx.createGain();
+        fallbackInput.gain.value = 1;
+        fallbackOutput.gain.value = 1;
+        fallbackInput.connect(fallbackOutput);
+
+        if (!data.patchInline || typeof data.patchInline !== 'object') {
+            return {
+                node: fallbackOutput,
+                inputNode: fallbackInput,
+                type: 'patch',
+                internalNodes: [fallbackInput],
+            };
+        }
+
+        let patch: PatchDocument;
+        try {
+            patch = migratePatchDocument(data.patchInline as PatchDocument);
+        } catch {
+            return {
+                node: fallbackOutput,
+                inputNode: fallbackInput,
+                type: 'patch',
+                internalNodes: [fallbackInput],
+            };
+        }
+
+        const nestedNodes = patch.nodes.map((patchNode) => ({
+            id: `${node.id}::${patchNode.id}`,
+            type: `${patchNode.type}Node`,
+            position: patchNode.position ?? { x: 0, y: 0 },
+            data: patchNode.data as AudioNodeData,
+        })) as Node<AudioNodeData>[];
+        const nestedEdges = patch.connections.map((connection) => ({
+            id: `${node.id}::${connection.id}`,
+            source: `${node.id}::${connection.source}`,
+            target: `${node.id}::${connection.target}`,
+            sourceHandle: connection.sourceHandle ?? undefined,
+            targetHandle: connection.targetHandle ?? undefined,
+        })) as Edge[];
+
+        const nestedInstances = new Map<string, AudioNodeInstance>();
+        nestedNodes.forEach((nestedNode) => {
+            const instance = this.createAudioNode(ctx, nestedNode);
+            if (instance) {
+                nestedInstances.set(nestedNode.id, instance);
+            }
+        });
+
+        this.connectPatchInternalGraph(nestedNodes, nestedEdges, nestedInstances);
+
+        const audioInputHandles = new Map<string, AudioNode>();
+        const controlInputHandles = new Map<string, ConstantSourceNode>();
+        let firstAudioInput: AudioNode | null = null;
+
+        for (const input of patch.interface.inputs) {
+            const nestedInstance = nestedInstances.get(`${node.id}::${input.nodeId}`);
+            const output = nestedInstance?.outputs?.get(input.handle);
+            if (!output) continue;
+            const handleId = getPatchInputHandleId(input);
+            if (output instanceof ConstantSourceNode) {
+                controlInputHandles.set(handleId, output);
+            } else {
+                audioInputHandles.set(handleId, output);
+                if (!firstAudioInput) {
+                    firstAudioInput = output;
+                }
+            }
+        }
+
+        const patchInput = ctx.createGain();
+        patchInput.gain.value = 1;
+        if (firstAudioInput) {
+            patchInput.connect(firstAudioInput);
+            audioInputHandles.set('in', firstAudioInput);
+        }
+
+        const patchOutput = ctx.createGain();
+        patchOutput.gain.value = 1;
+        const outputNodes = nestedNodes.filter((nestedNode) => nestedNode.data.type === 'output');
+        for (const outputNode of outputNodes) {
+            const outputInstance = nestedInstances.get(outputNode.id);
+            outputInstance?.node.connect(patchOutput);
+        }
+
+        if (outputNodes.length === 0) {
+            patchInput.connect(patchOutput);
+        }
+
+        return {
+            node: patchOutput,
+            inputNode: patchInput,
+            type: 'patch',
+            patchAudioInputs: audioInputHandles,
+            patchControlInputs: controlInputHandles,
+            internalInstances: [...nestedInstances.values()],
+            internalNodes: [patchInput],
+        };
     }
 
     private triggerSampler(nodeId: string, time: number, duration: number) {
@@ -1567,47 +1800,15 @@ export class AudioEngine {
      */
     private cleanup(): void {
         this.audioNodes.forEach((instance) => {
-            try {
-                if (instance.midiNoteOutputState?.active && instance.midiNoteOutputState.note !== null) {
-                    editorMidiRuntime.sendNoteOff({
-                        outputId: instance.midiNoteOutputState.outputId,
-                        channel: instance.midiNoteOutputState.channel,
-                        note: instance.midiNoteOutputState.note,
-                        velocity: 0,
-                    });
-                }
-                if (instance.node instanceof OscillatorNode ||
-                    instance.node instanceof AudioBufferSourceNode ||
-                    instance.node instanceof ConstantSourceNode) {
-                    try { instance.node.stop(); } catch (e) { }
-                }
-
-                // Stop params
-                if (instance.outputs) {
-                    instance.outputs.forEach(output => {
-                        if (output instanceof ConstantSourceNode || output instanceof OscillatorNode) {
-                            try { output.stop(); } catch (e) { }
-                        }
-                    });
-                }
-
-                if (instance.lfoOsc) {
-                    try { instance.lfoOsc.stop(); } catch (e) { }
-                }
-
-                if (instance.mediaStream) {
-                    instance.mediaStream.getTracks().forEach((track) => track.stop());
-                    instance.mediaStream = undefined;
-                }
-                if (instance.mediaStreamSource) {
-                    try { instance.mediaStreamSource.disconnect(); } catch { /* noop */ }
-                    instance.mediaStreamSource = undefined;
-                }
-
-                this.disconnectInstance(instance);
-            } catch (e) {
-                // Ignore errors during cleanup
+            if (instance.midiNoteOutputState?.active && instance.midiNoteOutputState.note !== null) {
+                editorMidiRuntime.sendNoteOff({
+                    outputId: instance.midiNoteOutputState.outputId,
+                    channel: instance.midiNoteOutputState.channel,
+                    note: instance.midiNoteOutputState.note,
+                    velocity: 0,
+                });
             }
+            this.teardownInstance(instance);
         });
         this.stopSamplerPlayback();
         this.audioNodes.clear();
@@ -2376,8 +2577,12 @@ export class AudioEngine {
 
                 if (inputData.params) {
                     inputData.params.forEach((param) => {
-                        const paramSource = ctx.createConstantSource();
-                        paramSource.offset.value = param.value;
+                        const paramSource = param.socketKind === 'audio'
+                            ? ctx.createGain()
+                            : ctx.createConstantSource();
+                        if (paramSource instanceof ConstantSourceNode) {
+                            paramSource.offset.value = param.value;
+                        }
                         outputs.set(getInputParamHandleId(param), paramSource);
                     });
                 }
@@ -2391,8 +2596,12 @@ export class AudioEngine {
 
                 if (inputData.params) {
                     inputData.params.forEach((param) => {
-                        const paramSource = ctx.createConstantSource();
-                        paramSource.offset.value = param.value;
+                        const paramSource = param.socketKind === 'audio'
+                            ? ctx.createGain()
+                            : ctx.createConstantSource();
+                        if (paramSource instanceof ConstantSourceNode) {
+                            paramSource.offset.value = param.value;
+                        }
                         outputs.set(getInputParamHandleId(param), paramSource);
                     });
                 }
@@ -2540,14 +2749,7 @@ export class AudioEngine {
             case 'midiSync':
                 return null;
             case 'patch': {
-                // Patch nodes act as audio pass-throughs in the editor preview.
-                // Nested graph execution is delegated to the react-din runtime at export time.
-                const dummy = ctx.createGain();
-                dummy.gain.value = 1;
-                return {
-                    node: dummy,
-                    type: 'patch',
-                };
+                return this.createPatchAudioNode(ctx, node, data as { patchInline?: unknown | null });
             }
             default:
                 return null;
@@ -2788,6 +2990,11 @@ export class AudioEngine {
                 const value = getSourceValue(edge);
                 if (!targetHandle || value === null) return;
                 this.liveControlInputValues.set(this.getControlInputKey(targetNodeId, targetHandle), value);
+                const patchInstance = this.audioNodes.get(targetNodeId);
+                if (patchInstance?.type === 'patch' && patchInstance.patchControlInputs?.has(targetHandle)) {
+                    patchInstance.patchControlInputs.get(targetHandle)?.offset.setTargetAtTime(value, now, 0.01);
+                    return;
+                }
                 if (liveControlHandles.has(targetHandle) || targetHandle.startsWith('cell:')) {
                     this.updateNode(targetNodeId, { [targetHandle]: value } as Partial<AudioNodeData>);
                 }
@@ -2813,36 +3020,17 @@ export class AudioEngine {
 
         for (const [id, instance] of this.audioNodes.entries()) {
             if (!activeIds.has(id)) {
-                try {
-                    if (instance.node instanceof OscillatorNode ||
-                        instance.node instanceof AudioBufferSourceNode ||
-                        instance.node instanceof ConstantSourceNode) {
-                        try { instance.node.stop(); } catch (e) { }
-                    }
-                    if (instance.outputs) {
-                        instance.outputs.forEach(output => {
-                            if (output instanceof ConstantSourceNode || output instanceof OscillatorNode) {
-                                try { output.stop(); } catch (e) { }
-                            }
-                        });
-                    }
-                    if (instance.mediaStream) {
-                        instance.mediaStream.getTracks().forEach((track) => track.stop());
-                        instance.mediaStream = undefined;
-                    }
-                    if (instance.mediaStreamSource) {
-                        try { instance.mediaStreamSource.disconnect(); } catch { /* noop */ }
-                        instance.mediaStreamSource = undefined;
-                    }
-                    this.disconnectInstance(instance);
-                } catch {
-                    // Ignore cleanup failures while removing nodes.
-                }
+                this.teardownInstance(instance);
                 this.audioNodes.delete(id);
             }
         }
 
         nodes.forEach((node) => {
+            const current = this.audioNodes.get(node.id);
+            if (current?.type === 'patch') {
+                this.teardownInstance(current);
+                this.audioNodes.delete(node.id);
+            }
             if (!this.audioNodes.has(node.id)) {
                 const instance = this.createAudioNode(ctx, node);
                 if (instance) {
@@ -2936,8 +3124,10 @@ export class AudioEngine {
                 inputData.params.forEach((param) => {
                     const paramId = getInputParamHandleId(param);
                     if (outputs.has(paramId)) {
-                        const paramNode = outputs.get(paramId) as ConstantSourceNode;
-                        paramNode.offset.setTargetAtTime(param.value, currentTime, 0.01);
+                        const paramNode = outputs.get(paramId);
+                        if (paramNode instanceof ConstantSourceNode) {
+                            paramNode.offset.setTargetAtTime(param.value, currentTime, 0.01);
+                        }
                     }
                 });
             }

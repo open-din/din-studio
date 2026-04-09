@@ -253,6 +253,9 @@ export function generateCode(
         inputNodes.forEach((node) => {
             const params = (node.data as InputNodeData | UiTokensNodeData).params || [];
             params.forEach((param, index) => {
+                // TODO: codegen for audio/trigger input params (requires din-core runtime changes)
+                if ((param.socketKind ?? 'control') !== 'control') return;
+
                 const rawName = param.label || param.name || `param${index + 1}`;
                 const baseName = toSafeIdentifier(rawName, `param${index + 1}`);
                 const name = ensureUniqueName(baseName, usedNames);
@@ -1796,13 +1799,22 @@ function buildNodeProps(
         }
         case 'patch': {
             const patch = nodeData as PatchNodeData;
-            if (patch.patchAsset) {
-                addStringProp('patchAsset', patch.patchAsset);
-            } else if (patch.patchInline) {
+            if (patch.patchInline) {
                 props.push(`patchInline={${JSON.stringify(patch.patchInline)}}`);
+            } else if (patch.patchAsset) {
+                addStringProp('patchAsset', patch.patchAsset);
             }
             if (patch.patchName) {
                 addStringProp('patchName', patch.patchName);
+            }
+            for (const slot of patch.inputs ?? []) {
+                if (slot.type === 'audio') continue;
+                const targetHandle = `in:${String(slot.id ?? '').trim()}`;
+                if (!targetHandle || targetHandle === 'in:') continue;
+                const resolved = resolveHandleValue(targetHandle, {});
+                if (resolved.value !== undefined) {
+                    addValueProp(String(slot.id), resolved.value);
+                }
             }
             break;
         }

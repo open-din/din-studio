@@ -1397,6 +1397,78 @@ describe('editor store and code generation', () => {
         expect(code).not.toContain('patchAsset=');
     });
 
+    it('generates Patch JSX input props from connected control handles', async () => {
+        vi.resetModules();
+        const { generateCode } = await import('../../ui/editor/CodeGenerator');
+
+        const nodes = [
+            {
+                id: 'input-1',
+                type: 'inputNode',
+                position: { x: 0, y: 0 },
+                data: {
+                    type: 'input',
+                    label: 'Input',
+                    params: [
+                        {
+                            id: 'cutoff-control',
+                            name: 'Cutoff Control',
+                            label: 'Cutoff Control',
+                            value: 0.42,
+                            defaultValue: 0.42,
+                            min: 0,
+                            max: 1,
+                            socketKind: 'control',
+                        },
+                    ],
+                },
+            },
+            {
+                id: 'patch-inline-1',
+                type: 'patchNode',
+                position: { x: 0, y: 0 },
+                data: {
+                    type: 'patch',
+                    label: 'Inline Patch',
+                    patchSourceId: '',
+                    patchSourceKind: null,
+                    patchAsset: null,
+                    patchName: 'Inline Patch',
+                    patchInline: {
+                        version: 1,
+                        name: 'Inline Patch',
+                        nodes: [],
+                        connections: [],
+                        interface: {
+                            inputs: [{ id: 'inner-input:cutoff', key: 'cutoff', label: 'Cutoff', kind: 'input', nodeId: 'inner-input', paramId: 'cutoff', handle: 'param:cutoff', defaultValue: 0, min: 0, max: 1 }],
+                            events: [],
+                            midiInputs: [],
+                            midiOutputs: [],
+                        },
+                    },
+                    inputs: [{ id: 'cutoff', label: 'Cutoff', type: 'midi' }],
+                    outputs: [],
+                    audio: { input: { id: 'in', label: 'Audio In', type: 'audio' }, output: { id: 'out', label: 'Audio Out', type: 'audio' } },
+                    sourceUpdatedAt: 0,
+                    sourceError: null,
+                },
+            },
+        ];
+        const edges = [
+            {
+                id: 'edge-1',
+                source: 'input-1',
+                sourceHandle: 'param:cutoff-control',
+                target: 'patch-inline-1',
+                targetHandle: 'in:cutoff',
+            },
+        ];
+
+        const code = generateCode(nodes as any, edges as any, false, 'Inline Patch Graph');
+        expect(code).toContain('patchInline=');
+        expect(code).toContain('cutoff={cutoffControl}');
+    });
+
     it('does not create history entries for selection changes or output playback toggles', async () => {
         vi.resetModules();
         const { audioEngine } = await import('../../ui/editor/AudioEngine');

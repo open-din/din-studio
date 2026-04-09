@@ -16,7 +16,7 @@ import {
 } from '../components/NodeShell';
 import { getNodeHandleDescriptors } from '../nodeCatalog';
 import { useAudioGraphStore } from '../store';
-import type { PatchAudioMetadata, PatchNodeData, PatchSlot, PatchSourceKind } from '../types';
+import type { InputNodeData, PatchAudioMetadata, PatchNodeData, PatchSlot, PatchSourceKind } from '../types';
 import { validateOfflinePatchText } from '../../../core/offline';
 
 const DEFAULT_PATCH_AUDIO: PatchAudioMetadata = {
@@ -61,18 +61,24 @@ const dedupeSlots = (slots: PatchSlot[]): PatchSlot[] => {
     return normalized;
 };
 
-function deriveBoundaryMetadata(patch: PatchDocument): {
+function deriveBoundaryMetadata(
+    patch: PatchDocument,
+    socketKindByParamId?: Map<string, string>
+): {
     patchName: string;
     inputs: PatchSlot[];
     outputs: PatchSlot[];
     audio: PatchAudioMetadata;
 } {
     const inputSlots: PatchSlot[] = [
-        ...patch.interface.inputs.map((entry) => ({
-            id: normalizeSlotId(entry.key || entry.id, `input-${entry.id}`),
-            label: entry.label || entry.key || entry.id,
-            type: 'midi' as const,
-        })),
+        ...patch.interface.inputs.map((entry) => {
+            const socketKind = socketKindByParamId?.get(entry.paramId);
+            return {
+                id: normalizeSlotId(entry.key || entry.id, `input-${entry.id}`),
+                label: entry.label || entry.key || entry.id,
+                type: socketKind === 'audio' ? 'audio' as const : 'midi' as const,
+            };
+        }),
         ...patch.interface.events.map((entry) => ({
             id: normalizeSlotId(entry.key || entry.id, `event-${entry.id}`),
             label: entry.label || entry.key || entry.id,
@@ -160,7 +166,24 @@ const PatchNode = memo(({ id, data, selected }: NodeProps<Node<PatchNodeData>>) 
         setIsSyncing(true);
         try {
             const patch = await resolvePatchForSource(source);
-            const boundary = deriveBoundaryMetadata(patch);
+
+            // For graph sources, build a map of paramId → socketKind so audio/trigger
+            // params are exposed with the correct slot type on the patch node.
+            const socketKindByParamId = new Map<string, string>();
+            if (source.kind === 'graph') {
+                const innerGraph = graphs.find((g) => g.id === source.graphId);
+                for (const node of innerGraph?.nodes ?? []) {
+                    if (node.data?.type === 'input') {
+                        for (const param of (node.data as InputNodeData).params ?? []) {
+                            if (param.id && param.socketKind) {
+                                socketKindByParamId.set(param.id, param.socketKind);
+                            }
+                        }
+                    }
+                }
+            }
+
+            const boundary = deriveBoundaryMetadata(patch, socketKindByParamId.size > 0 ? socketKindByParamId : undefined);
             const patchSourceKind: PatchSourceKind = source.kind === 'graph' ? 'graph' : 'asset';
             const patchAsset = asPath(source.relativePath);
             updateNodeData(id, {
@@ -168,6 +191,7 @@ const PatchNode = memo(({ id, data, selected }: NodeProps<Node<PatchNodeData>>) 
                 patchSourceKind,
                 patchAsset,
                 patchName: boundary.patchName,
+                patchInline: source.kind === 'graph' ? patch : null,
                 inputs: boundary.inputs,
                 outputs: boundary.outputs,
                 audio: boundary.audio,
@@ -198,6 +222,7 @@ const PatchNode = memo(({ id, data, selected }: NodeProps<Node<PatchNodeData>>) 
                 patchSourceKind: null,
                 patchAsset: null,
                 patchName: '',
+                patchInline: null,
                 inputs: [],
                 outputs: [],
                 audio: DEFAULT_PATCH_AUDIO,

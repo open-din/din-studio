@@ -21,6 +21,7 @@ import {
     migrateGraphNodes,
     normalizeInputNodeData,
     normalizeMidiNoteNodeData,
+    normalizeOutputNodeData,
     normalizeTransportNodeData,
     getSingletonNodeTypes,
 } from './nodeHelpers';
@@ -41,6 +42,7 @@ import type {
     UpdateNodeDataOptions,
     ConnectionAssistStart,
     InputNodeData,
+    OutputNodeData,
     UiTokensNodeData,
     TransportNodeData,
     MidiNoteNodeData,
@@ -387,6 +389,13 @@ const applyNodeDataPatch = (
         return {
             ...node,
             data: normalizeUiTokensNodeData(nextData as UiTokensNodeData),
+        };
+    }
+
+    if (nextData.type === 'output') {
+        return {
+            ...node,
+            data: normalizeOutputNodeData(nextData as OutputNodeData),
         };
     }
 

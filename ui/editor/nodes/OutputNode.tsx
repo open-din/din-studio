@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import type { NodeProps } from '@xyflow/react';
-import { useAudioGraphStore, type OutputNodeData } from '../store';
+import { useAudioGraphStore, type OutputNodeData, type OutputParam } from '../store';
 import { audioEngine } from '../AudioEngine';
 import { formatConnectedValue, useTargetHandleConnection } from '../paramConnections';
 import { EditorIcon } from '../components/EditorIcons';
@@ -80,7 +80,18 @@ const OutputNode = memo(({ id, data, selected }: NodeProps) => {
                 </div>
             </NodeWidget>
 
-            <NodeHandleRow direction="target" label="audio in" handleId="in" handleKind="audio" />
+            {outputData.outputParams && outputData.outputParams.length > 0
+                ? outputData.outputParams.map((param: OutputParam) => (
+                    <NodeHandleRow
+                        key={param.id}
+                        direction="target"
+                        label={param.label || param.name}
+                        handleId={param.id}
+                        handleKind={param.socketKind}
+                    />
+                ))
+                : <NodeHandleRow direction="target" label="audio in" handleId="in" handleKind="audio" />
+            }
             <NodeHandleRow
                 direction="target"
                 label="master"

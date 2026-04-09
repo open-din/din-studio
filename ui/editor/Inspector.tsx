@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useAudioGraphStore, type AudioNodeData, type InputNodeData, type InputParam, type UiTokensNodeData } from './store';
+import { useAudioGraphStore, type AudioNodeData, type InputNodeData, type InputParam, type OutputNodeData, type OutputParam, type UiTokensNodeData } from './store';
 import { CodeGenerator } from './CodeGenerator';
 import { formatConnectedValue, useTargetHandleConnection } from './paramConnections';
 import {
@@ -441,6 +441,20 @@ function TokenParamEditor({
                                     className="w-24 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-right text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
                                 />
                             </label>
+                            {!isUiTokensNode && (
+                                <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                    <span className="text-[11px] text-[var(--text)]">Socket</span>
+                                    <select
+                                        value={param.socketKind ?? 'control'}
+                                        onChange={(event) => handleUpdateParam(index, { socketKind: event.target.value as 'audio' | 'control' | 'trigger' })}
+                                        className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                                    >
+                                        <option value="control">control</option>
+                                        <option value="audio">audio</option>
+                                        <option value="trigger">trigger</option>
+                                    </select>
+                                </label>
+                            )}
                             <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
                                 <span className="text-[11px] text-[var(--text)]">Current</span>
                                 <div className="flex items-center gap-3">
@@ -476,6 +490,129 @@ function TokenParamEditor({
                                 if (event.key === 'Enter') {
                                     handleAddParam();
                                 }
+                            }}
+                            className="h-10 min-w-0 flex-1 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 text-[11px] text-[var(--text)] placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)] focus:outline-none"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleAddParam}
+                            className="h-10 rounded-xl border border-[var(--panel-border)] px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                        >
+                            +
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function OutputParamEditor({
+    nodeId,
+    nodeData,
+    updateNodeData,
+}: {
+    nodeId: string;
+    nodeData: OutputNodeData;
+    updateNodeData: (nodeId: string, data: Partial<AudioNodeData>) => void;
+}) {
+    const [newParamName, setNewParamName] = useState('');
+    const params = nodeData.outputParams ?? [];
+
+    const handleAddParam = () => {
+        const trimmedName = newParamName.trim();
+        if (!trimmedName) return;
+        const newParam: OutputParam = {
+            id: getStableId('out-param'),
+            name: trimmedName,
+            label: trimmedName,
+            socketKind: 'audio',
+        };
+        updateNodeData(nodeId, { outputParams: [...params, newParam] });
+        setNewParamName('');
+    };
+
+    const handleUpdateParam = (index: number, updates: Partial<OutputParam>) => {
+        const next = [...params];
+        next[index] = { ...next[index], ...updates };
+        updateNodeData(nodeId, { outputParams: next });
+    };
+
+    const handleRemoveParam = (index: number) => {
+        const next = [...params];
+        next.splice(index, 1);
+        updateNodeData(nodeId, { outputParams: next });
+    };
+
+    return (
+        <section className="rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-bg)]">
+            <div className="border-b border-[var(--panel-border)] px-4 py-3">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--text-subtle)]">
+                    Outputs
+                </div>
+                <div className="mt-1 text-[10px] leading-4 text-[var(--text-subtle)]">
+                    Output handles exposed by this node for nested patch connections.
+                </div>
+            </div>
+
+            <div className="space-y-3 px-4 py-4">
+                {params.map((param, index) => (
+                    <div key={param.id} className="rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-muted)]/70 p-3">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--text-subtle)]">
+                                    Output
+                                </div>
+                                <div className="mt-1 font-mono text-[10px] text-[var(--text-subtle)]">
+                                    {param.id}
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleRemoveParam(index)}
+                                className="rounded-full border border-[var(--panel-border)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)] transition hover:border-[var(--danger)] hover:text-[var(--danger)]"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                <span className="text-[11px] text-[var(--text)]">Label</span>
+                                <input
+                                    type="text"
+                                    value={param.label || param.name}
+                                    onChange={(event) => handleUpdateParam(index, { label: event.target.value, name: event.target.value })}
+                                    className="min-w-0 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                                />
+                            </label>
+                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                <span className="text-[11px] text-[var(--text)]">Socket</span>
+                                <select
+                                    value={param.socketKind}
+                                    onChange={(event) => handleUpdateParam(index, { socketKind: event.target.value as 'audio' | 'control' | 'trigger' })}
+                                    className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                                >
+                                    <option value="audio">audio</option>
+                                    <option value="control">control</option>
+                                    <option value="trigger">trigger</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                ))}
+
+                <div className="rounded-2xl border border-dashed border-[var(--panel-border)] bg-[var(--panel-muted)]/40 p-3">
+                    <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--text-subtle)]">
+                        Add Output
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="text"
+                            placeholder="New output name..."
+                            value={newParamName}
+                            onChange={(event) => setNewParamName(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') handleAddParam();
                             }}
                             className="h-10 min-w-0 flex-1 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 text-[11px] text-[var(--text)] placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)] focus:outline-none"
                         />
@@ -572,6 +709,14 @@ const Inspector: React.FC = () => {
                     <TokenParamEditor
                         nodeId={selectedNode.id}
                         nodeData={nodeData as InputNodeData | UiTokensNodeData}
+                        updateNodeData={updateNodeData}
+                    />
+                )}
+
+                {nodeData.type === 'output' && (
+                    <OutputParamEditor
+                        nodeId={selectedNode.id}
+                        nodeData={nodeData as OutputNodeData}
                         updateNodeData={updateNodeData}
                     />
                 )}

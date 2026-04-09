@@ -347,6 +347,17 @@ describe('editor node UIs', () => {
                     patchSourceKind: 'graph',
                     patchAsset: '/graphs/graph-2.patch.json',
                     patchName: 'Graph 2',
+                    patchInline: expect.objectContaining({
+                        name: 'Graph 2',
+                        nodes: expect.any(Array),
+                        connections: expect.any(Array),
+                        interface: expect.objectContaining({
+                            inputs: expect.any(Array),
+                            events: expect.any(Array),
+                            midiInputs: expect.any(Array),
+                            midiOutputs: expect.any(Array),
+                        }),
+                    }),
                     inputs: expect.arrayContaining([
                         expect.objectContaining({ id: 'bang', type: 'midi' }),
                     ]),

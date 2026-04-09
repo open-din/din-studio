@@ -37,6 +37,7 @@ export interface OutputNodeData {
     playing: boolean;
     masterGain: number;
     label: string;
+    outputParams?: OutputParam[]; // When defined, replaces the hardcoded 'in' audio handle
     [key: string]: unknown;
 }
 
@@ -308,6 +309,14 @@ export interface InputParam {
     min: number;
     max: number;
     label?: string; // Optional display label
+    socketKind?: 'audio' | 'control' | 'trigger'; // Socket type for this param handle; defaults to 'control'
+}
+
+export interface OutputParam {
+    id: string;
+    name: string;
+    label?: string;
+    socketKind: 'audio' | 'control' | 'trigger';
 }
 
 export interface InputNodeData {

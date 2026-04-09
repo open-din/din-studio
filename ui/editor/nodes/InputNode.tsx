@@ -10,7 +10,7 @@ const InputNode = memo(({ data, selected }: NodeProps<Node<InputNodeData>>) => {
     return (
         <NodeShell
             nodeType="input"
-            title={inputData.label?.trim() || 'Params'}
+            title={inputData.label?.trim() || 'Input'}
             selected={selected}
             badge={inputData.params.length > 0 ? <NodeValueBadge>{`${inputData.params.length} outs`}</NodeValueBadge> : undefined}
         >
@@ -20,7 +20,7 @@ const InputNode = memo(({ data, selected }: NodeProps<Node<InputNodeData>>) => {
                     direction="source"
                     label={param.label || param.name}
                     handleId={getInputParamHandleId(param)}
-                    handleKind="control"
+                    handleKind={param.socketKind ?? 'control'}
                 />
             ))}
         </NodeShell>

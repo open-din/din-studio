@@ -11,6 +11,8 @@ import type {
     InputParam,
     MidiInMapping,
     MidiNoteNodeData,
+    OutputNodeData,
+    OutputParam,
     PatchNodeData,
     TransportNodeData,
     UiTokensNodeData,
@@ -19,6 +21,7 @@ import {
     INPUT_PARAM_HANDLE_PREFIX,
     getInputParamHandleId,
     migrateLegacyInputHandle,
+    resolveInputParamByHandle,
 } from './handleIds';
 import {
     EDITOR_NODE_CATALOG,
@@ -234,6 +237,11 @@ export function ensureInputParam(param: Partial<InputParam>, nodeId: string, ind
     const min = Number.isFinite(param.min) ? Number(param.min) : 0;
     const max = Number.isFinite(param.max) ? Number(param.max) : 1;
 
+    const validKinds = ['audio', 'control', 'trigger'] as const;
+    const socketKind = validKinds.includes(param.socketKind as (typeof validKinds)[number])
+        ? (param.socketKind as (typeof validKinds)[number])
+        : 'control';
+
     return {
         id: param.id?.trim() || createInputParamId(nodeId, index),
         name: fallbackName,
@@ -243,6 +251,7 @@ export function ensureInputParam(param: Partial<InputParam>, nodeId: string, ind
         min,
         max,
         label: param.label?.trim() || fallbackName,
+        socketKind,
     };
 }
 
@@ -252,7 +261,29 @@ export function normalizeInputNodeData(nodeId: string, data: InputNodeData): Inp
         params: Array.isArray(data.params)
             ? data.params.map((param, index) => ensureInputParam(param, nodeId, index))
             : [],
-        label: data.label?.trim() || 'Params',
+        label: data.label?.trim() || 'Input',
+    };
+}
+
+export function normalizeOutputNodeData(data: OutputNodeData): OutputNodeData {
+    const validKinds = ['audio', 'control', 'trigger'] as const;
+    const outputParams = Array.isArray(data.outputParams)
+        ? data.outputParams.map((p, i): OutputParam => ({
+            id: p.id?.trim() || `out-param-${i}`,
+            name: p.name?.trim() || `Output ${i + 1}`,
+            label: p.label?.trim() || p.name?.trim() || `Output ${i + 1}`,
+            socketKind: validKinds.includes(p.socketKind as (typeof validKinds)[number])
+                ? (p.socketKind as (typeof validKinds)[number])
+                : 'audio',
+        }))
+        : undefined;
+
+    return {
+        type: 'output',
+        playing: Boolean(data.playing),
+        masterGain: Number.isFinite(data.masterGain) ? data.masterGain : 0.5,
+        label: data.label?.trim() || 'Output',
+        ...(outputParams !== undefined ? { outputParams } : {}),
     };
 }
 
@@ -503,8 +534,20 @@ export function canConnect(
     }
 
     if (isInputLikeNodeType(sourceType)) {
-        return (sourceHandle.startsWith(INPUT_PARAM_HANDLE_PREFIX) || /^param_\d+$/.test(sourceHandle))
-            && targetHandle !== 'transport'
+        if (!(sourceHandle.startsWith(INPUT_PARAM_HANDLE_PREFIX) || /^param_\d+$/.test(sourceHandle))) {
+            return false;
+        }
+        const inputData = sourceNode.data as InputNodeData | UiTokensNodeData;
+        const resolved = resolveInputParamByHandle(inputData.params, sourceHandle);
+        const kind = resolved?.param.socketKind ?? 'control';
+        if (kind === 'audio') {
+            return targetHandle === 'in' || /^in\d+$/.test(targetHandle) || targetHandle === 'sidechainIn';
+        }
+        if (kind === 'trigger') {
+            return targetHandle === 'trigger' || targetHandle === 'gate' || targetHandle === 'transport';
+        }
+        // control
+        return targetHandle !== 'transport'
             && targetHandle !== 'trigger'
             && targetHandle !== 'gate'
             && targetHandle !== 'in'

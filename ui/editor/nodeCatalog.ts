@@ -80,7 +80,7 @@ const MATH_OPERATION_INPUT_LABELS: Record<MathNodeData['operation'], Array<{ id:
 };
 
 export const EDITOR_NODE_CATALOG: NodeCatalogEntry[] = [
-    { type: 'input', category: 'Sources', label: 'Params', icon: '⏱️', color: '#dddddd' },
+    { type: 'input', category: 'Sources', label: 'Input', icon: '⏱️', color: '#dddddd' },
     { type: 'uiTokens', category: 'Sources', label: 'UI Tokens', icon: '⏱️', color: '#68a5ff' },
     { type: 'eventTrigger', category: 'Sources', label: 'Event Trigger', icon: '⚡', color: '#ffd166' },
     { type: 'transport', category: 'Sources', label: 'Transport', icon: '⏯️', color: '#dddddd', singleton: true },
