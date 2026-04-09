@@ -17,6 +17,7 @@
 
 - `npm run test:mcp`
 - `npm run validate:manifests`
+- `npm run docs:generate` if MCP TypeDoc entry points or exports changed (`docs/generated/` is gitignored)
 
 ## Expected outputs
 

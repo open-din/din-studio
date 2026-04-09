@@ -41,3 +41,13 @@ For a scoped fix that cannot run e2e locally, document why in the PR; still run 
 
 - Runtime patch schema and the public `@open-din/react` API are owned by the `react-din` repository—adjust that repo when changing public contracts.
 - Rust patch semantics and node registry authority live in `din-core`—coordinate FFI and patch shape there.
+
+## Documentation Strategy
+
+- Prefer `docs/**`, `project/**`, and (on demand) `docs/generated/` from `npm run docs:generate` instead of scanning all of `ui/**` when you need editor-core API shape.
+- Generated API docs are reference-only—do not load them unless needed.
+
+## Documentation Rules
+
+- `ui/**` public functions use JSDoc where `eslint-plugin-jsdoc` applies (warnings).
+- After changing editor-core exports touched by TypeDoc entry points (`typedoc.json`), run `npm run docs:generate` and fix any new doc warnings when practical.

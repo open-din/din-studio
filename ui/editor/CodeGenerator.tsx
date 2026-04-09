@@ -195,6 +195,15 @@ export const CodeGenerator: React.FC = () => {
     );
 };
 
+/**
+ * Serializes the current editor graph into JSX that uses `@open-din/react` primitives.
+ *
+ * @param nodes - XYFlow nodes with editor `AudioNodeData` payloads.
+ * @param edges - XYFlow edges (audio + control).
+ * @param includeProvider - When true, wraps output in `AudioProvider`.
+ * @param graphName - Used for generated component/type names.
+ * @returns Monolithic TSX source string suitable for preview or export.
+ */
 export function generateCode(
     nodes: Node<AudioNodeData>[],
     edges: Edge[],

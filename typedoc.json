@@ -1,0 +1,26 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "ui/editor/store.ts",
+    "ui/editor/types.ts",
+    "ui/editor/nodeCatalog.ts",
+    "ui/editor/nodeHelpers.ts",
+    "ui/editor/audioExport.ts",
+    "ui/editor/audioImport.ts",
+    "ui/editor/audioLibrary.ts",
+    "ui/editor/graphBuilders.ts",
+    "ui/editor/CodeGenerator.tsx",
+    "ui/editor/nodes/index.ts",
+    "ui/shell/editor-shell.types.ts",
+    "ui/shell/useEditorLayout.ts",
+    "ui/ai/tools.ts",
+    "ui/ai/systemPrompt.ts"
+  ],
+  "out": "docs/generated",
+  "plugin": ["typedoc-plugin-markdown"],
+  "tsconfig": "tsconfig.app.json",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "hideGenerator": true
+}

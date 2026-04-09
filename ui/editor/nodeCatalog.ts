@@ -9,6 +9,10 @@ import type {
 } from './types';
 import { getInputParamHandleId } from './handleIds';
 
+/**
+ * @file Editor node catalog: labels, categories, default handles, and agent-facing markdown.
+ */
+
 export type EditorNodeType = AudioNodeData['type'];
 export type HandleDirection = 'source' | 'target';
 export type PaletteCategory = 'Sources' | 'MIDI' | 'Effects' | 'Routing' | 'Math';
@@ -395,6 +399,13 @@ const DEFAULT_HANDLES_BY_TYPE: Record<EditorNodeType, HandleDescriptor[]> = {
 
 export const NODE_CATEGORY_ORDER: PaletteCategory[] = ['Sources', 'MIDI', 'Effects', 'Routing', 'Math'];
 
+/**
+ * Looks up catalog metadata for a persisted editor node type id.
+ *
+ * @param type - Canonical node type string (e.g. `osc`, `gain`).
+ * @returns Catalog entry with palette placement and defaults.
+ * @throws When the type is unknown to the editor catalog.
+ */
 export function getNodeCatalogEntry(type: EditorNodeType): NodeCatalogEntry {
     const entry = EDITOR_NODE_CATALOG.find((item) => item.type === type);
     if (!entry) {
@@ -403,6 +414,12 @@ export function getNodeCatalogEntry(type: EditorNodeType): NodeCatalogEntry {
     return entry;
 }
 
+/**
+ * Lists React Flow handles (ports) for a node from its persisted `data` payload.
+ *
+ * @param data - Serialized node data including `type` discriminator.
+ * @returns Source/target handle descriptors for edge attachment and validation.
+ */
 export function getNodeHandleDescriptors(data: AudioNodeData): HandleDescriptor[] {
     switch (data.type) {
         case 'input': {
@@ -512,6 +529,11 @@ export function getNodeHandleDescriptors(data: AudioNodeData): HandleDescriptor[
     }
 }
 
+/**
+ * Groups palette entries in display order for the add-node UI and docs.
+ *
+ * @returns Arrays of catalog entries keyed by palette category.
+ */
 export function groupCatalogByCategory() {
     return NODE_CATEGORY_ORDER.map((category) => ({
         name: category,

@@ -17,6 +17,7 @@
 
 - `npm run test` (including unit specs above)
 - `npm run validate:manifests`
+- `npm run docs:generate` after changing AI/catalog exports used by TypeDoc (`docs/generated/` is gitignored)
 
 ## Expected outputs
 

@@ -18,6 +18,7 @@
 - `npm run validate:manifests`
 - `npm run test` (unit + MCP unit)
 - Relevant e2e if the node changes visible authoring flows (`npm run test:e2e`)
+- `npm run docs:generate` when `nodeCatalog` / TypeDoc entry points shift (`docs/generated/` is gitignored)
 
 ## Expected outputs
 

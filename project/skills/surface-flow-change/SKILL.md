@@ -17,6 +17,7 @@
 
 - `npm run validate:manifests` and `npm run validate:docs`
 - `npm run test` and affected `npm run test:e2e` cases
+- `npm run docs:generate` when shell/layout entry points in `typedoc.json` change (`docs/generated/` is gitignored)
 
 ## Expected outputs
 

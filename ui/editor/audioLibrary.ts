@@ -1,3 +1,8 @@
+/**
+ * @file Project asset index helpers (audio, MIDI, patches) for the editor library panel.
+ */
+/* eslint-disable jsdoc/require-jsdoc, jsdoc/require-description, jsdoc/require-param-description, jsdoc/require-returns-description -- data-layer helpers; see docs/generated */
+
 import {
     requireActiveProjectController,
     type AudioLibraryAsset,

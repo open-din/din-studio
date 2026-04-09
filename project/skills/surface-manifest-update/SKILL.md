@@ -21,6 +21,7 @@
 
 - `npm run validate:manifests`
 - `npm run validate:docs`
+- `npm run docs:generate` when documented surfaces map to TypeDoc entry files (`docs/generated/` is gitignored)
 
 ## Expected outputs
 

@@ -123,6 +123,14 @@ export const createDefaultPatchData = (): PatchNodeData => ({
     label: 'Patch',
 });
 
+/**
+ * Instantiates a new XYFlow node with default data for the given catalog type.
+ *
+ * @param id - Stable node id for the graph.
+ * @param type - Editor catalog type discriminator.
+ * @param position - Canvas coordinates for the new node.
+ * @returns Initialized node or null when the type cannot be constructed.
+ */
 export function createEditorNode(
     id: string,
     type: EditorNodeType,

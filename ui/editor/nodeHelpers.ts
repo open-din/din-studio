@@ -1,3 +1,9 @@
+/**
+ * @file Connection rules, node normalization, and graph migration helpers for the editor.
+ * API surface is mirrored in `docs/generated` after `npm run docs:generate`.
+ */
+/* eslint-disable jsdoc/require-jsdoc, jsdoc/require-description, jsdoc/require-param-description, jsdoc/require-returns-description -- many small predicates; prefer generated API docs */
+
 import type { Edge, Node } from '@xyflow/react';
 import type {
     AudioNodeData,

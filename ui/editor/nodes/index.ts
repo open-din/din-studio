@@ -1,3 +1,8 @@
+/**
+ * @file Re-exports editor node React components for graph rendering.
+ */
+/* eslint-disable jsdoc/require-jsdoc, jsdoc/require-description, jsdoc/require-param-description, jsdoc/require-returns-description -- barrel module */
+
 export {
     ADSRNode,
     AnalyzerNode,

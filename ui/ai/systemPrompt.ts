@@ -42,6 +42,12 @@ Operations (applied in order; \`nodeId\` on \`add_node\` is your temporary id â€
 - Mention constraints (singletons, MIDI vs audio rate, need for \`transport\` on sequencers) when relevant.
 `;
 
+/**
+ * Builds the LLM system prompt for DIN Studio, embedding the live graph snapshot and catalog.
+ *
+ * @param snapshot - Condensed nodes/edges listing from the active graph.
+ * @returns Full markdown system prompt string.
+ */
 export function buildSystemPrompt(snapshot: GraphSnapshot): string {
     const nodeList = snapshot.nodes.length > 0
         ? snapshot.nodes.map((n) => `  - id="${n.id}" type="${n.type}" label="${n.label}"`).join('\n')

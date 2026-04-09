@@ -15,6 +15,15 @@ This folder documents the Phase 3A desktop surfaces, their panels, and the reusa
 - [ColorSystem](./ColorSystem.md)
 - [AudioLibraryPanel](./AudioLibraryPanel.md)
 
+## Architecture & cross-repo
+
+- [Data flow (store → codegen → runtime)](./DataFlow.md)
+- [Cross-repo dependencies](./CrossRepoDependencies.md)
+
+## Generated API reference
+
+`npm run docs:generate` emits TypeDoc markdown under `docs/generated/` (gitignored). Load on demand when debugging editor-core exports listed in `typedoc.json`.
+
 ## Notes
 
 - Figma board `217:2` is the canonical Phase 3A desktop spec for these docs.

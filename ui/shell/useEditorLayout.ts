@@ -87,6 +87,11 @@ function readLegacyLibraryMigration() {
     };
 }
 
+/**
+ * Shell layout state: panels, drawers, theme, and persisted dimensions (localStorage).
+ *
+ * @returns Imperative setters and current layout snapshot for the editor chrome.
+ */
 export function useEditorLayout() {
     const viewportWidth = getViewportWidth();
     const manualOverrideRef = useRef(false);

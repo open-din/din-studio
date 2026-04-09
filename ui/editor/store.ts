@@ -470,7 +470,11 @@ const syncNodePatchIntoHistory = (
 const initialGraph: GraphDocument = createInitialGraphDocument();
 
 function persistOpenGraphIds(ids: string[]) {
-    try { localStorage.setItem('din-editor:openGraphIds', JSON.stringify(ids)); } catch {}
+    try {
+        localStorage.setItem('din-editor:openGraphIds', JSON.stringify(ids));
+    } catch {
+        /* ignore persist failures (private mode / quota) */
+    }
 }
 
 const normalizeGraphDocument = (graph: GraphDocument, index: number, now: number): GraphDocument => {
