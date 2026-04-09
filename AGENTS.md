@@ -1,91 +1,180 @@
-# AGENTS
+# AGENTS — din-studio (HOT + HOOKS)
 
-Canonical project contract for Codex, Claude, Cursor, and other agents. Product context lives in `project/SUMMARY.md`, `project/USERFLOW.md`, and `project/TEST_MATRIX.md`—cite them; do not duplicate them in agent rules.
+## CORE RULE
+Load MINIMUM context. Use hooks. Do NOT load AGENTS.deep.md unless required.
 
-## Language
+---
 
-Keep English in `docs/**`, `project/**`, contributor prompts, and contributor-facing UI copy unless a scenario intentionally demonstrates locale-specific data.
+## 1. ROUTING (FIRST DECISION)
 
-## Editor nodes
+Map task → type:
 
-- Any editor node change must stay aligned with `ui/editor/nodeCatalog.ts`, codegen paths exercised by `tests/unit/store-and-codegen.spec.ts`, the feature doc under `project/features/**`, mapped unit tests, and scenario IDs in `project/TEST_MATRIX.md`.
-- `project/COVERAGE_MANIFEST.json` is the source of truth for **editor-node** coverage rows. Each item must keep `source`, `docs`, `tests`, and `scenarios` coherent.
+- "node" → editor node
+- "UI / panel / flow / asset / launcher" → surface
+- "MCP / bridge / tool" → MCP
+- "agent / prompt / tools" → AI system
 
-## Product surfaces (non-node)
+If unclear → choose smallest scope
 
-- Panels, launcher, source control, asset library, AI agent UI, and related flows are tracked in `project/SURFACE_MANIFEST.json` (not in the editor-node manifest).
-- A visible product workflow change must update the surface doc, the relevant BDD scenario IDs in `project/TEST_MATRIX.md`, and at least one automated test (unit, integration, or e2e as appropriate).
+---
 
-## MCP target
+## 2. HOOKS (MANDATORY)
 
-- Changes under `targets/mcp/**` must keep `targets/mcp/tests/**` updated. Treat MCP tools and bridge behavior as part of the release surface.
+### HOOK: NODE_CHANGE
+IF task mentions node / handle / editor:
 
-## AI agent catalog
+LOAD ONLY:
+- ui/editor/nodeCatalog.ts
+- project/COVERAGE_MANIFEST.json
 
-- Keep `ui/ai/systemPrompt.ts`, `ui/ai/tools.ts`, and `ui/editor/nodeCatalog.ts` consistent when nodes or agent capabilities change. Follow `project/skills/agent-prompt-catalog-sync/SKILL.md`.
+REQUIRE:
+- project/features/**
+- tests + TEST_MATRIX
 
-## Required checks (pre-merge)
+---
 
-Run in order:
+### HOOK: SURFACE_CHANGE
+IF task mentions UI / workflow / panel / asset:
 
-1. `npm run lint`
-2. `npm run typecheck`
-3. `npm run validate:manifests`
-4. `npm run validate:docs`
-5. `npm run test`
-6. `npm run test:e2e`
+LOAD ONLY:
+- project/SURFACE_MANIFEST.json
 
-For a scoped fix that cannot run e2e locally, document why in the PR; still run steps 1–5.
+REQUIRE:
+- TEST_MATRIX
+- ≥1 automated test
 
-## Boundaries
+---
 
-- Runtime patch schema and the public `@open-din/react` API are owned by the `react-din` repository—adjust that repo when changing public contracts.
-- Rust patch semantics and node registry authority live in `din-core`—coordinate FFI and patch shape there.
+### HOOK: MCP_CHANGE
+IF task mentions MCP / bridge:
 
-## Documentation Strategy
+LOAD ONLY:
+- targets/mcp/**
+- targets/mcp/tests/**
 
-- Prefer `docs/**`, `project/**`, and (on demand) `docs/generated/` from `npm run docs:generate` instead of scanning all of `ui/**` when you need editor-core API shape.
-- Generated API docs are reference-only—do not load them unless needed.
+TREAT AS:
+- release surface
 
-## Documentation Rules
+---
 
-- `ui/**` public functions use JSDoc where `eslint-plugin-jsdoc` applies (warnings).
-- After changing editor-core exports touched by TypeDoc entry points (`typedoc.json`), run `npm run docs:generate` and fix any new doc warnings when practical.
-- Before merge, `npm run docs:generate` must succeed when TypeDoc entry points or documented exports change.
+### HOOK: AI_SYSTEM
+IF task mentions agent / prompt / tools:
 
-## Documentation Access Order (CRITICAL)
+LOAD ONLY:
+- ui/ai/systemPrompt.ts
+- ui/ai/tools.ts
+- ui/editor/nodeCatalog.ts
 
-Always follow this sequence when gathering context. Do not skip steps.
+FOLLOW:
+- project/skills/agent-prompt-catalog-sync/SKILL.md
 
-1. This `AGENTS.md` — ownership, rules, quality gates
-2. `docs/README.md` — hand-written index; use workspace `docs/README.md` when routing the whole stack
-3. Workspace summary `../docs/summaries/din-studio-api.md` (when using the `open-din` container) — compressed API overview
-4. `docs/generated/` from `npm run docs:generate` — reference only, at most two files at a time
-5. Source under `ui/`, `core/`, `targets/` — last resort
+---
 
-## Context Budget Rules
+### HOOK: DOCS
+IF missing info:
 
-- Load at most two documentation files per step; close or stop using them before opening more
-- Load at most one repository’s context unless the task is explicitly cross-repo
-- Prefer summaries over generated docs; prefer generated docs over source
-- Never bulk-load `docs/generated/` — open only the specific module pages needed
-- Minimize total loaded context at all times
+LOAD (max 2):
+1. docs/summaries
+2. docs/**
+3. docs/generated (last resort)
 
-## Code Reading Policy
+STOP when sufficient
 
-- Do **not** read source files when documentation answers the question
-- Exhaust summaries and targeted generated docs before opening `ui/` or `core/`
-- When source reading is required, scope to the exact module — do not scan entire directories
+---
 
-## Documentation Ownership
+### HOOK: CROSS_REPO
+IF mentions:
+schema | serialization | runtime
 
-- This repository owns `docs/`, this `AGENTS.md`, and local `docs/generated/` output
-- Workspace summaries (`open-din/docs/summaries/`) must stay consistent when editor API or module boundaries change
-- A public editor-core or contract-facing change is incomplete until docs and the matching summary are updated when the surface changes
+STOP → switch repo:
 
-## Documentation Freshness
+- react-din (API)
+- din-core (runtime)
 
-- Regenerate docs after any change to TypeDoc entry points or documented exports (`npm run docs:generate`)
-- Treat `docs/generated/` as ephemeral — do not treat stale output as authoritative
-- After regeneration, decide whether `../docs/summaries/din-studio-api.md` needs an update
-- Do not cite outdated documentation as authoritative
+---
+
+## 3. HARD CONSTRAINTS
+
+### Node change MUST update:
+- nodeCatalog.ts
+- COVERAGE_MANIFEST.json
+- features/**
+- tests + TEST_MATRIX
+
+---
+
+### Surface change MUST update:
+- SURFACE_MANIFEST.json
+- TEST_MATRIX
+- ≥1 test
+
+---
+
+### MCP MUST:
+- update tests
+- remain stable
+
+---
+
+### NEVER:
+- modify public API (react-din)
+- implement runtime logic (din-core)
+- duplicate contract logic
+
+---
+
+## 4. EXECUTION LOOP
+
+1. Detect hook
+2. Load ONLY hook files
+3. Execute minimal change
+4. Validate
+
+---
+
+## 5. CONTEXT LIMITS
+
+- max 1 repo
+- max 2 files
+- NEVER scan directories
+- NEVER bulk-load docs
+
+If enough → STOP
+
+---
+
+## 6. SELF-OPTIMIZATION
+
+Continuously:
+
+- drop irrelevant context
+- ignore unrelated features
+- reduce reads
+- prefer smallest change
+
+If context grows → compress
+
+---
+
+## 7. LOAD DEEP CONTEXT ONLY IF
+
+- ambiguity
+- failing validation
+- cross-repo uncertainty
+
+→ THEN load AGENTS.deep.md
+
+---
+
+## 8. VALIDATION
+
+Run:
+
+npm run lint  
+npm run typecheck  
+npm run validate:manifests  
+npm run validate:docs  
+npm run test  
+npm run test:e2e
+
+If e2e skipped → justify
