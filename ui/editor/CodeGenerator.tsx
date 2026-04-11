@@ -53,54 +53,57 @@ import {
 import { type Node, type Edge } from '@xyflow/react';
 import { toPascalCase } from './graphUtils';
 import {
-    ADSR,
-    Analyzer,
     AudioOutProvider,
     AudioProvider,
-    AuxReturn,
-    AuxSend,
-    Chorus,
-    Compressor,
-    ConstantSource,
-    Convolver,
-    Delay,
-    Distortion,
-    EQ3,
-    Envelope,
     EventTrigger,
-    Filter,
-    Flanger,
-    Gain,
-    MatrixMixer,
-    MediaStream,
+    MidiProvider,
+    Patch,
+    Sequencer,
+    Track,
+    TransportProvider,
     clamp,
     compare,
     math,
     mix,
-    Noise,
-    NoiseBurst,
-    Osc,
-    Panner,
-    Phaser,
-    PresetWaveShaper,
-    Reverb,
-    Sampler,
-    Sequencer,
-    StereoPanner,
-    Tremolo,
-    TriggeredSampler,
-    WaveShaper,
     switchValue,
-    Track,
-    TransportProvider,
-    Voice,
-    MidiProvider,
     useAudio,
     useAudioOut,
-    useLFO,
-    Patch,
 } from '@open-din/react';
-import type { LFOOutput, VoiceRenderProps } from '@open-din/react';
+import type { LFOOutput } from '@open-din/react';
+import { Analyzer } from '@open-din/react/analyzers';
+import {
+    Chorus,
+    Distortion,
+    EQ3,
+    Flanger,
+    Phaser,
+    Reverb,
+    Tremolo,
+} from '@open-din/react/effects';
+import {
+    ADSR,
+    Compressor,
+    Convolver,
+    Delay,
+    Filter,
+    Gain,
+    Osc,
+    Panner,
+    PresetWaveShaper,
+    StereoPanner,
+    WaveShaper,
+} from '@open-din/react/nodes';
+import { AuxReturn, AuxSend, MatrixMixer } from '@open-din/react/routing';
+import {
+    ConstantSource,
+    MediaStream,
+    Noise,
+    NoiseBurst,
+    Sampler,
+    TriggeredSampler,
+    useLFO,
+} from '@open-din/react/sources';
+import { Envelope, Voice, type VoiceRenderProps } from '@open-din/react/synths';
 import {
     getInputParamHandleId,
     getTransportConnections,
@@ -194,6 +197,84 @@ export const CodeGenerator: React.FC = () => {
         </div>
     );
 };
+
+/** Maps generated symbol names to `@open-din/react` subpath entry points. */
+const REACT_DIN_GENERATED_IMPORT_MODULE: Record<string, string> = {
+    ADSR: '@open-din/react/nodes',
+    Analyzer: '@open-din/react/analyzers',
+    AudioOutProvider: '@open-din/react',
+    AudioProvider: '@open-din/react',
+    AuxReturn: '@open-din/react/routing',
+    AuxSend: '@open-din/react/routing',
+    Chorus: '@open-din/react/effects',
+    clamp: '@open-din/react',
+    compare: '@open-din/react',
+    Compressor: '@open-din/react/nodes',
+    ConstantSource: '@open-din/react/sources',
+    Convolver: '@open-din/react/nodes',
+    Delay: '@open-din/react/nodes',
+    Distortion: '@open-din/react/effects',
+    EQ3: '@open-din/react/effects',
+    Envelope: '@open-din/react/synths',
+    EventTrigger: '@open-din/react',
+    Filter: '@open-din/react/nodes',
+    Flanger: '@open-din/react/effects',
+    Gain: '@open-din/react/nodes',
+    math: '@open-din/react',
+    MatrixMixer: '@open-din/react/routing',
+    MediaStream: '@open-din/react/sources',
+    MidiCCOutput: '@open-din/react',
+    MidiNoteOutput: '@open-din/react',
+    MidiProvider: '@open-din/react',
+    MidiTransportSync: '@open-din/react',
+    mix: '@open-din/react',
+    Noise: '@open-din/react/sources',
+    NoiseBurst: '@open-din/react/sources',
+    Osc: '@open-din/react/nodes',
+    Panner: '@open-din/react/nodes',
+    Patch: '@open-din/react',
+    Phaser: '@open-din/react/effects',
+    PresetWaveShaper: '@open-din/react/nodes',
+    Reverb: '@open-din/react/effects',
+    Sampler: '@open-din/react/sources',
+    Sequencer: '@open-din/react',
+    StereoPanner: '@open-din/react/nodes',
+    switchValue: '@open-din/react',
+    Track: '@open-din/react',
+    TransportProvider: '@open-din/react',
+    TriggeredSampler: '@open-din/react/sources',
+    Tremolo: '@open-din/react/effects',
+    useAudio: '@open-din/react',
+    useAudioOut: '@open-din/react',
+    useLFO: '@open-din/react/sources',
+    useMidiCC: '@open-din/react',
+    useMidiNote: '@open-din/react',
+    Voice: '@open-din/react/synths',
+    WaveShaper: '@open-din/react/nodes',
+};
+
+function formatGeneratedReactDinImports(symbols: string[]): string {
+    if (symbols.length === 0) return '\n';
+    const byModule = new Map<string, string[]>();
+    for (const sym of symbols) {
+        const mod = REACT_DIN_GENERATED_IMPORT_MODULE[sym] ?? '@open-din/react';
+        const list = byModule.get(mod) ?? [];
+        list.push(sym);
+        byModule.set(mod, list);
+    }
+    const sortedMods = Array.from(byModule.keys()).sort((a, b) => {
+        if (a === '@open-din/react') return -1;
+        if (b === '@open-din/react') return 1;
+        return a.localeCompare(b);
+    });
+    return sortedMods
+        .map((mod) => {
+            const names = (byModule.get(mod) ?? []).slice().sort();
+            return `import { ${names.join(', ')} } from '${mod}';`;
+        })
+        .join('\n')
+        .concat('\n\n');
+}
 
 /**
  * Serializes the current editor graph into JSX that uses `@open-din/react` primitives.
@@ -1014,9 +1095,7 @@ export function generateCode(
     } else if (needsReactNodeType) {
         code = `import { type ReactNode } from 'react';\n`;
     }
-    code += importList.length > 0
-        ? `import { ${importList.join(', ')} } from '@open-din/react';\n\n`
-        : '\n';
+    code += formatGeneratedReactDinImports(importList);
 
     if (usedParamInfo.length > 0) {
         code += `export interface ${componentName}Props {\n`;
