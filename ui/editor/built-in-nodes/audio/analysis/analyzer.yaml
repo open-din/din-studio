@@ -1,0 +1,22 @@
+name: analyzer
+label: null
+description: Passthrough with analyzers.lib-ready path; host meters read audio taps.
+type: dsp
+tags:
+  - meter
+  - analysis
+  - level
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _ : an.abs;

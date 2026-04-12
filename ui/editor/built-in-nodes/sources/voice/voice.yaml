@@ -1,0 +1,25 @@
+name: voice
+label: Voice
+description: "Voice control — trigger, portamento, and pitch/gate/velocity outputs for polyphonic sources."
+type: voice
+tags:
+  - voice
+  - sources
+customComponent: null
+inputs:
+  - type: trigger
+    name: trigger
+    interface: input
+  - type: float
+    name: portamento
+    interface: slider
+outputs:
+  - type: float
+    name: note
+    interface: slider
+  - type: trigger
+    name: gate
+    interface: input
+  - type: float
+    name: velocity
+    interface: slider

@@ -1,0 +1,16 @@
+name: pianoRoll
+label: Piano Roll
+description: Piano-roll editor timeline with transport sync and note triggers.
+type: timeline
+tags:
+  - piano-roll
+  - sources
+customComponent: null
+inputs:
+  - type: trigger
+    name: transport
+    interface: input
+outputs:
+  - type: trigger
+    name: trigger
+    interface: input

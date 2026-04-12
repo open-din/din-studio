@@ -1,0 +1,30 @@
+name: reverb
+label: null
+description: Early reflections hint using delay tap + dry/wet; swap for re.zita_* when host SR is fixed.
+type: dsp
+tags:
+  - reverb
+  - space
+  - wet
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: decay
+    interface: slider
+  - type: float
+    name: mix
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  w = hslider("mix", 0.3, 0, 1, 0.01);
+  d = int(hslider("decay", 0.2, 0, 0.95, 0.01) * 0.05 * ma.SR);
+  process = _ * (1 - w) + (_ @ max(1, d)) * w;

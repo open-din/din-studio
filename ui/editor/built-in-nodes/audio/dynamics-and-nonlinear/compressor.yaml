@@ -1,0 +1,43 @@
+name: compressor
+label: null
+description: RMS gain computer via co.RMS_compression_gain_mono_db (compressors.lib); sidechain ports reserved for host routing.
+type: dsp
+tags:
+  - compressor
+  - dynamics
+  - rms
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: audio
+    name: sidechainIn
+    interface: input
+  - type: float
+    name: threshold
+    interface: slider
+  - type: float
+    name: knee
+    interface: slider
+  - type: float
+    name: ratio
+    interface: slider
+  - type: float
+    name: attack
+    interface: slider
+  - type: float
+    name: release
+    interface: slider
+  - type: float
+    name: sidechainStrength
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _ : co.RMS_compression_gain_mono_db(0.5, hslider("threshold", -18, -40, 0, 0.1), hslider("attack", 0.02, 0.001, 0.5, 0.001), hslider("release", 0.12, 0.01, 1, 0.01), hslider("knee", 6, 0, 12, 0.1), 0);

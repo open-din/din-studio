@@ -1,0 +1,16 @@
+name: constantSource
+label: Constant Source
+description: DC offset / constant control value as an audio-rate or CV source.
+type: value
+tags:
+  - constant-source
+  - sources
+customComponent: null
+inputs:
+  - type: float
+    name: offset
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input

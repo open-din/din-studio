@@ -7,7 +7,9 @@
       "ui/editor/nodeUiRegistry.ts",
       "ui/editor/studioNodeCatalog/types.ts",
       "ui/editor/studioNodeCatalog/catalog.ts",
+      "ui/editor/studioNodeCatalog/loadBuiltInNodeFiles.ts",
       "ui/editor/studioNodeCatalog/studio-node-catalog.json",
+      "ui/editor/built-in-nodes/**/*.yaml",
       "ui/editor/components/NodePalette.tsx"
     ],
     "shared_tests": [

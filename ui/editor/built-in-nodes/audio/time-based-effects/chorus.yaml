@@ -1,0 +1,39 @@
+name: chorus
+label: null
+description: Detuned delay tap chorus (delays + modulation).
+type: dsp
+tags:
+  - chorus
+  - modulation
+  - width
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: rate
+    interface: slider
+  - type: float
+    name: depth
+    interface: slider
+  - type: float
+    name: feedback
+    interface: slider
+  - type: float
+    name: delay
+    interface: slider
+  - type: float
+    name: mix
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  mod = os.osc(hslider("rate", 1, 0.05, 5, 0.01)) * hslider("depth", 0.01, 0, 0.05, 0.0001);
+  del = int(max(1, (hslider("delay", 15, 1, 40, 0.1) + mod * 5) * ma.SR / 1000));
+  process = _ * (1 - hslider("mix", 0.5, 0, 1, 0.01)) + (_ @ del) * hslider("mix", 0.5, 0, 1, 0.01);

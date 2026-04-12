@@ -25,10 +25,14 @@ describe('editor catalog', () => {
         expect(screen.getByLabelText('Search nodes')).toBeInTheDocument();
         const oscillatorButton = screen.getByRole('button', { name: 'Add Oscillator' });
         expect(oscillatorButton).toBeInTheDocument();
-        expect(screen.getByText('Sources')).toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: 'MIDI' })).toBeInTheDocument();
-        expect(screen.getByText('Routing')).toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: 'Math' })).toBeInTheDocument();
+        const categoryInSummary = (label: string) => (content: string, element: Element | null) =>
+            content === label && Boolean(element?.closest('summary'));
+
+        expect(screen.getByText(categoryInSummary('Sources'))).toBeInTheDocument();
+        expect(screen.getByText(categoryInSummary('AUDIO'))).toBeInTheDocument();
+        expect(screen.getByText(categoryInSummary('MIDI'))).toBeInTheDocument();
+        expect(screen.getByText(categoryInSummary('Routing'))).toBeInTheDocument();
+        expect(screen.getByText(categoryInSummary('Math'))).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Piano / keys in' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Controllers (CC in)' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add MIDI Player' })).toBeInTheDocument();

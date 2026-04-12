@@ -1,0 +1,25 @@
+name: midiNote
+label: Piano / keys in
+description: MIDI note input — trigger, pitch, gate, and velocity as control outputs.
+type: interface
+tags:
+  - midinote
+  - midi
+customComponent: null
+inputs: []
+outputs:
+  - type: trigger
+    name: trigger
+    interface: input
+  - type: float
+    name: frequency
+    interface: slider
+  - type: float
+    name: note
+    interface: slider
+  - type: trigger
+    name: gate
+    interface: input
+  - type: float
+    name: velocity
+    interface: slider

@@ -1,0 +1,18 @@
+name: auxReturn
+label: Aux Return
+description: Return path from an aux bus with output gain trim.
+type: dsp
+tags:
+  - aux-return
+  - routing
+customComponent: null
+inputs:
+  - type: float
+    name: gain
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  process = _,_;

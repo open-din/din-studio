@@ -7,7 +7,6 @@ import {
     MiniMap,
     BackgroundVariant,
     useOnSelectionChange,
-    type NodeTypes,
     type Node,
     type Edge,
     type OnConnectStartParams,
@@ -34,17 +33,7 @@ import { EDITOR_NODE_CATALOG } from './editor/nodeCatalog';
 
 import { useAudioGraphStore } from './editor/store';
 import type { AudioNodeData } from './editor/types';
-import {
-    OscNode, GainNode, FilterNode, OutputNode, NoiseNode, DelayNode, ReverbNode,
-    CompressorNode, PhaserNode, FlangerNode, TremoloNode, EQ3Node, DistortionNode,
-    ChorusNode, NoiseBurstNode, WaveShaperNode, ConvolverNode, AnalyzerNode,
-    StereoPannerNode, Panner3DNode, MixerNode, AuxSendNode, AuxReturnNode,
-    MatrixMixerNode, InputNode, UiTokensNode, ConstantSourceNode, MediaStreamNode,
-    EventTriggerNode, NoteNode, TransportNode, StepSequencerNode, PianoRollNode,
-    LFONode, ADSRNode, VoiceNode, SamplerNode, MidiNoteNode, MidiCCNode,
-    MidiNoteOutputNode, MidiCCOutputNode, MidiSyncNode, MidiPlayerNode, PatchNode, MathNode, CompareNode,
-    MixNode, ClampNode, SwitchNode,
-} from './editor/nodes';
+import { buildReactFlowNodeTypesFromStudioCatalog } from './editor/graphReactFlowNodeTypes';
 import { loadActiveGraphId, loadGraphs, saveActiveGraphId, saveGraph, deleteGraph } from './editor/graphStorage';
 import { graphDocumentToPatch, patchToGraphDocument } from '@open-din/react/patch';
 import { validateOfflinePatchText } from '../core/offline';
@@ -94,58 +83,6 @@ import { NodePalette } from './editor/components/NodePalette';
 import { ExplorerPanel } from './editor/components/ExplorerPanel';
 import { DiagnosticsDrawerContent, LibraryDrawerContent, RuntimeDrawerContent, mapProjectAssetToLibraryItem, type AudioPreviewState, type LibraryItem, type MissingLibraryReference } from './editor/components/Drawers';
 import { RecordingDrawerContent } from './editor/components/RecordingDrawerContent';
-
-const nodeTypes: NodeTypes = {
-    oscNode: OscNode as NodeTypes[string],
-    gainNode: GainNode as NodeTypes[string],
-    filterNode: FilterNode as NodeTypes[string],
-    outputNode: OutputNode as NodeTypes[string],
-    noiseNode: NoiseNode as NodeTypes[string],
-    delayNode: DelayNode as NodeTypes[string],
-    reverbNode: ReverbNode as NodeTypes[string],
-    compressorNode: CompressorNode as NodeTypes[string],
-    phaserNode: PhaserNode as NodeTypes[string],
-    flangerNode: FlangerNode as NodeTypes[string],
-    tremoloNode: TremoloNode as NodeTypes[string],
-    eq3Node: EQ3Node as NodeTypes[string],
-    distortionNode: DistortionNode as NodeTypes[string],
-    chorusNode: ChorusNode as NodeTypes[string],
-    noiseBurstNode: NoiseBurstNode as NodeTypes[string],
-    waveShaperNode: WaveShaperNode as NodeTypes[string],
-    convolverNode: ConvolverNode as NodeTypes[string],
-    analyzerNode: AnalyzerNode as NodeTypes[string],
-    pannerNode: StereoPannerNode as NodeTypes[string],
-    panner3dNode: Panner3DNode as NodeTypes[string],
-    mixerNode: MixerNode as NodeTypes[string],
-    auxSendNode: AuxSendNode as NodeTypes[string],
-    auxReturnNode: AuxReturnNode as NodeTypes[string],
-    matrixMixerNode: MatrixMixerNode as NodeTypes[string],
-    inputNode: InputNode as NodeTypes[string],
-    uiTokensNode: UiTokensNode as NodeTypes[string],
-    constantSourceNode: ConstantSourceNode as NodeTypes[string],
-    mediaStreamNode: MediaStreamNode as NodeTypes[string],
-    eventTriggerNode: EventTriggerNode as NodeTypes[string],
-    noteNode: NoteNode as NodeTypes[string],
-    transportNode: TransportNode as NodeTypes[string],
-    stepSequencerNode: StepSequencerNode as NodeTypes[string],
-    pianoRollNode: PianoRollNode as NodeTypes[string],
-    lfoNode: LFONode as NodeTypes[string],
-    adsrNode: ADSRNode as NodeTypes[string],
-    voiceNode: VoiceNode as NodeTypes[string],
-    samplerNode: SamplerNode as NodeTypes[string],
-    midiNoteNode: MidiNoteNode as NodeTypes[string],
-    midiCCNode: MidiCCNode as NodeTypes[string],
-    midiNoteOutputNode: MidiNoteOutputNode as NodeTypes[string],
-    midiCCOutputNode: MidiCCOutputNode as NodeTypes[string],
-    midiSyncNode: MidiSyncNode as NodeTypes[string],
-    midiPlayerNode: MidiPlayerNode as NodeTypes[string],
-    patchNode: PatchNode as NodeTypes[string],
-    mathNode: MathNode as NodeTypes[string],
-    compareNode: CompareNode as NodeTypes[string],
-    mixNode: MixNode as NodeTypes[string],
-    clampNode: ClampNode as NodeTypes[string],
-    switchNode: SwitchNode as NodeTypes[string],
-};
 
 const AUDIO_EDGE_STYLE = {
     stroke: '#6366f1',
@@ -344,6 +281,8 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     const setAssistQuery = useAudioGraphStore((s) => s.setAssistQuery);
 
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+
+    const nodeTypes = useMemo(() => buildReactFlowNodeTypesFromStudioCatalog(), []);
 
     const activeGraph = graphs.find(g => g.id === activeGraphId);
     const selectedNode = useMemo(

@@ -1,0 +1,13 @@
+name: mediaStream
+label: Media Stream
+description: Live or file-backed media stream as an audio source (microphone, file, etc.).
+type: interface
+tags:
+  - media-stream
+  - sources
+customComponent: null
+inputs: []
+outputs:
+  - type: audio
+    name: out
+    interface: input

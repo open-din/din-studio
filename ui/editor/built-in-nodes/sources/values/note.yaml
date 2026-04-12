@@ -1,0 +1,13 @@
+name: note
+label: Note
+description: Single-note frequency source for sequencing and pitch CV.
+type: value
+tags:
+  - note
+  - sources
+customComponent: null
+inputs: []
+outputs:
+  - type: float
+    name: freq
+    interface: slider

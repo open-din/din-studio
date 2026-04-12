@@ -1,0 +1,16 @@
+name: stepSequencer
+label: Step Sequencer
+description: Step-based pattern sequencer with transport input and per-step triggers.
+type: timeline
+tags:
+  - step-sequencer
+  - sources
+customComponent: null
+inputs:
+  - type: trigger
+    name: transport
+    interface: input
+outputs:
+  - type: trigger
+    name: trigger
+    interface: input

@@ -1,0 +1,25 @@
+name: switch
+label: Switch
+description: Select one of three inputs by index for the output.
+type: value
+tags:
+  - switch
+  - math
+customComponent: null
+inputs:
+  - type: float
+    name: index
+    interface: slider
+  - type: float
+    name: in_0
+    interface: slider
+  - type: float
+    name: in_1
+    interface: slider
+  - type: float
+    name: in_2
+    interface: slider
+outputs:
+  - type: float
+    name: out
+    interface: slider

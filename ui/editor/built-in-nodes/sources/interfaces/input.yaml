@@ -1,0 +1,10 @@
+name: input
+label: Input
+description: External audio input (device or bus). Connect the graph to hardware or host input.
+type: interface
+tags:
+  - input
+  - sources
+customComponent: null
+inputs: []
+outputs: []

@@ -1,10 +1,11 @@
 /**
- * Load merged Studio node catalog: optional JSON overrides on top of legacy bootstrap.
+ * Load merged Studio node catalog: built-in YAML only, then optional JSON overrides.
+ * Legacy `EDITOR_NODE_CATALOG` is not merged here — palette rows come solely from `built-in-nodes/`.
  *
  * @see docs_v2/10-studio-node-ui-json-catalog.md
  */
 import studioUserJson from './studio-node-catalog.json';
-import { legacyBootstrapStudioDefinitions } from './legacyBootstrap';
+import { loadBuiltInNodeRawDefinitions } from './loadBuiltInNodeFiles';
 import { normalizeStudioNodeDefinition } from './normalize';
 import type { RawStudioNodeDefinition, StudioNodeDefinition } from './types';
 import { validateStudioNodeDefinition } from './validate';
@@ -19,16 +20,26 @@ function parseUserCatalog(): RawStudioNodeDefinition[] {
 let cached: StudioNodeDefinition[] | null = null;
 
 /**
- * Full catalog (legacy bootstrap merged with `studio-node-catalog.json` overrides by `name`).
+ * Full catalog: per-node YAML under `built-in-nodes/`, then optional `studio-node-catalog.json` overrides by `name`.
  */
 export function loadStudioNodeCatalog(): StudioNodeDefinition[] {
     if (cached) {
         return cached;
     }
-    const boot = legacyBootstrapStudioDefinitions();
     const byName = new Map<string, StudioNodeDefinition>();
-    for (const d of boot) {
-        byName.set(d.name, d);
+    for (const raw of loadBuiltInNodeRawDefinitions()) {
+        const norm = normalizeStudioNodeDefinition(raw);
+        if (!norm.name) {
+            continue;
+        }
+        const v = validateStudioNodeDefinition(norm);
+        if (!v.ok) {
+            if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+                console.warn(`[studio catalog] skipped invalid built-in node "${norm.name}":`, v.errors);
+            }
+            continue;
+        }
+        byName.set(norm.name, norm);
     }
     for (const raw of parseUserCatalog()) {
         const norm = normalizeStudioNodeDefinition(raw);

@@ -1,0 +1,19 @@
+name: compare
+label: Compare
+description: Compare two values and output a boolean-like or comparison result.
+type: value
+tags:
+  - compare
+  - math
+customComponent: null
+inputs:
+  - type: float
+    name: a
+    interface: slider
+  - type: float
+    name: b
+    interface: slider
+outputs:
+  - type: float
+    name: out
+    interface: slider

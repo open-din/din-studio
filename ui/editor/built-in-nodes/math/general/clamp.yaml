@@ -1,0 +1,22 @@
+name: clamp
+label: Clamp
+description: Clamp a value to a min/max range.
+type: value
+tags:
+  - clamp
+  - math
+customComponent: null
+inputs:
+  - type: float
+    name: value
+    interface: slider
+  - type: float
+    name: min
+    interface: slider
+  - type: float
+    name: max
+    interface: slider
+outputs:
+  - type: float
+    name: out
+    interface: slider

@@ -1,5 +1,7 @@
 /**
- * @file Re-exports editor node React components for graph rendering.
+ * @file Reference barrel: re-exports editor node React components.
+ * The editor shell builds React Flow `nodeTypes` from the Studio catalog (YAML/JSON) via
+ * `graphReactFlowNodeTypes.tsx` — it does not import this module.
  */
 /* eslint-disable jsdoc/require-jsdoc, jsdoc/require-description, jsdoc/require-param-description, jsdoc/require-returns-description -- barrel module */
 

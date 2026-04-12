@@ -1,0 +1,19 @@
+name: math
+label: Math
+description: Binary float math (operation chosen in the node). A and B inputs, single output.
+type: value
+tags:
+  - math
+  - math
+customComponent: null
+inputs:
+  - type: float
+    name: a
+    interface: slider
+  - type: float
+    name: b
+    interface: slider
+outputs:
+  - type: float
+    name: out
+    interface: slider

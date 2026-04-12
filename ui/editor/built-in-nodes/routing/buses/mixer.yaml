@@ -1,0 +1,24 @@
+name: mixer
+label: Mixer
+description: Mix up to three stereo inputs to a single output with unity gain staging.
+type: dsp
+tags:
+  - mixer
+  - routing
+customComponent: null
+inputs:
+  - type: audio
+    name: in1
+    interface: input
+  - type: audio
+    name: in2
+    interface: input
+  - type: audio
+    name: in3
+    interface: input
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  process = _,_;

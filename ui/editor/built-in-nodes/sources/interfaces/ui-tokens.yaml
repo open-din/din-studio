@@ -1,0 +1,10 @@
+name: uiTokens
+label: UI Tokens
+description: Design tokens and theme values for UI-driven modulation and styling.
+type: value
+tags:
+  - ui-tokens
+  - sources
+customComponent: null
+inputs: []
+outputs: []

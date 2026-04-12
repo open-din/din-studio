@@ -1,0 +1,16 @@
+name: output
+label: Output
+description: Master output to speakers or render bus. One instance per graph; includes master gain.
+type: interface
+tags:
+  - output
+  - routing
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: masterGain
+    interface: slider
+outputs: []

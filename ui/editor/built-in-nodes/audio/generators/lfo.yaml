@@ -1,0 +1,25 @@
+name: lfo
+label: null
+description: Low-frequency oscillator for modulation (oscillators.lib + depth).
+type: dsp
+tags:
+  - lfo
+  - modulation
+  - lfo-rate
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: float
+    name: rate
+    interface: slider
+  - type: float
+    name: depth
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = os.osc(hslider("rate", 2, 0.01, 20, 0.001)) * hslider("depth", 1, 0, 1, 0.001);

@@ -1,0 +1,16 @@
+name: midiCC
+label: Controllers (CC in)
+description: MIDI continuous controller input — normalized and raw values as outputs.
+type: interface
+tags:
+  - midicc
+  - midi
+customComponent: null
+inputs: []
+outputs:
+  - type: float
+    name: normalized
+    interface: slider
+  - type: float
+    name: raw
+    interface: slider

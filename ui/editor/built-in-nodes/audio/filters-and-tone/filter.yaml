@@ -1,0 +1,35 @@
+name: filter
+label: null
+description: Lowpass via filters.lib (fi.lowpass) with cutoff, Q, detune offset, and output gain trim.
+type: dsp
+tags:
+  - filter
+  - lowpass
+  - tone
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: frequency
+    interface: slider
+  - type: float
+    name: q
+    interface: slider
+  - type: float
+    name: detune
+    interface: slider
+  - type: float
+    name: gain
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  fc = hslider("frequency", 1000, 20, 20000, 0.001) * pow(2, hslider("detune", 0, -24, 24, 0.01) / 12.0);
+  process = _ : fi.lowpass(3, fc) : *(ba.db2linear(hslider("gain", 0, -24, 24, 0.1)));

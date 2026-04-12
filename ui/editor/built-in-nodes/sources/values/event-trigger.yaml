@@ -1,0 +1,16 @@
+name: eventTrigger
+label: Event Trigger
+description: Emits trigger events and accepts token input for gated or clocked behavior.
+type: value
+tags:
+  - event-trigger
+  - sources
+customComponent: null
+inputs:
+  - type: float
+    name: token
+    interface: slider
+outputs:
+  - type: trigger
+    name: trigger
+    interface: input

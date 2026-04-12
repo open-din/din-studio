@@ -1,0 +1,25 @@
+name: midiNoteOutput
+label: Note Out
+description: MIDI note output — accepts trigger, gate, pitch, and velocity as inputs.
+type: interface
+tags:
+  - midinoteoutput
+  - midi
+customComponent: null
+inputs:
+  - type: trigger
+    name: trigger
+    interface: input
+  - type: trigger
+    name: gate
+    interface: input
+  - type: float
+    name: note
+    interface: slider
+  - type: float
+    name: frequency
+    interface: slider
+  - type: float
+    name: velocity
+    interface: slider
+outputs: []

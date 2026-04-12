@@ -1,0 +1,19 @@
+name: noise
+label: null
+description: Pink noise source (noises.lib / no.pink_noise).
+type: dsp
+tags:
+  - noise
+  - pink
+  - generator
+  - faust
+  - stdfaust
+customComponent: null
+inputs: []
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = no.pink_noise;

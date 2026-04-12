@@ -1,0 +1,38 @@
+name: flanger
+label: null
+description: Modulated delay comb with feedback (rate/depth/delay/mix ports).
+type: dsp
+tags:
+  - flanger
+  - modulation
+  - comb
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: rate
+    interface: slider
+  - type: float
+    name: depth
+    interface: slider
+  - type: float
+    name: feedback
+    interface: slider
+  - type: float
+    name: delay
+    interface: slider
+  - type: float
+    name: mix
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  del = int(max(1, os.osc(hslider("rate", 0.5, 0.01, 5, 0.01)) * hslider("depth", 20, 0, 80, 0.1) + hslider("delay", 3, 0, 20, 0.01) * 0.001 * ma.SR));
+  process = _ * (1 - hslider("mix", 0.5, 0, 1, 0.01)) + (_ @ del) * hslider("mix", 0.5, 0, 1, 0.01);

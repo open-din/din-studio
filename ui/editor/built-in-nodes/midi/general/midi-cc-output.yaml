@@ -1,0 +1,13 @@
+name: midiCCOutput
+label: CC Out
+description: MIDI continuous controller output — single value input.
+type: interface
+tags:
+  - midiccoutput
+  - midi
+customComponent: null
+inputs:
+  - type: float
+    name: value
+    interface: slider
+outputs: []

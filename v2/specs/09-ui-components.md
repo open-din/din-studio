@@ -224,7 +224,7 @@ interface StudioNodeDefinition {
 ### 10.8 Implementation notes
 
 - Introduce `StudioNodeDefinition` / `StudioNodePortSchema` as the **canonical** catalog input; keep types independent from `AudioNodeData` and DinDocument types.
-- Replace split catalog sources (`EDITOR_NODE_CATALOG`, default handles, ad hoc taxonomy) with a **loader/normalizer** over these JSON definitions; normalize defaults: `label: null`, `customComponent: null`, `tags: []`, `inputs: []`, `outputs: []`.
+- Replace split catalog sources (`EDITOR_NODE_CATALOG`, default handles, ad hoc taxonomy) with a **loader/normalizer** over JSON and/or YAML definitions (see §10.10); normalize defaults: `label: null`, `customComponent: null`, `tags: []`, `inputs: []`, `outputs: []`.
 - **Migration** is Studio-catalog-only, not a `.din` migration; preserve instance behavior and inspector overrides in graph state.
 
 ### 10.9 Defaults and assumptions
@@ -233,3 +233,13 @@ interface StudioNodeDefinition {
 - `dsp` is a **single string** of Faust source, not an object.
 - `inputs` and `outputs` share one port schema for implementation simplicity.
 - `category` / `subcategory` stay free-form to limit palette churn.
+
+### 10.10 Built-in catalog nodes (YAML)
+
+din-studio MAY ship built-in catalog rows as **one file per node** under `ui/editor/built-in-nodes/`, using the same field model as §10.3 (YAML maps to the same shape as JSON). Typical layout:
+
+- `built-in-nodes/<category-slug>/<subcategory-slug>/<name>.yaml`
+
+Examples: `built-in-nodes/audio/generators/osc.yaml` (Faust `dsp`, category `AUDIO`), `built-in-nodes/sources/transport/transport.yaml` (category `Sources`), `built-in-nodes/routing/buses/mixer.yaml` (category `Routing`), `built-in-nodes/math/general/math.yaml` (category `Math`).
+
+The loader derives `category` and `subcategory` strings from folder names (with documented slug→label rules); optional `studio-node-catalog.json` remains a **merge overlay** by `name` for hotfixes or experiments without editing many files.

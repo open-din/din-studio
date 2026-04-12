@@ -11,11 +11,13 @@ The Studio node catalog describes **palette and React Flow UI** for editor nodes
 | Area | Location |
 |------|----------|
 | Types | `ui/editor/studioNodeCatalog/types.ts` |
+| Built-in nodes (YAML) | `ui/editor/built-in-nodes/<category>/<subcategory>/*.yaml` |
+| Path → category/subcategory helpers | `ui/editor/studioNodeCatalog/loadBuiltInNodeFiles.ts` |
 | JSON defaults on load | `ui/editor/studioNodeCatalog/normalize.ts` |
 | §10.5 validation | `ui/editor/studioNodeCatalog/validate.ts` |
-| Merged loader (legacy bootstrap + JSON overrides) | `ui/editor/studioNodeCatalog/catalog.ts` |
+| Merged loader (legacy bootstrap + YAML + JSON overrides) | `ui/editor/studioNodeCatalog/catalog.ts` |
 | Optional overrides | `ui/editor/studioNodeCatalog/studio-node-catalog.json` (array; may be empty) |
-| Legacy → Studio rows | `ui/editor/studioNodeCatalog/legacyBootstrap.ts` |
+| Legacy handle → Studio type map (not palette merge) | `ui/editor/studioNodeCatalog/legacyBootstrap.ts` |
 | Default title / humanize `name` | `ui/editor/studioNodeCatalog/title.ts` |
 | React Flow handle ids = port `name`s | `ui/editor/studioNodeCatalog/handles.ts` |
 | Public barrel | `ui/editor/studioNodeCatalog/index.ts` |
@@ -23,8 +25,8 @@ The Studio node catalog describes **palette and React Flow UI** for editor nodes
 
 ## Loader behavior
 
-1. `legacyBootstrapStudioDefinitions()` builds one `StudioNodeDefinition` per legacy `EDITOR_NODE_CATALOG` row (handles from `DEFAULT_HANDLES_BY_TYPE`).
-2. Entries from `studio-node-catalog.json` are normalized, validated, and merged **by `name`**, replacing bootstrap rows when valid.
+1. Each `*.yaml` / `*.yml` under `built-in-nodes/` is loaded at build time (Vite `import.meta.glob`), parsed, and merged **by `name`**. Folder path sets `category` and `subcategory` (see `loadBuiltInNodeFiles.ts`): first segment under `built-in-nodes/` is the category slug, second segment is the subcategory slug. **Category labels:** `audio` → `AUDIO`; other slugs use title case to match the legacy palette (`sources` → `Sources`, `routing` → `Routing`, `math` → `Math`). Subcategory slugs map via `SUBCATEGORY_SLUG_TO_LABEL` or title case (e.g. `generators` → `Generators`). Inline `category` / `subcategory` in a file, if present, must match the path; path wins. The legacy `EDITOR_NODE_CATALOG` is **not** merged into the palette; it remains the source for editor node types and handles outside this catalog.
+2. Entries from `studio-node-catalog.json` are normalized, validated, and merged **by `name`**, replacing any prior row when valid.
 3. `loadStudioNodeCatalog()` memoizes the result. Call `resetStudioNodeCatalogCache()` in tests to reset.
 
 ## Faust `dsp` field
@@ -38,7 +40,7 @@ The Studio node catalog describes **palette and React Flow UI** for editor nodes
 
 ## Instance labels vs catalog
 
-Catalog `label` (or derived title from `name`) is the default for new nodes. Inspector edits to a **node instance** label update runtime/patch state only and **must not** rewrite catalog JSON definitions.
+Catalog `label` (or derived title from `name`) is the default for new nodes. Inspector edits to a **node instance** label update runtime/patch state only and **must not** rewrite catalog YAML/JSON definitions.
 
 ## Tests
 

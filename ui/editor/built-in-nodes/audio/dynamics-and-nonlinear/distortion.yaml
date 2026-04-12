@@ -1,0 +1,34 @@
+name: distortion
+label: null
+description: Waveshaping with drive, tone, level, and mix (misceffects / tanh).
+type: dsp
+tags:
+  - distortion
+  - drive
+  - saturation
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: drive
+    interface: slider
+  - type: float
+    name: level
+    interface: slider
+  - type: float
+    name: mix
+    interface: slider
+  - type: float
+    name: tone
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _ : *(hslider("drive", 6, 1, 24, 0.1)) : ma.tanh : *(ba.db2linear(hslider("level", 0, -24, 12, 0.1)));

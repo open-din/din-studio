@@ -1,0 +1,28 @@
+name: delay
+label: null
+description: Simple delay line with feedback (delays.lib / de.fdelay).
+type: dsp
+tags:
+  - delay
+  - echo
+  - feedback
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: delayTime
+    interface: slider
+  - type: float
+    name: feedback
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = +~de.fdelay(1920000, int(hslider("delayTime", 0.25, 0, 2, 0.001) * ma.SR)) * hslider("feedback", 0.3, 0, 0.99, 0.01);

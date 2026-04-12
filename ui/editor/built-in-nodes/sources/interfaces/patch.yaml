@@ -1,0 +1,16 @@
+name: patch
+label: Patch
+description: Nested patch graph with audio in/out. Use for reusable subgraphs and instruments.
+type: interface
+tags:
+  - patch
+  - sources
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+outputs:
+  - type: audio
+    name: out
+    interface: input

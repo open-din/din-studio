@@ -1,0 +1,13 @@
+name: transport
+label: Transport
+description: Global transport clock and timing. One instance per graph; drives sequencers and sync.
+type: transport
+tags:
+  - transport
+  - sources
+customComponent: null
+inputs: []
+outputs:
+  - type: audio
+    name: out
+    interface: input

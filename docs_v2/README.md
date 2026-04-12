@@ -15,7 +15,7 @@ English only. Completed Gherkin tasks live in `v2/features/`. Extend this index 
 | `07-params-binding-manifest` | `ui/editor/faust/compileManifest.ts` | Baseline |
 | `08-runtime-bridge-integration` | `workers/faustCompile.worker.ts`, `faustCompile.ts` | Baseline |
 | `09-mcp-codegen-contract` | `targets/mcp/src/runtime/handlers.ts`, `bridge/protocol.ts` | Baseline (Faust fields on codegen) |
-| `10-studio-node-ui-json-catalog` | `docs_v2/10-studio-node-ui-json-catalog.md`, `ui/editor/studioNodeCatalog/`, `v2/specs/09-ui-components.md` §10 | Baseline (Gherkin: `v2/features/10-studio-node-ui-json-catalog.feature`) |
+| `10-studio-node-ui-json-catalog` | `docs_v2/10-studio-node-ui-json-catalog.md`, `ui/editor/studioNodeCatalog/`, `ui/editor/built-in-nodes/`, `v2/specs/09-ui-components.md` §10 | Baseline (Gherkin: `v2/features/10-studio-node-ui-json-catalog.feature`) |
 
 ## Authority
 

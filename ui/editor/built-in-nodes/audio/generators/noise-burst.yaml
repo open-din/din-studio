@@ -1,0 +1,33 @@
+name: noiseBurst
+label: null
+description: Triggered noise burst (duration, gain, attack, release).
+type: dsp
+tags:
+  - noise
+  - burst
+  - generator
+  - faust
+customComponent: null
+inputs:
+  - type: trigger
+    name: trigger
+    interface: input
+  - type: float
+    name: duration
+    interface: slider
+  - type: float
+    name: gain
+    interface: slider
+  - type: float
+    name: attack
+    interface: slider
+  - type: float
+    name: release
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = no.pink_noise;

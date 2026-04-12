@@ -1,0 +1,22 @@
+name: sampler
+label: Sampler
+description: Sample playback with trigger, playback rate, and detune. Connect to host sample buffers.
+type: asset
+tags:
+  - sampler
+  - sources
+customComponent: null
+inputs:
+  - type: trigger
+    name: trigger
+    interface: input
+  - type: float
+    name: playbackRate
+    interface: slider
+  - type: float
+    name: detune
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input

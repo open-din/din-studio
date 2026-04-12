@@ -1,0 +1,16 @@
+name: midiPlayer
+label: MIDI Player
+description: Plays a MIDI file asset — transport in, trigger out.
+type: timeline
+tags:
+  - midiplayer
+  - midi
+customComponent: null
+inputs:
+  - type: trigger
+    name: transport
+    interface: input
+outputs:
+  - type: trigger
+    name: trigger
+    interface: input

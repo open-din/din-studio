@@ -1,0 +1,10 @@
+name: midiSync
+label: Sync
+description: MIDI clock / sync hub (singleton in the graph).
+type: interface
+tags:
+  - midisync
+  - midi
+customComponent: null
+inputs: []
+outputs: []

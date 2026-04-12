@@ -1,0 +1,22 @@
+name: mix
+label: Mix
+description: Linear crossfade between A and B using mix amount T.
+type: value
+tags:
+  - mix
+  - math
+customComponent: null
+inputs:
+  - type: float
+    name: a
+    interface: slider
+  - type: float
+    name: b
+    interface: slider
+  - type: float
+    name: t
+    interface: slider
+outputs:
+  - type: float
+    name: out
+    interface: slider

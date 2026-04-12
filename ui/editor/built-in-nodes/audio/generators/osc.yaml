@@ -1,0 +1,25 @@
+name: osc
+label: Oscillator
+description: Sine oscillator with frequency and detune (oscillators.lib / os.oscsin).
+type: dsp
+tags:
+  - oscillator
+  - sine
+  - generator
+  - faust
+  - stdfaust
+customComponent: null
+inputs:
+  - type: float
+    name: frequency
+    interface: slider
+  - type: float
+    name: detune
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = os.oscsin(hslider("frequency", 440, 20, 20000, 0.001) + hslider("detune", 0, -100, 100, 0.01));

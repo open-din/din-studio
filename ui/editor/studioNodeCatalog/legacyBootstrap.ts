@@ -1,6 +1,6 @@
 /**
- * Bootstrap `StudioNodeDefinition[]` from the legacy `EDITOR_NODE_CATALOG` + `DEFAULT_HANDLES_BY_TYPE`.
- * Catalog JSON entries override these rows by `name` (Editor node type id).
+ * Build `StudioNodeDefinition[]` from the legacy `EDITOR_NODE_CATALOG` + `DEFAULT_HANDLES_BY_TYPE`.
+ * Used for tooling and compatibility; **not** merged into `loadStudioNodeCatalog()` (palette is YAML + JSON only).
  *
  * @see docs_v2/10-studio-node-ui-json-catalog.md
  */
