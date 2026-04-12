@@ -1,8 +1,15 @@
 # DIN Studio Docs
 
-This folder documents the Phase 3A desktop surfaces, their panels, and the reusable design rules that support launcher and workspace flows.
+Use this folder for legacy and surface-specific narrative docs only.
 
-## Included Docs
+## Load Order
+
+1. `project/SUMMARY.md`
+2. `project/features/70_v2_user_stories.feature.md` or `project/features/71_v2_delivery_slices.feature.md` when the task is v2-oriented
+3. The exact `project/features/*.feature.md` file mapped from a manifest row or test
+4. The exact file in `docs/`, `docs_v2/`, or `docs/generated/` that the task still needs
+
+## Surface Docs
 
 - [LauncherEntryFlows](./LauncherEntryFlows.md)
 - [EditorShell](./EditorShell.md)
@@ -15,17 +22,17 @@ This folder documents the Phase 3A desktop surfaces, their panels, and the reusa
 - [ColorSystem](./ColorSystem.md)
 - [AudioLibraryPanel](./AudioLibraryPanel.md)
 
-## Architecture & cross-repo
+## Architecture
 
 - [Data flow (store → codegen → runtime)](./DataFlow.md)
 - [Cross-repo dependencies](./CrossRepoDependencies.md)
 
-## Generated API reference
+## Generated API Reference
 
-`npm run docs:generate` emits TypeDoc markdown under `docs/generated/` (gitignored). Load on demand when debugging editor-core exports listed in `typedoc.json`.
+`npm run docs:generate` emits TypeDoc markdown under `docs/generated/` (gitignored). Load those pages only for the exact exported type or interface under review.
 
 ## Notes
 
-- Figma board `217:2` is the canonical Phase 3A desktop spec for these docs.
-- Older editor wireframes are fallback references only when Phase 3A does not restate a behavior.
-- Keep them in English so they remain usable for contributors and review tooling.
+- `project/features/` is the compact operational index for repo-owned behavior.
+- `docs_v2/` and `v2/` stay authoritative for the v2 refactor program, but should be opened file-by-file instead of tree-by-tree.
+- Keep docs in English so they remain usable for contributors and review tooling.

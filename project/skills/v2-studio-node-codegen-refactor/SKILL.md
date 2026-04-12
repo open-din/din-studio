@@ -14,6 +14,7 @@
 1. Read `AGENTS.md`, `project/ROUTE_CARD.json`, and this skill.
 2. Pick **one** task file from `tasks/todo/*.feature` and move it to `tasks/doing/`.
 3. **Documentation (smallest context first, only cited paths):**
+   - `project/features/70_v2_user_stories.feature.md` or `project/features/71_v2_delivery_slices.feature.md`.
    - Legacy `docs/` or root `specs/` **if** the task compares or migrates old behavior.
    - `docs_v2/<task-slug>.md` if it exists.
    - `v2/specs/*.md` **only** files referenced by the task or slice.

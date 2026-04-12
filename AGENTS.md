@@ -25,6 +25,8 @@
 - `project/EDITOR_NODE_SLICES.json`
 - `project/MCP_TOOL_SLICES.json`
 - `project/SURFACE_MANIFEST.json`
+- `project/features/70_v2_user_stories.feature.md`
+- `project/features/71_v2_delivery_slices.feature.md`
 
 ## SKILL MAP
 
@@ -38,6 +40,7 @@
 
 - `din-studio` owns editor and MCP surfaces, not the public schema or runtime semantics.
 - Use slice manifests before opening broad editor or MCP modules.
+- Use the compact `project/features/70_*` and `71_*` indexes before opening full `v2/` or `docs_v2/` trees.
 - Keep manifests, feature docs, and tests aligned.
 - Escalate only for shared IDs, public patch surface, or round-trip contract changes.
 

@@ -1,6 +1,6 @@
 # din-studio v2 technical documentation
 
-English only. Completed Gherkin tasks live in `v2/features/`. Extend this index with `docs_v2/<slug>.md` pages as APIs stabilize.
+English only. Completed Gherkin tasks live in `v2/features/`. Start from the compact project indexes in `project/features/70_v2_user_stories.feature.md` and `project/features/71_v2_delivery_slices.feature.md`, then open only the exact `docs_v2/<slug>.md` page or `v2/specs/*.md` file that the current task cites.
 
 ## Index (populate per task)
 
@@ -33,8 +33,9 @@ English only. Completed Gherkin tasks live in `v2/features/`. Extend this index 
 
 ## Agent documentation load order (minimize context)
 
-1. Legacy `docs/` (and root `specs/` if needed) — **only paths relevant to the task.**
-2. This folder — matching `docs_v2/<task-slug>.md` when it exists.
-3. `v2/specs/` — **only** files cited by the task.
-4. `v2/user-stories/` — **only** `.feature` files the task references.
-5. `open-din/v2` — **only** files cited in the task `Background` (schemas, examples, specs).
+1. `project/features/70_v2_user_stories.feature.md` or `project/features/71_v2_delivery_slices.feature.md`.
+2. Legacy `docs/` (and root `specs/` if needed) — **only paths relevant to the task.**
+3. This folder — matching `docs_v2/<task-slug>.md` when it exists.
+4. `v2/specs/` — **only** files cited by the task.
+5. `v2/user-stories/` — **only** `.feature` files the task references.
+6. `open-din/v2` — **only** files cited in the task `Background` (schemas, examples, specs).

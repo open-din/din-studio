@@ -11,7 +11,7 @@
 
 ## STEPS
 
-1. Read `project/ROUTE_CARD.json` and the matching item in `project/EDITOR_NODE_SLICES.json`.
+1. Read `project/ROUTE_CARD.json`, `project/features/71_v2_delivery_slices.feature.md` for v2 node/catalog work, and the matching item in `project/EDITOR_NODE_SLICES.json`.
 2. Update the node source first, then touch shared editor files only if the slice says they are needed.
 3. Keep feature docs, tests, and `project/COVERAGE_MANIFEST.json` aligned.
 4. Escalate only for shared IDs, public patch surface, or round-trip changes.

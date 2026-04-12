@@ -11,7 +11,7 @@
 
 ## STEPS
 
-1. Read the summary files plus the affected manifest rows.
+1. Read `project/SUMMARY.md`, the affected manifest rows, and the exact mapped feature doc only.
 2. Verify the visible workflow still matches the owned surface and test plan.
 3. Confirm no public schema or runtime ownership drift was introduced.
 4. Call out any missing automated coverage before merge.

@@ -24,11 +24,12 @@ Follow `AGENTS.md` load order first.
 
 Read **only paths cited by the active task** — not whole trees — in this order:
 
-1. Legacy `docs/` and root `specs/` when the task touches pre-v2 or comparative behavior.
-2. `docs_v2/<task-slug>.md` when present.
-3. `v2/specs/` numbered files cited by the task.
-4. `v2/user-stories/*.feature` files the task requires.
-5. `open-din/v2` files cited in the task; then `din-core/v2/specs` files cited for core boundaries.
+1. `project/features/70_v2_user_stories.feature.md` or `project/features/71_v2_delivery_slices.feature.md`.
+2. Legacy `docs/` and root `specs/` when the task touches pre-v2 or comparative behavior.
+3. `docs_v2/<task-slug>.md` when present.
+4. `v2/specs/` numbered files cited by the task.
+5. `v2/user-stories/*.feature` files the task requires.
+6. `open-din/v2` files cited in the task; then `din-core/v2/specs` files cited for core boundaries.
 
 ## Language
 
