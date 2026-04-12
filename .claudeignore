@@ -21,6 +21,7 @@ coverage/
 test-results/
 playwright-report/
 blob-report/
+test-results/
 
 # Logs
 logs/

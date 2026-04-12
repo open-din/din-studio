@@ -1,0 +1,29 @@
+[**din-studio**](../../../README.md)
+
+***
+
+[din-studio](../../../README.md) / [editor/nodeHelpers](../README.md) / ensureInputParam
+
+# Function: ensureInputParam()
+
+> **ensureInputParam**(`param`, `nodeId`, `index`): [`InputParam`](../../types/interfaces/InputParam.md)
+
+Defined in: [ui/editor/nodeHelpers.ts:224](https://github.com/open-din/din-studio/blob/31e06758712a7d406225d6b4218252e8e7c11eeb/ui/editor/nodeHelpers.ts#L224)
+
+## Parameters
+
+### param
+
+`Partial`\<[`InputParam`](../../types/interfaces/InputParam.md)\>
+
+### nodeId
+
+`string`
+
+### index
+
+`number`
+
+## Returns
+
+[`InputParam`](../../types/interfaces/InputParam.md)
