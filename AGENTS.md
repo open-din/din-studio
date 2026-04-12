@@ -28,6 +28,7 @@
 
 ## SKILL MAP
 
+- v2 node/codegen refactor (Gherkin tasks) -> `project/skills/v2-studio-node-codegen-refactor/SKILL.md`
 - Editor node work -> `project/skills/editor-node-change/SKILL.md`
 - Surface or workflow change -> `project/skills/surface-flow-change/SKILL.md`
 - MCP work -> `project/skills/mcp-target-change/SKILL.md`

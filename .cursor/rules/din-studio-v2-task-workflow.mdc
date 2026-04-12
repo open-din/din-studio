@@ -1,0 +1,41 @@
+---
+description: din-studio v2 node/codegen refactor — Gherkin tasks, TDD, docs_v2, English only.
+globs:
+  - v2/**/*
+  - tasks/**/*
+  - docs_v2/**/*
+  - ui/editor/**/*
+alwaysApply: false
+---
+
+# din-studio v2 task workflow
+
+Follow `AGENTS.md` load order first.
+
+## Authority
+
+- **Normative DinDocument interchange**: sibling workspace `open-din/v2` (schemas, markdown specs, examples).
+- **Studio product specs**: `v2/specs/*.md` in this repo.
+- **Core behavior** (validation, runtime session, WASM): `din-core/v2/specs` in the `din-core` repo.
+- When `v2/specs`, `open-din/v2`, or `din-core/v2/specs` conflict with legacy editor or `CodeGenerator.tsx` behavior, **v2 specs take precedence** for new work.
+
+## Language
+
+All artifacts under `v2/user-stories`, `tasks/**`, `docs_v2`, and `v2/features` MUST be **English only**.
+
+## Task lifecycle
+
+1. **todo** — `tasks/todo/*.feature`: ready to implement.
+2. **doing** — move one task file to `tasks/doing/` while actively working (prefer a single WIP per branch).
+3. **done** — after implementation passes `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run test:e2e`, move to `tasks/done/`.
+4. **archived** — update `docs_v2` for that task, then move the Gherkin file to `v2/features/` as the permanent completed record.
+
+## TDD and documentation
+
+- Write or extend **tests before** or **in the same commit** as production code for each task.
+- Every new **public** editor or codegen API in scope MUST have **JSDoc** (or established module documentation) and be linked from the matching `docs_v2/*.md` page.
+- Prefer fixtures from `open-din/v2/examples` where the document bridge is in scope; keep tests self-contained in CI.
+
+## Escalation
+
+Persisted interchange IDs, public patch schema, or round-trip contract changes require coordination with `react-din` and `din-core` per `AGENTS.md` HARD RULES.
