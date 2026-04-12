@@ -1,0 +1,1 @@
+{"nodes": [{"id": "ui_ai_tools_ts", "label": "tools.ts", "file_type": "code", "source_file": "ui/ai/tools.ts", "source_location": "L1"}], "edges": [{"source": "ui_ai_tools_ts", "target": "completions", "relation": "imports_from", "confidence": "EXTRACTED", "source_file": "ui/ai/tools.ts", "source_location": "L1", "weight": 1.0}]}
