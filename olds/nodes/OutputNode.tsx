@@ -1,16 +1,16 @@
 import { memo, useMemo } from 'react';
 import type { NodeProps } from '@xyflow/react';
-import { useAudioGraphStore, type OutputNodeData, type OutputParam } from '../store';
-import { audioEngine } from '../AudioEngine';
-import { formatConnectedValue, useTargetHandleConnection } from '../paramConnections';
-import { EditorIcon } from '../components/EditorIcons';
+import { useAudioGraphStore, type OutputNodeData, type OutputParam } from '../../ui/editor/store';
+import { audioEngine } from '../../ui/editor/AudioEngine';
+import { formatConnectedValue, useTargetHandleConnection } from '../../ui/editor/paramConnections';
+import { EditorIcon } from '../../ui/editor/components/EditorIcons';
 import {
     NodeHandleRow,
     NodeNumberField,
     NodeShell,
     NodeValueBadge,
     NodeWidget,
-} from '../components/NodeShell';
+} from '../../ui/editor/components/NodeShell';
 
 const OutputNode = memo(({ id, data, selected }: NodeProps) => {
     const outputData = data as OutputNodeData;

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import type { NodeProps } from '@xyflow/react';
 import { useMidi, useMidiClock } from '@open-din/react/midi';
-import { audioEngine } from '../AudioEngine';
+import { audioEngine } from '../../ui/editor/AudioEngine';
 import {
     NodeCheckboxField,
     NodeSelectField,
@@ -9,9 +9,9 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { useAudioGraphStore } from '../store';
-import type { MidiSyncNodeData } from '../types';
+} from '../../ui/editor/components/NodeShell';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { MidiSyncNodeData } from '../../ui/editor/types';
 import { buildInputOptions, buildOutputOptions } from './midiNodeUtils';
 
 const MidiSyncNode = memo(({ id, data, selected }: NodeProps) => {

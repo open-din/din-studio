@@ -1,0 +1,22 @@
+name: convolver
+color: "#8844ff"
+icon: 🧱
+label: null
+description: Convolution reverb / IR (impulse configured in node data).
+type: dsp
+tags:
+  - convolver
+  - reverb
+  - faust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _;

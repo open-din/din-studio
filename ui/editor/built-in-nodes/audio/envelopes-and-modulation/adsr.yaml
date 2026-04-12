@@ -1,4 +1,6 @@
 name: adsr
+color: "#dddddd"
+icon: 📈
 label: null
 description: ADSR envelope (envelopes.lib / en.adsr) with UI gate.
 type: dsp

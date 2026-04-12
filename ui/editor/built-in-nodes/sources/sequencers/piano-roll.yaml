@@ -1,4 +1,6 @@
 name: pianoRoll
+color: "#44ccff"
+icon: 🎼
 label: Piano Roll
 description: Piano-roll editor timeline with transport sync and note triggers.
 type: timeline

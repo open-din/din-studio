@@ -3,7 +3,7 @@
  *
  * @see docs_v2/10-studio-node-ui-json-catalog.md
  */
-import type { StudioNodeDefinition, StudioNodePortSchema, StudioNodeValidationResult } from './types';
+import type { StudioNodeDefinition, StudioNodePortSchema, StudioNodeValidationResult } from './definition';
 
 const STUDIO_NODE_TYPES = new Set<StudioNodeDefinition['type']>([
     'dsp',
@@ -62,6 +62,16 @@ export function validateStudioNodeDefinition(def: StudioNodeDefinition): StudioN
         errors.push('customComponent must be null or a non-empty registry key');
     }
 
+    if (def.color !== undefined && def.color !== null && def.color.trim() === '') {
+        errors.push('color must be null, undefined, or a non-empty string');
+    }
+    if (def.icon !== undefined && def.icon !== null && def.icon.trim() === '') {
+        errors.push('icon must be null, undefined, or a non-empty string');
+    }
+    if (def.singleton !== undefined && typeof def.singleton !== 'boolean') {
+        errors.push('singleton must be a boolean when set');
+    }
+
     for (const t of def.tags) {
         if (!t.trim()) {
             errors.push('tags must contain only non-empty strings');
@@ -77,6 +87,9 @@ export function validateStudioNodeDefinition(def: StudioNodeDefinition): StudioN
         }
         if (!PORT_INTERFACE_TYPES.has(port.interface)) {
             errors.push(`port "${port.name}" has invalid interface "${port.interface}"`);
+        }
+        if (port.label !== undefined && port.label !== null && port.label.trim() === '') {
+            errors.push(`port "${port.name}" label must be null or a non-empty string`);
         }
     }
 

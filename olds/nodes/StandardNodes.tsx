@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import type { NodeProps } from '@xyflow/react';
-import { audioEngine } from '../AudioEngine';
+import { audioEngine } from '../../ui/editor/AudioEngine';
 import {
     NodeCheckboxField,
     NodeHandleRow,
@@ -11,10 +11,10 @@ import {
     NodeValueBadge,
     NodeWidget,
     type NodeHandleKind,
-} from '../components/NodeShell';
-import { getNodeCatalogEntry, getNodeHandleDescriptors } from '../nodeCatalog';
-import { formatConnectedValue, useTargetHandleConnection } from '../paramConnections';
-import { useAudioGraphStore } from '../store';
+} from '../../ui/editor/components/NodeShell';
+import { getNodeCatalogEntry, getNodeHandleDescriptors } from '../../ui/editor/nodeCatalog';
+import { formatConnectedValue, useTargetHandleConnection } from '../../ui/editor/paramConnections';
+import { useAudioGraphStore } from '../../ui/editor/store';
 import type {
     ADSRNodeData,
     AnalyzerNodeData,
@@ -52,7 +52,7 @@ import type {
     TremoloNodeData,
     VoiceNodeData,
     WaveShaperNodeData,
-} from '../types';
+} from '../../ui/editor/types';
 
 type FieldKind = 'number' | 'checkbox' | 'select' | 'text';
 type PrimitiveValue = string | number | boolean | null | undefined;

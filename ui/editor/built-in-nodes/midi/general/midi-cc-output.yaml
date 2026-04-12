@@ -1,4 +1,6 @@
 name: midiCCOutput
+color: "#4dd4a0"
+icon: 📤
 label: CC Out
 description: MIDI continuous controller output — single value input.
 type: interface

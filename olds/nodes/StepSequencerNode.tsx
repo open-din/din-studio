@@ -1,8 +1,8 @@
 import React, { memo, useEffect, useState } from 'react';
 import type { NodeProps, Node } from '@xyflow/react';
-import { useAudioGraphStore, type StepSequencerNodeData } from '../store';
-import { audioEngine } from '../AudioEngine';
-import '../editor.css';
+import { useAudioGraphStore, type StepSequencerNodeData } from '../../ui/editor/store';
+import { audioEngine } from '../../ui/editor/AudioEngine';
+import '../../ui/editor/editor.css';
 import {
     NodeHandleRow,
     NodeSelectField,
@@ -10,7 +10,7 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
+} from '../../ui/editor/components/NodeShell';
 
 export const StepSequencerNode: React.FC<NodeProps<Node<StepSequencerNodeData>>> = memo(({ id, data, selected }) => {
     const updateNodeData = useAudioGraphStore((s) => s.updateNodeData);

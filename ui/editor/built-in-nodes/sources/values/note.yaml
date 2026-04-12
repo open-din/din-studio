@@ -1,4 +1,6 @@
 name: note
+color: "#ffcc00"
+icon: 🎵
 label: Note
 description: Single-note frequency source for sequencing and pitch CV.
 type: value
@@ -10,4 +12,5 @@ inputs: []
 outputs:
   - type: float
     name: freq
+    label: Frequency
     interface: slider

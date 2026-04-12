@@ -1,4 +1,6 @@
 name: constantSource
+color: "#7bd1ff"
+icon: ━
 label: Constant Source
 description: DC offset / constant control value as an audio-rate or CV source.
 type: value

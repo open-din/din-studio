@@ -13,6 +13,7 @@ import type {
 } from './store';
 import { useAudioGraphStore } from './store';
 import { isDataNodeType, isInputLikeNodeType, resolveInputParamByHandle } from './nodeHelpers';
+import type { StudioNodePortValueType } from './nodeCatalog/definition';
 import { audioEngine } from './AudioEngine';
 import { clamp, compare, math, mix, switchValue } from '@open-din/react/data';
 
@@ -251,7 +252,10 @@ export function useTargetHandleConnection(nodeId: string, targetHandle: string):
         return connectionInfo;
     }
 
-    const engineValue = audioEngine.getControlInputValue(nodeId, targetHandle);
+    const engineValue =
+        typeof audioEngine.getControlInputValue === 'function'
+            ? audioEngine.getControlInputValue(nodeId, targetHandle)
+            : undefined;
     const liveValue = engineValue ?? connectionInfo.value;
 
     return {
@@ -268,4 +272,21 @@ export function formatConnectedValue(
         return 'Connected';
     }
     return formatter ? formatter(value) : value.toFixed(2);
+}
+
+/** Live badge text for a wired control port (numeric or bool-as-control from the engine). */
+export function formatConnectedDisplay(value: number | null, portType?: StudioNodePortValueType): string {
+    if (portType === 'bool') {
+        if (typeof value === 'number' && !Number.isNaN(value)) {
+            return value !== 0 ? 'On' : 'Off';
+        }
+        return 'Connected';
+    }
+    if (portType === 'int') {
+        if (typeof value === 'number' && !Number.isNaN(value)) {
+            return String(Math.round(value));
+        }
+        return 'Connected';
+    }
+    return formatConnectedValue(value);
 }

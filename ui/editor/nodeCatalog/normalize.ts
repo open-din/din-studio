@@ -3,7 +3,7 @@
  *
  * @see docs_v2/10-studio-node-ui-json-catalog.md
  */
-import type { RawStudioNodeDefinition, StudioNodeDefinition, StudioNodePortSchema } from './types';
+import type { RawStudioNodeDefinition, StudioNodeDefinition, StudioNodePortSchema } from './definition';
 
 function normalizeTags(raw: unknown): string[] {
     if (!Array.isArray(raw)) {
@@ -20,7 +20,12 @@ function normalizeOnePort(p: unknown): StudioNodePortSchema {
     const name = String(o.name ?? '').trim();
     const type = (o.type as StudioNodePortSchema['type']) ?? 'float';
     const iface = (o.interface as StudioNodePortSchema['interface']) ?? 'slider';
-    return { type, name, interface: iface };
+    let portLabel: string | null = null;
+    if (o.label !== undefined && o.label !== null) {
+        const pl = String(o.label).trim();
+        portLabel = pl.length === 0 ? null : pl;
+    }
+    return { type, name, interface: iface, label: portLabel };
 }
 
 function normalizePorts(raw: unknown): StudioNodePortSchema[] {
@@ -51,6 +56,23 @@ export function normalizeStudioNodeDefinition(raw: RawStudioNodeDefinition): Stu
         customComponent = c.length === 0 ? null : c;
     }
 
+    let color: string | null = null;
+    if (raw.color !== undefined && raw.color !== null) {
+        const c = String(raw.color).trim();
+        color = c.length === 0 ? null : c;
+    }
+
+    let icon: string | null = null;
+    if (raw.icon !== undefined && raw.icon !== null) {
+        const i = String(raw.icon).trim();
+        icon = i.length === 0 ? null : i;
+    }
+
+    let singleton: boolean | undefined;
+    if (raw.singleton !== undefined && raw.singleton !== null) {
+        singleton = Boolean(raw.singleton);
+    }
+
     const base: StudioNodeDefinition = {
         name,
         label,
@@ -62,6 +84,9 @@ export function normalizeStudioNodeDefinition(raw: RawStudioNodeDefinition): Stu
         tags: normalizeTags(raw.tags),
         category,
         subcategory,
+        ...(color !== null ? { color } : {}),
+        ...(icon !== null ? { icon } : {}),
+        ...(singleton !== undefined ? { singleton } : {}),
     };
 
     if (raw.type === 'dsp' && raw.dsp !== undefined && String(raw.dsp).trim() !== '') {

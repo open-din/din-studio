@@ -1,6 +1,6 @@
 # AUDIO node specs (Phase 1 — Faust defaults)
 
-Normative UI contract: `v2/specs/09-ui-components.md` §10. Faust-backed AUDIO rows live as YAML under `ui/editor/built-in-nodes/audio/<subcategory>/` (see `loadBuiltInNodeFiles.ts`). The **Sampler** node (`type: asset`) is defined under `ui/editor/built-in-nodes/sources/assets/sampler.yaml`, not in this folder. Optional merge overlay: `ui/editor/studioNodeCatalog/studio-node-catalog.json` (may be empty `[]`).
+Normative UI contract: `v2/specs/09-ui-components.md` §10. Faust-backed AUDIO rows live as YAML under `ui/editor/built-in-nodes/audio/<subcategory>/` (see `loadBuiltInNodeFiles.ts`). The **Sampler** node (`type: asset`) is defined under `ui/editor/built-in-nodes/sources/assets/sampler.yaml`, not in this folder. Optional merge overlay: `ui/editor/nodeCatalog/studio-node-catalog.json` (may be empty `[]`).
 
 Faust library index: [faustlibraries.grame.fr](https://faustlibraries.grame.fr/libs/).
 

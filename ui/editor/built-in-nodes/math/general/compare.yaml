@@ -1,4 +1,6 @@
 name: compare
+color: "#7bd1ff"
+icon: ">="
 label: Compare
 description: Compare two values and output a boolean-like or comparison result.
 type: value

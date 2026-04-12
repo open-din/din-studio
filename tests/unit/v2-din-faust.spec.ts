@@ -14,7 +14,7 @@ import { validateDinDocumentWithCore } from '../../core/dinWasmValidation';
 import { buildFaustBundleFromGraph } from '../../ui/editor/faust/graphFaustPipeline';
 import { compileFaustDspToWasm } from '../../ui/editor/faust/faustCompile';
 import { listRegisteredPrimitiveKinds } from '../../ui/editor/faust/dspPrimitiveRegistry';
-import { EDITOR_NODE_CATALOG, getNodeTaxonomy } from '../../ui/editor/nodeCatalog';
+import { getEditorNodeCatalog, getNodeTaxonomy } from '../../ui/editor/nodeCatalog';
 import { canConnect } from '../../ui/editor/nodeHelpers';
 import type { AudioNodeData } from '../../ui/editor/types';
 
@@ -124,7 +124,7 @@ describe('Faust registry and codegen', () => {
 
 describe('Node catalog taxonomy', () => {
     it('gives every catalog entry structural type and domain kind', () => {
-        for (const entry of EDITOR_NODE_CATALOG) {
+        for (const entry of getEditorNodeCatalog()) {
             const t = getNodeTaxonomy(entry.type);
             expect(t.structuralType.length).toBeGreaterThan(2);
             expect(t.domainKind).toMatch(/\./);

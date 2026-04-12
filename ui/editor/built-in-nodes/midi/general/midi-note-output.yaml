@@ -1,4 +1,6 @@
 name: midiNoteOutput
+color: "#4dd4a0"
+icon: 📤
 label: Note Out
 description: MIDI note output — accepts trigger, gate, pitch, and velocity as inputs.
 type: interface

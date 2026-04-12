@@ -17,7 +17,7 @@ import {
     slugToCatalogLabel,
     subcategorySlugToLabel,
     validateStudioNodeDefinition,
-} from '../../ui/editor/studioNodeCatalog';
+} from '../../ui/editor/nodeCatalog';
 
 describe('Studio node UI catalog', () => {
     it('maps category and subcategory slugs to palette labels', () => {

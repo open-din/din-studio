@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef } from 'react';
 import type { NodeProps } from '@xyflow/react';
 import { useMidi, useMidiNote } from '@open-din/react/midi';
-import { normalizeMidiNoteNodeData } from '../nodeHelpers';
+import { normalizeMidiNoteNodeData } from '../../ui/editor/nodeHelpers';
 import {
     NodeHandleRow,
     NodeNumberField,
@@ -10,11 +10,11 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { MIDI_PANEL_COPY } from '../../copy';
-import { useAudioGraphStore } from '../store';
-import type { MidiInMapping, MidiNoteNodeData } from '../types';
-import { useMidiDetectionStore } from '../midiDetectionStore';
+} from '../../ui/editor/components/NodeShell';
+import { MIDI_PANEL_COPY } from '../../ui/copy';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { MidiInMapping, MidiNoteNodeData } from '../../ui/editor/types';
+import { useMidiDetectionStore } from '../../ui/editor/midiDetectionStore';
 import { buildInputOptions, getChannelFilterValue, getStatusBadge } from './midiNodeUtils';
 
 const createMappingId = (inputId: string, channel: number) => `${inputId}:${channel}`;

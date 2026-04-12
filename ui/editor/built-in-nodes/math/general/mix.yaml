@@ -1,4 +1,6 @@
 name: mix
+color: "#7bd1ff"
+icon: mix
 label: Mix
 description: Linear crossfade between A and B using mix amount T.
 type: value

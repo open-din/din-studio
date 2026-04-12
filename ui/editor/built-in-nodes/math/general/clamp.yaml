@@ -1,4 +1,6 @@
 name: clamp
+color: "#7bd1ff"
+icon: "[]"
 label: Clamp
 description: Clamp a value to a min/max range.
 type: value

@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
-import { NodeHandleRow, NodeShell, NodeValueBadge } from '../components/NodeShell';
-import { getInputParamHandleId } from '../nodeHelpers';
-import type { InputNodeData } from '../types';
+import { NodeHandleRow, NodeShell, NodeValueBadge } from '../../ui/editor/components/NodeShell';
+import { getInputParamHandleId } from '../../ui/editor/nodeHelpers';
+import type { InputNodeData } from '../../ui/editor/types';
 
 const InputNode = memo(({ data, selected }: NodeProps<Node<InputNodeData>>) => {
     const inputData = data;

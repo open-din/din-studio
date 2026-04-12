@@ -1,4 +1,6 @@
 name: noiseBurst
+color: "#888888"
+icon: 💥
 label: null
 description: Triggered noise burst (duration, gain, attack, release).
 type: dsp

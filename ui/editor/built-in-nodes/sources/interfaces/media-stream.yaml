@@ -1,4 +1,6 @@
 name: mediaStream
+color: "#7bd1ff"
+icon: 🎙️
 label: Media Stream
 description: Live or file-backed media stream as an audio source (microphone, file, etc.).
 type: interface

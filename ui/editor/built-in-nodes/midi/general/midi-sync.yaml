@@ -1,4 +1,7 @@
 name: midiSync
+color: "#4dd4a0"
+icon: ⏱️
+singleton: true
 label: Sync
 description: MIDI clock / sync hub (singleton in the graph).
 type: interface

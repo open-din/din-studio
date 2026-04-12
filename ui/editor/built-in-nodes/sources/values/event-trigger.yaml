@@ -1,4 +1,6 @@
 name: eventTrigger
+color: "#ffd166"
+icon: ⚡
 label: Event Trigger
 description: Emits trigger events and accepts token input for gated or clocked behavior.
 type: value

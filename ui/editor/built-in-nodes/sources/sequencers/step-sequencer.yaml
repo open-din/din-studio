@@ -1,4 +1,6 @@
 name: stepSequencer
+color: "#dddddd"
+icon: 🎹
 label: Step Sequencer
 description: Step-based pattern sequencer with transport input and per-step triggers.
 type: timeline

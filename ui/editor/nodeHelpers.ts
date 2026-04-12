@@ -24,13 +24,15 @@ import {
     resolveInputParamByHandle,
 } from './handleIds';
 import {
-    EDITOR_NODE_CATALOG,
+    getEditorNodeCatalog,
     getNodeCatalogEntry,
     getNodeHandleDescriptors,
     type HandleDescriptor,
     type HandleDirection,
     type EditorNodeType,
 } from './nodeCatalog';
+import { getStudioNodeDefinition } from './nodeCatalog/catalog';
+import type { StudioNodePortValueType } from './nodeCatalog/definition';
 import { createEditorNode } from './graphBuilders';
 import {
     hasAnyUiTokenInputParam,
@@ -209,7 +211,7 @@ function getPatchSlotTypeFromHandle(
 }
 
 const SINGLETON_NODE_TYPES = new Set(
-    EDITOR_NODE_CATALOG
+    getEditorNodeCatalog()
         .filter((node) => node.singleton)
         .map((node) => node.type)
 );
@@ -390,6 +392,100 @@ export function getSingletonNodeTypes(): ReadonlySet<AudioNodeData['type']> {
     return SINGLETON_NODE_TYPES;
 }
 
+/** Port type from built-in YAML catalog when the editor node type is catalog-backed. */
+export function getCatalogPortValueType(
+    nodeType: EditorNodeType,
+    handleId: string,
+    direction: HandleDirection,
+): StudioNodePortValueType | null {
+    const def = getStudioNodeDefinition(nodeType);
+    if (!def) {
+        return null;
+    }
+    const ports = direction === 'source' ? def.outputs : def.inputs;
+    const port = ports.find((p) => p.name === handleId);
+    return port?.type ?? null;
+}
+
+function catalogPortTypesCompatible(source: StudioNodePortValueType, target: StudioNodePortValueType): boolean {
+    if (source === target) {
+        return true;
+    }
+    if ((source === 'int' && target === 'float') || (source === 'float' && target === 'int')) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * When both handles resolve to ports in the Studio YAML catalog, enforce matching `type`.
+ * Returns `null` when either side is not catalog-backed (fall through to legacy rules).
+ */
+export function tryCatalogPortConnection(
+    connection: GraphConnectionLike,
+    nodeById: Map<string, Node<AudioNodeData>>,
+    existingEdges?: Edge[],
+): boolean | null {
+    if (!connection.targetHandle) {
+        return null;
+    }
+    const sourceNode = connection.source ? nodeById.get(connection.source) : null;
+    const targetNode = connection.target ? nodeById.get(connection.target) : null;
+    if (!sourceNode || !targetNode) {
+        return null;
+    }
+    const sourceHandle = connection.sourceHandle ?? '';
+    const targetHandle = connection.targetHandle;
+    const srcType = getCatalogPortValueType(sourceNode.data.type, sourceHandle, 'source');
+    const tgtType = getCatalogPortValueType(targetNode.data.type, targetHandle, 'target');
+    if (srcType === null || tgtType === null) {
+        return null;
+    }
+    if (!catalogPortTypesCompatible(srcType, tgtType)) {
+        return null;
+    }
+    if (tgtType === 'audio' && existingEdges) {
+        if (!audioTargetAllowsFanIn(targetNode, targetHandle)) {
+            const occupied = existingEdges.some((e) => e.target === connection.target && e.targetHandle === targetHandle);
+            if (occupied) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+const FLOW_EDGE_STROKE = {
+    audio: '#23C768',
+    trigger: '#FF5F58',
+    control: '#4F75FF',
+} as const;
+
+/** Edge stroke aligned with socket semantic colors (`--semantic-success`, `--semantic-danger`, `--semantic-accent`). */
+export function getConnectionEdgeStyle(
+    connection: GraphConnectionLike,
+    nodeById: Map<string, Node<AudioNodeData>>,
+): { stroke: string; strokeWidth: number; strokeDasharray?: string } {
+    const sourceNode = connection.source ? nodeById.get(connection.source) : null;
+    const sourceHandle = connection.sourceHandle ?? '';
+    if (sourceNode) {
+        const srcCatalog = getCatalogPortValueType(sourceNode.data.type, sourceHandle, 'source');
+        if (srcCatalog === 'audio') {
+            return { stroke: FLOW_EDGE_STROKE.audio, strokeWidth: 3 };
+        }
+        if (srcCatalog === 'trigger') {
+            return { stroke: FLOW_EDGE_STROKE.trigger, strokeWidth: 2 };
+        }
+        if (srcCatalog === 'int' || srcCatalog === 'float' || srcCatalog === 'bool' || srcCatalog === 'enum') {
+            return { stroke: FLOW_EDGE_STROKE.control, strokeWidth: 2, strokeDasharray: '5,5' };
+        }
+    }
+    if (isAudioConnection(connection, nodeById)) {
+        return { stroke: FLOW_EDGE_STROKE.audio, strokeWidth: 3 };
+    }
+    return { stroke: FLOW_EDGE_STROKE.control, strokeWidth: 2, strokeDasharray: '5,5' };
+}
+
 export function isAudioConnection(
     connection: GraphConnectionLike,
     nodeById: Map<string, Node<AudioNodeData>>
@@ -445,6 +541,11 @@ export function canConnect(
             }
         }
         return true;
+    }
+
+    const catalogDecision = tryCatalogPortConnection(connection, nodeById, existingEdges);
+    if (catalogDecision !== null) {
+        return catalogDecision;
     }
 
     const { type: sourceType } = sourceNode.data;
@@ -734,7 +835,7 @@ export function getCompatibleNodeSuggestions(
         return 0;
     };
 
-    return EDITOR_NODE_CATALOG.flatMap((entry) => {
+    return getEditorNodeCatalog().flatMap((entry) => {
         if (entry.singleton && existingTypes.has(entry.type)) {
             return [];
         }

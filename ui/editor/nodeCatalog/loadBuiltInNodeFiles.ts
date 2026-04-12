@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * Load per-node YAML from `ui/editor/built-in-nodes/**` (category / subcategory folders).
  *
@@ -5,7 +6,7 @@
  */
 import { parse as parseYaml } from 'yaml';
 
-import type { RawStudioNodeDefinition } from './types';
+import type { RawStudioNodeDefinition } from './definition';
 
 /** Known subcategory folder slugs → palette labels (match legacy monolithic JSON + built-in trees). */
 const SUBCATEGORY_SLUG_TO_LABEL: Record<string, string> = {
@@ -104,7 +105,8 @@ export function loadBuiltInNodeRawDefinitions(): RawStudioNodeDefinition[] {
     const entries = { ...rawGlob, ...ymlGlob };
     const out: RawStudioNodeDefinition[] = [];
 
-    for (const [key, rawText] of Object.entries(entries)) {
+    for (const [key, rawTextUnknown] of Object.entries(entries)) {
+        const rawText = typeof rawTextUnknown === 'string' ? rawTextUnknown : String(rawTextUnknown);
         const pathInfo = parseGlobKey(key);
         if (!pathInfo) {
             continue;
@@ -116,7 +118,7 @@ export function loadBuiltInNodeRawDefinitions(): RawStudioNodeDefinition[] {
             parsed = parseYamlToRaw(rawText);
         } catch {
             if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
-                console.warn('[studio catalog] skipped invalid YAML:', key);
+                console.warn('[node catalog] skipped invalid YAML:', key);
             }
             continue;
         }
@@ -135,14 +137,14 @@ export function loadBuiltInNodeRawDefinitions(): RawStudioNodeDefinition[] {
         if (fileCategory && fileCategory !== category) {
             if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
                 console.warn(
-                    `[studio catalog] YAML category mismatch for ${key}: file "${fileCategory}" vs path "${category}" (path wins)`,
+                    `[node catalog] YAML category mismatch for ${key}: file "${fileCategory}" vs path "${category}" (path wins)`,
                 );
             }
         }
         if (fileSub && fileSub !== subcategory) {
             if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
                 console.warn(
-                    `[studio catalog] YAML subcategory mismatch for ${key}: file "${fileSub}" vs path "${subcategory}" (path wins)`,
+                    `[node catalog] YAML subcategory mismatch for ${key}: file "${fileSub}" vs path "${subcategory}" (path wins)`,
                 );
             }
         }

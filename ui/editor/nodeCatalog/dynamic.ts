@@ -1,13 +1,8 @@
 import type { AudioNodeData, PatchNodeData } from '../types';
 import { getInputParamHandleId } from '../handleIds';
-import {
-    DEFAULT_HANDLES_BY_TYPE,
-    MATH_OPERATION_INPUT_LABELS,
-    PATCH_AUDIO_INPUT_HANDLE,
-    PATCH_AUDIO_OUTPUT_HANDLE,
-    PATCH_INPUT_HANDLE_PREFIX,
-    PATCH_OUTPUT_HANDLE_PREFIX,
-} from './data';
+import { getStudioNodeDefinition } from './catalog';
+import { studioDefinitionToHandleDescriptors } from './handles';
+import { MATH_OPERATION_INPUT_LABELS, PATCH_AUDIO_INPUT_HANDLE, PATCH_AUDIO_OUTPUT_HANDLE, PATCH_INPUT_HANDLE_PREFIX, PATCH_OUTPUT_HANDLE_PREFIX } from './data';
 import type { HandleDescriptor, HandleDirection } from './types';
 
 function buildParamHandles(data: Extract<AudioNodeData, { type: 'input' | 'uiTokens' }>): HandleDescriptor[] {
@@ -105,7 +100,12 @@ export function getNodeHandleDescriptors(data: AudioNodeData): HandleDescriptor[
         }
         case 'patch':
             return buildPatchHandles(data);
-        default:
-            return DEFAULT_HANDLES_BY_TYPE[data.type];
+        default: {
+            const studioDef = getStudioNodeDefinition(data.type);
+            if (studioDef) {
+                return studioDefinitionToHandleDescriptors(studioDef);
+            }
+            return [];
+        }
     }
 }

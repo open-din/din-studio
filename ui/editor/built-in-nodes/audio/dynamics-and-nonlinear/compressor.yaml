@@ -1,6 +1,9 @@
 name: compressor
+color: "#44cc44"
+icon: 🗜️
 label: null
-description: RMS gain computer via co.RMS_compression_gain_mono_db (compressors.lib); sidechain ports reserved for host routing.
+description: RMS gain computer via co.RMS_compression_gain_mono_db
+  (compressors.lib); sidechain ports reserved for host routing.
 type: dsp
 tags:
   - compressor
@@ -15,6 +18,7 @@ inputs:
     interface: input
   - type: audio
     name: sidechainIn
+    label: Sidechain
     interface: input
   - type: float
     name: threshold
@@ -33,6 +37,7 @@ inputs:
     interface: slider
   - type: float
     name: sidechainStrength
+    label: SC Amt
     interface: slider
 outputs:
   - type: audio

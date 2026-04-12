@@ -1,0 +1,42 @@
+name: phaser
+color: "#7a9cff"
+icon: 🌀
+label: null
+description: Phaser effect with rate, depth, feedback, and mix (placeholder DSP;
+  editor handles match runtime).
+type: dsp
+tags:
+  - phaser
+  - modulation
+  - faust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: rate
+    interface: slider
+  - type: float
+    name: depth
+    interface: slider
+  - type: float
+    name: feedback
+    interface: slider
+  - type: float
+    name: baseFrequency
+    label: Base Freq
+    interface: slider
+  - type: float
+    name: stages
+    interface: slider
+  - type: float
+    name: mix
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _;

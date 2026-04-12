@@ -1,6 +1,9 @@
 name: reverb
+color: "#8844ff"
+icon: 🏛️
 label: null
-description: Early reflections hint using delay tap + dry/wet; swap for re.zita_* when host SR is fixed.
+description: Early reflections hint using delay tap + dry/wet; swap for
+  re.zita_* when host SR is fixed.
 type: dsp
 tags:
   - reverb

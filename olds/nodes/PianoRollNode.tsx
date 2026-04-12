@@ -1,8 +1,8 @@
 import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import type { NodeProps, Node } from '@xyflow/react';
-import { useAudioGraphStore, type PianoRollNodeData, type NoteEvent } from '../store';
-import { audioEngine } from '../AudioEngine';
-import '../editor.css';
+import { useAudioGraphStore, type PianoRollNodeData, type NoteEvent } from '../../ui/editor/store';
+import { audioEngine } from '../../ui/editor/AudioEngine';
+import '../../ui/editor/editor.css';
 import {
     NodeHandleRow,
     NodeSelectField,
@@ -10,7 +10,7 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
+} from '../../ui/editor/components/NodeShell';
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 

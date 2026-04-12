@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
-import { isLikelyMidiFile } from '../audioImport';
-import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../audioLibrary';
-import { audioEngine } from '../AudioEngine';
+import { isLikelyMidiFile } from '../../ui/editor/audioImport';
+import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../../ui/editor/audioLibrary';
+import { audioEngine } from '../../ui/editor/AudioEngine';
 import {
     NodeCheckboxField,
     NodeHandleRow,
@@ -11,9 +11,9 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { useAudioGraphStore } from '../store';
-import type { MidiPlayerNodeData } from '../types';
+} from '../../ui/editor/components/NodeShell';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { MidiPlayerNodeData } from '../../ui/editor/types';
 
 const MidiPlayerNode = memo(({ id, data, selected }: NodeProps<Node<MidiPlayerNodeData>>) => {
     const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);

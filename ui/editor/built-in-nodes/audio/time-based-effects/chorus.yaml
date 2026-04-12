@@ -1,4 +1,6 @@
 name: chorus
+color: "#44ccff"
+icon: 🌊
 label: null
 description: Detuned delay tap chorus (delays + modulation).
 type: dsp

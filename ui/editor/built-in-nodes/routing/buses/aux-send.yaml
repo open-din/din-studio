@@ -1,4 +1,6 @@
 name: auxSend
+color: "#ffaa44"
+icon: ↗️
 label: Aux Send
 description: Tap a bus and send a controllable amount to an aux path (e.g. reverb send).
 type: dsp
@@ -12,6 +14,7 @@ inputs:
     interface: input
   - type: float
     name: sendGain
+    label: Send
     interface: slider
 outputs:
   - type: audio

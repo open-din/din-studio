@@ -1,4 +1,6 @@
 name: distortion
+color: "#ff7f50"
+icon: 🔥
 label: null
 description: Waveshaping with drive, tone, level, and mix (misceffects / tanh).
 type: dsp

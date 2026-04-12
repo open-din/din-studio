@@ -3,13 +3,15 @@
   "defaults": {
     "shared_sources": [
       "ui/editor/nodeCatalog.ts",
+      "ui/editor/nodeCatalog/index.ts",
+      "ui/editor/nodeCatalog/definition.ts",
+      "ui/editor/nodeCatalog/catalog.ts",
+      "ui/editor/nodeCatalog/loadBuiltInNodeFiles.ts",
+      "ui/editor/nodeCatalog/studio-node-catalog.json",
       "ui/editor/types.ts",
       "ui/editor/nodeUiRegistry.ts",
-      "ui/editor/studioNodeCatalog/types.ts",
-      "ui/editor/studioNodeCatalog/catalog.ts",
-      "ui/editor/studioNodeCatalog/loadBuiltInNodeFiles.ts",
-      "ui/editor/studioNodeCatalog/studio-node-catalog.json",
       "ui/editor/built-in-nodes/**/*.yaml",
+      "ui/editor/nodes/DynamicNode.tsx",
       "ui/editor/components/NodePalette.tsx"
     ],
     "shared_tests": [
@@ -22,31 +24,31 @@
     {
       "type": "osc",
       "coverage_id": "editor-node:OscNode",
-      "source": "ui/editor/nodes/OscNode.tsx",
+      "source": "olds/nodes/OscNode.tsx",
       "feature": "project/features/32_node_osc.feature.md"
     },
     {
       "type": "gain",
       "coverage_id": "editor-node:GainNode",
-      "source": "ui/editor/nodes/GainNode.tsx",
+      "source": "olds/nodes/GainNode.tsx",
       "feature": "project/features/41_node_gain.feature.md"
     },
     {
       "type": "filter",
       "coverage_id": "editor-node:FilterNode",
-      "source": "ui/editor/nodes/FilterNode.tsx",
+      "source": "olds/nodes/FilterNode.tsx",
       "feature": "project/features/42_node_filter.feature.md"
     },
     {
       "type": "transport",
       "coverage_id": "editor-node:TransportNode",
-      "source": "ui/editor/nodes/TransportNode.tsx",
+      "source": "olds/nodes/TransportNode.tsx",
       "feature": "project/features/23_node_transport.feature.md"
     },
     {
       "type": "midiPlayer",
       "coverage_id": "editor-node:MidiPlayerNode",
-      "source": "ui/editor/nodes/MidiPlayerNode.tsx",
+      "source": "olds/nodes/MidiPlayerNode.tsx",
       "feature": "project/features/67_node_midi_player.feature.md",
       "extra_sources": [
         "ui/editor/midiDropTarget.ts",
@@ -56,7 +58,7 @@
     {
       "type": "patch",
       "coverage_id": "editor-node:PatchNode",
-      "source": "ui/editor/nodes/PatchNode.tsx",
+      "source": "olds/nodes/PatchNode.tsx",
       "feature": "project/features/69_node_patch.feature.md",
       "extra_sources": [
         "ui/editor/CodeGenerator.tsx",
@@ -66,8 +68,8 @@
   ],
   "add_node_checklist": [
     "Add or update the node row in project/COVERAGE_MANIFEST.json.",
-    "Start from the nearest matching node source in ui/editor/nodes/.",
+    "Author or update `ui/editor/built-in-nodes/**/<name>.yaml` and validate with `loadStudioNodeCatalog()`.",
     "Touch shared_sources only if the node type, catalog label, handles, or inspector schema changes.",
-    "Open shared_tests only after the node source or shared_sources are localized."
+    "Open shared_tests only after the YAML definition or shared_sources are localized."
   ]
 }

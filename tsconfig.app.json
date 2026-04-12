@@ -39,6 +39,8 @@
     "targets/web/**/*.d.ts",
     "ui/**/*.ts",
     "ui/**/*.tsx",
+    "olds/**/*.ts",
+    "olds/**/*.tsx",
     "vitest.setup.ts",
     "workers/**/*.ts"
   ]

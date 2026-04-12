@@ -1,4 +1,6 @@
 name: midiNote
+color: "#4dd4a0"
+icon: 🎹
 label: Piano / keys in
 description: MIDI note input — trigger, pitch, gate, and velocity as control outputs.
 type: interface

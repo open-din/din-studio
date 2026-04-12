@@ -1,0 +1,46 @@
+name: panner3d
+color: "#44ffff"
+icon: 🧭
+label: null
+description: 3D spatial panner with position and distance attenuation.
+type: dsp
+tags:
+  - panner
+  - spatial
+  - faust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: positionX
+    label: X
+    interface: slider
+  - type: float
+    name: positionY
+    label: Y
+    interface: slider
+  - type: float
+    name: positionZ
+    label: Z
+    interface: slider
+  - type: float
+    name: refDistance
+    label: Ref Dist
+    interface: slider
+  - type: float
+    name: maxDistance
+    label: Max Dist
+    interface: slider
+  - type: float
+    name: rolloffFactor
+    label: Rolloff
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _;

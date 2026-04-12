@@ -1,6 +1,9 @@
 name: patch
+color: "#7bd1ff"
+icon: 🧩
 label: Patch
-description: Nested patch graph with audio in/out. Use for reusable subgraphs and instruments.
+description: Nested patch graph with audio in/out. Use for reusable subgraphs
+  and instruments.
 type: interface
 tags:
   - patch

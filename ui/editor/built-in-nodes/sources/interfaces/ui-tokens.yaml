@@ -1,4 +1,6 @@
 name: uiTokens
+color: "#68a5ff"
+icon: ⏱️
 label: UI Tokens
 description: Design tokens and theme values for UI-driven modulation and styling.
 type: value

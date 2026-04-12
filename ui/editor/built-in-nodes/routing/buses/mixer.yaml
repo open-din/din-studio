@@ -1,4 +1,6 @@
 name: mixer
+color: "#ffaa44"
+icon: ⊕
 label: Mixer
 description: Mix up to three stereo inputs to a single output with unity gain staging.
 type: dsp
@@ -9,12 +11,15 @@ customComponent: null
 inputs:
   - type: audio
     name: in1
+    label: In 1
     interface: input
   - type: audio
     name: in2
+    label: In 2
     interface: input
   - type: audio
     name: in3
+    label: In 3
     interface: input
 outputs:
   - type: audio

@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import type { NodeProps } from '@xyflow/react';
 import { useMidi, useMidiCC } from '@open-din/react/midi';
-import { audioEngine } from '../AudioEngine';
+import { audioEngine } from '../../ui/editor/AudioEngine';
 import {
     NodeHandleRow,
     NodeNumberField,
@@ -10,11 +10,11 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { MIDI_PANEL_COPY } from '../../copy';
-import { useAudioGraphStore } from '../store';
-import type { MidiCCNodeData } from '../types';
-import { useMidiDetectionStore } from '../midiDetectionStore';
+} from '../../ui/editor/components/NodeShell';
+import { MIDI_PANEL_COPY } from '../../ui/copy';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { MidiCCNodeData } from '../../ui/editor/types';
+import { useMidiDetectionStore } from '../../ui/editor/midiDetectionStore';
 import { buildInputOptions, getChannelFilterValue, getStatusBadge } from './midiNodeUtils';
 
 const MidiCCNode = memo(({ id, data, selected }: NodeProps) => {

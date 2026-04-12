@@ -1,4 +1,6 @@
 name: flanger
+color: "#7a9cff"
+icon: 🧵
 label: null
 description: Modulated delay comb with feedback (rate/depth/delay/mix ports).
 type: dsp

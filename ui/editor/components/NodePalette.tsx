@@ -1,7 +1,7 @@
 import { type DragEvent, type FC, useMemo } from 'react';
 import { AudioLines, BarChart3, ChevronDown, Piano, Route, Search, Sigma, Waves } from 'lucide-react';
 import type { EditorNodeType } from '../nodeCatalog';
-import { loadStudioNodeCatalog, resolveDefaultStudioTitle, type StudioNodeDefinition } from '../studioNodeCatalog';
+import { loadStudioNodeCatalog, resolveDefaultStudioTitle, type StudioNodeDefinition } from '../nodeCatalog';
 import { EditorNodeIcon } from './EditorIcons';
 
 interface NodePaletteProps {

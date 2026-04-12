@@ -1,6 +1,9 @@
 name: sampler
+color: "#44ccff"
+icon: 🎹
 label: Sampler
-description: Sample playback with trigger, playback rate, and detune. Connect to host sample buffers.
+description: Sample playback with trigger, playback rate, and detune. Connect to
+  host sample buffers.
 type: asset
 tags:
   - sampler
@@ -12,6 +15,7 @@ inputs:
     interface: input
   - type: float
     name: playbackRate
+    label: Speed
     interface: slider
   - type: float
     name: detune

@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { NodeProps } from '@xyflow/react';
-import { isLikelyAudioFile } from '../audioImport';
-import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../audioLibrary';
-import { audioEngine } from '../AudioEngine';
+import { isLikelyAudioFile } from '../../ui/editor/audioImport';
+import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../../ui/editor/audioLibrary';
+import { audioEngine } from '../../ui/editor/AudioEngine';
 import {
     NodeCheckboxField,
     NodeHandleRow,
@@ -11,9 +11,9 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { useAudioGraphStore } from '../store';
-import type { ConvolverNodeData } from '../types';
+} from '../../ui/editor/components/NodeShell';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { ConvolverNodeData } from '../../ui/editor/types';
 
 const ConvolverNode = memo(({ id, data, selected }: NodeProps) => {
     const convolverData = data as ConvolverNodeData;

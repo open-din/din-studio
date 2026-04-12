@@ -78,7 +78,7 @@ describe('editor store and code generation', () => {
         expect((filterNode?.data as { label?: string })?.label).toBe('Filter');
         expect(filterEdge?.source).toBe('osc-1');
         expect(filterEdge?.targetHandle).toBe('in');
-        expect(filterEdge?.style).toMatchObject({ stroke: '#44cc44', strokeWidth: 3 });
+        expect(filterEdge?.style).toMatchObject({ stroke: '#23C768', strokeWidth: 3 });
         expect(filterEdge?.animated).toBe(false);
 
         refreshConnections.mockRestore();
@@ -120,7 +120,7 @@ describe('editor store and code generation', () => {
         expect(edge?.sourceHandle).toBe('note');
         expect(edge?.targetHandle).toBe('frequency');
         expect(edge?.animated).toBe(true);
-        expect(edge?.style).toMatchObject({ stroke: '#4488ff', strokeWidth: 2, strokeDasharray: '5,5' });
+        expect(edge?.style).toMatchObject({ stroke: '#4F75FF', strokeWidth: 2, strokeDasharray: '5,5' });
 
         refreshConnections.mockRestore();
     });

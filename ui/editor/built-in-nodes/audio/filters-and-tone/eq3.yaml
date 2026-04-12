@@ -1,0 +1,42 @@
+name: eq3
+color: "#7a9cff"
+icon: 🎚️
+label: null
+description: Three-band EQ with shelf frequencies and mix.
+type: dsp
+tags:
+  - eq
+  - filter
+  - faust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: low
+    interface: slider
+  - type: float
+    name: mid
+    interface: slider
+  - type: float
+    name: high
+    interface: slider
+  - type: float
+    name: lowFrequency
+    label: Low Freq
+    interface: slider
+  - type: float
+    name: highFrequency
+    label: High Freq
+    interface: slider
+  - type: float
+    name: mix
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _;

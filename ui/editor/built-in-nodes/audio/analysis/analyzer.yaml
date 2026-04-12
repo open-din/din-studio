@@ -1,4 +1,6 @@
 name: analyzer
+color: "#7bd1ff"
+icon: 📊
 label: null
 description: Passthrough with analyzers.lib-ready path; host meters read audio taps.
 type: dsp

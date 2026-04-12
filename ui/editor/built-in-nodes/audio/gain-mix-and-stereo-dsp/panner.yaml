@@ -1,6 +1,9 @@
 name: panner
+color: "#44ffff"
+icon: ↔️
 label: null
-description: Mono level trim from pan (-1..1); extend to stereo imaging in codegen when outputs split.
+description: Mono level trim from pan (-1..1); extend to stereo imaging in
+  codegen when outputs split.
 type: dsp
 tags:
   - pan

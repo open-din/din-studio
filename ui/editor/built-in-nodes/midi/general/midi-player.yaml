@@ -1,4 +1,6 @@
 name: midiPlayer
+color: "#4dd4a0"
+icon: 🎵
 label: MIDI Player
 description: Plays a MIDI file asset — transport in, trigger out.
 type: timeline

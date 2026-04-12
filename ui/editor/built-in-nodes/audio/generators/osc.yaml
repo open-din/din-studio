@@ -1,4 +1,6 @@
 name: osc
+color: "#ff8844"
+icon: ◐
 label: Oscillator
 description: Sine oscillator with frequency and detune (oscillators.lib / os.oscsin).
 type: dsp
@@ -12,6 +14,7 @@ customComponent: null
 inputs:
   - type: float
     name: frequency
+    label: Freq
     interface: slider
   - type: float
     name: detune
@@ -19,6 +22,7 @@ inputs:
 outputs:
   - type: audio
     name: out
+    label: Audio Out
     interface: input
 dsp: |
   import("stdfaust.lib");

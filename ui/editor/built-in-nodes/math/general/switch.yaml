@@ -1,4 +1,6 @@
 name: switch
+color: "#7bd1ff"
+icon: sw
 label: Switch
 description: Select one of three inputs by index for the output.
 type: value

@@ -1,4 +1,6 @@
 name: gain
+color: "#44cc44"
+icon: ◧
 label: null
 description: Gain in dB (ba.db2linear) on the audio bus.
 type: dsp

@@ -42,7 +42,7 @@
 # - Per-node **markdown** specs under: `docs_v2/nodes/audio/defaults/` (one file per node or one index + partials;
 #   minimally: inputs, outputs, parameters, Faust notes, tags, related `stdfaust` symbols).
 # - Optional generated index: `docs_v2/nodes/audio/defaults/README.md` listing all nodes by category/subcategory.
-# - Catalog JSON: extend `ui/editor/studioNodeCatalog/studio-node-catalog.json` (or a split file merged by loader
+# - Catalog JSON: extend `ui/editor/nodeCatalog/studio-node-catalog.json` (or a split file merged by loader
 #   if size warrants) so `loadStudioNodeCatalog()` picks up definitions without breaking validation in
 #   `tests/unit/studio-node-catalog.spec.ts`.
 #
@@ -120,7 +120,7 @@ Feature: AUDIO Faust DSP node catalog from Faust Libraries index
     Then Phase 1 nodes reach validated catalog plus docs before optional nodes outside Phase 1
 
   Scenario: Catalog load and tests stay green
-    Given definitions are merged via ui/editor/studioNodeCatalog/studio-node-catalog.json or an approved split-merge path
+    Given definitions are merged via ui/editor/nodeCatalog/studio-node-catalog.json or an approved split-merge path
     When npm run lint typecheck test run
     Then studio-node-catalog unit tests cover new rows where applicable
     And no validation rule from validate.ts is violated for dsp nodes

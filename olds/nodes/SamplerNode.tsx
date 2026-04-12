@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
-import { isLikelyAudioFile } from '../audioImport';
-import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../audioLibrary';
-import { audioEngine } from '../AudioEngine';
+import { isLikelyAudioFile } from '../../ui/editor/audioImport';
+import { addAssetFromFile, getAssetObjectUrl, listAssets, subscribeAssets, type AudioLibraryAsset } from '../../ui/editor/audioLibrary';
+import { audioEngine } from '../../ui/editor/AudioEngine';
 import {
     NodeCheckboxField,
     NodeHandleRow,
@@ -12,10 +12,10 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { formatConnectedValue, useTargetHandleConnection } from '../paramConnections';
-import { useAudioGraphStore } from '../store';
-import type { SamplerNodeData } from '../types';
+} from '../../ui/editor/components/NodeShell';
+import { formatConnectedValue, useTargetHandleConnection } from '../../ui/editor/paramConnections';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { SamplerNodeData } from '../../ui/editor/types';
 
 const formatPlaybackRate = (value: number | null) => (value === null ? '--' : `${value.toFixed(2)}x`);
 const formatDetune = (value: number | null) => (value === null ? '--' : `${Math.round(value)} c`);

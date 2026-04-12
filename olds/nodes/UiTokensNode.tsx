@@ -1,15 +1,15 @@
 import { memo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
-import { useAudioGraphStore } from '../store';
+import { useAudioGraphStore } from '../../ui/editor/store';
 import {
     NodeHandleRow,
     NodeShell,
     NodeValueBadge,
     NodeWidget,
-} from '../components/NodeShell';
-import { getInputParamHandleId } from '../nodeHelpers';
-import type { UiTokensNodeData } from '../types';
-import { normalizeUiTokenParams } from '../uiTokens';
+} from '../../ui/editor/components/NodeShell';
+import { getInputParamHandleId } from '../../ui/editor/nodeHelpers';
+import type { UiTokensNodeData } from '../../ui/editor/types';
+import { normalizeUiTokenParams } from '../../ui/editor/uiTokens';
 
 const UiTokensNode = memo(({ id, data, selected }: NodeProps<Node<UiTokensNodeData>>) => {
     const updateNodeData = useAudioGraphStore((state) => state.updateNodeData);

@@ -1,4 +1,6 @@
 name: midiCC
+color: "#4dd4a0"
+icon: 🎛️
 label: Controllers (CC in)
 description: MIDI continuous controller input — normalized and raw values as outputs.
 type: interface

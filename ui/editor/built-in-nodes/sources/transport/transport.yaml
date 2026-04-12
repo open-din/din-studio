@@ -1,6 +1,10 @@
 name: transport
+color: "#dddddd"
+icon: ⏯️
+singleton: true
 label: Transport
-description: Global transport clock and timing. One instance per graph; drives sequencers and sync.
+description: Global transport clock and timing. One instance per graph; drives
+  sequencers and sync.
 type: transport
 tags:
   - transport
@@ -10,4 +14,5 @@ inputs: []
 outputs:
   - type: audio
     name: out
+    label: Clock
     interface: input

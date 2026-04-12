@@ -1,6 +1,9 @@
 name: voice
+color: "#ff4466"
+icon: 🗣️
 label: Voice
-description: "Voice control — trigger, portamento, and pitch/gate/velocity outputs for polyphonic sources."
+description: "Voice control — trigger, portamento, and pitch/gate/velocity
+  outputs for polyphonic sources."
 type: voice
 tags:
   - voice
@@ -16,6 +19,7 @@ inputs:
 outputs:
   - type: float
     name: note
+    label: Freq
     interface: slider
   - type: trigger
     name: gate

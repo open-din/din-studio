@@ -1,13 +1,14 @@
+/// <reference types="vite/client" />
 /**
  * Load merged Studio node catalog: built-in YAML only, then optional JSON overrides.
- * Legacy `EDITOR_NODE_CATALOG` is not merged here — palette rows come solely from `built-in-nodes/`.
+ * Palette rows come solely from `built-in-nodes/` (see also {@link getEditorNodeCatalog} in `nodeCatalog/data.ts`).
  *
  * @see docs_v2/10-studio-node-ui-json-catalog.md
  */
 import studioUserJson from './studio-node-catalog.json';
 import { loadBuiltInNodeRawDefinitions } from './loadBuiltInNodeFiles';
 import { normalizeStudioNodeDefinition } from './normalize';
-import type { RawStudioNodeDefinition, StudioNodeDefinition } from './types';
+import type { RawStudioNodeDefinition, StudioNodeDefinition } from './definition';
 import { validateStudioNodeDefinition } from './validate';
 
 function parseUserCatalog(): RawStudioNodeDefinition[] {
@@ -64,6 +65,7 @@ export function resetStudioNodeCatalogCache(): void {
     cached = null;
 }
 
+/** Normalized catalog row for `name`, if present. */
 export function getStudioNodeDefinition(name: string): StudioNodeDefinition | undefined {
     return loadStudioNodeCatalog().find((d) => d.name === name);
 }

@@ -1,6 +1,9 @@
 name: math
+color: "#7bd1ff"
+icon: fx
 label: Math
-description: Binary float math (operation chosen in the node). A and B inputs, single output.
+description: Binary float math (operation chosen in the node). A and B inputs,
+  single output.
 type: value
 tags:
   - math

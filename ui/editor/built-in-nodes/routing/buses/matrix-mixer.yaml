@@ -1,6 +1,9 @@
 name: matrixMixer
+color: "#ffaa44"
+icon: ▦
 label: Matrix Mixer
-description: Four inputs with a mixed sum output plus individual tap outputs for flexible routing.
+description: Four inputs with a mixed sum output plus individual tap outputs for
+  flexible routing.
 type: dsp
 tags:
   - matrix-mixer
@@ -9,31 +12,40 @@ customComponent: null
 inputs:
   - type: audio
     name: in1
+    label: In 1
     interface: input
   - type: audio
     name: in2
+    label: In 2
     interface: input
   - type: audio
     name: in3
+    label: In 3
     interface: input
   - type: audio
     name: in4
+    label: In 4
     interface: input
 outputs:
   - type: audio
     name: out
+    label: Out Mix
     interface: input
   - type: audio
     name: out1
+    label: Out 1
     interface: input
   - type: audio
     name: out2
+    label: Out 2
     interface: input
   - type: audio
     name: out3
+    label: Out 3
     interface: input
   - type: audio
     name: out4
+    label: Out 4
     interface: input
 dsp: |
   process = _,_;

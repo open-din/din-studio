@@ -5,11 +5,16 @@
  */
 
 /**
- * Turn a machine `name` (e.g. `low_pass`) into a short human title.
+ * Turn a machine `name` (e.g. `low_pass`, `stepSequencer`) into a short human title.
+ * Splits camelCase and kebab/snake segments like the palette catalog.
  */
 export function humanizeStudioNodeName(name: string): string {
-    const s = name.trim().replace(/[-_]+/g, ' ');
-    return s.replace(/\b\w/g, (c) => c.toUpperCase());
+    const s = name.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[-_]+/g, ' ');
+    return s
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ');
 }
 
 /**

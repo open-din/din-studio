@@ -1,8 +1,10 @@
-import { DEFAULT_HANDLES_BY_TYPE, EDITOR_NODE_CATALOG, NODE_CATEGORY_ORDER } from './data';
+import { getStudioNodeDefinition } from './catalog';
+import { studioDefinitionToHandleDescriptors } from './handles';
+import { getEditorNodeCatalog, NODE_CATEGORY_ORDER } from './data';
 import type { EditorNodeType, NodeCatalogEntry } from './types';
 
 export function getNodeCatalogEntry(type: EditorNodeType): NodeCatalogEntry {
-    const entry = EDITOR_NODE_CATALOG.find((item) => item.type === type);
+    const entry = getEditorNodeCatalog().find((item) => item.type === type);
     if (!entry) {
         throw new Error(`Unknown editor node type: ${type}`);
     }
@@ -12,7 +14,7 @@ export function getNodeCatalogEntry(type: EditorNodeType): NodeCatalogEntry {
 export function groupCatalogByCategory() {
     return NODE_CATEGORY_ORDER.map((category) => ({
         name: category,
-        nodes: EDITOR_NODE_CATALOG.filter((node) => node.category === category),
+        nodes: getEditorNodeCatalog().filter((node) => node.category === category),
     }));
 }
 
@@ -20,7 +22,7 @@ export function buildAgentNodeCatalogMarkdown(): string {
     const lines: string[] = [];
     for (const category of NODE_CATEGORY_ORDER) {
         lines.push(`### ${category}`);
-        const nodes = EDITOR_NODE_CATALOG.filter((n) => n.category === category);
+        const nodes = getEditorNodeCatalog().filter((n) => n.category === category);
         for (const entry of nodes) {
             const singleton = entry.singleton ? ' **Singleton** (one per graph; reuse existing id from snapshot).' : '';
 
@@ -38,17 +40,20 @@ export function buildAgentNodeCatalogMarkdown(): string {
             } else if (entry.type === 'patch') {
                 ports = 'Implicit audio handles: `in` / `out`; dynamic boundary handles from source metadata: `in:<slotId>` and `out:<slotId>`.';
             } else if (entry.type === 'stepSequencer') {
-                const handles = DEFAULT_HANDLES_BY_TYPE.stepSequencer;
+                const def = getStudioNodeDefinition('stepSequencer');
+                const handles = def ? studioDefinitionToHandleDescriptors(def) : [];
                 const sources = handles.filter((h) => h.direction === 'source').map((h) => `\`${h.id}\``);
                 const targets = handles.filter((h) => h.direction === 'target').map((h) => `\`${h.id}\``);
                 ports = `Sources: ${sources.join(', ')}. Targets: ${targets.join(', ')}. **Data**: \`steps\`, \`pattern\` (number[] 0–1), \`activeSteps\` (boolean[] — **defaults all false; set true on steps that should fire**).`;
             } else if (entry.type === 'pianoRoll') {
-                const handles = DEFAULT_HANDLES_BY_TYPE.pianoRoll;
+                const def = getStudioNodeDefinition('pianoRoll');
+                const handles = def ? studioDefinitionToHandleDescriptors(def) : [];
                 const sources = handles.filter((h) => h.direction === 'source').map((h) => `\`${h.id}\``);
                 const targets = handles.filter((h) => h.direction === 'target').map((h) => `\`${h.id}\``);
                 ports = `Sources: ${sources.join(', ')}. Targets: ${targets.join(', ')}. **Data**: \`steps\`, \`octaves\`, \`baseNote\` (MIDI), \`notes\`: [\`{ pitch, step, duration, velocity }\`] (**defaults empty — add notes for melody**).`;
             } else {
-                const handles = DEFAULT_HANDLES_BY_TYPE[entry.type];
+                const def = getStudioNodeDefinition(entry.type);
+                const handles = def ? studioDefinitionToHandleDescriptors(def) : [];
                 if (handles.length === 0) {
                     ports = 'No graph ports; editor-level MIDI/sync behavior.';
                 } else {

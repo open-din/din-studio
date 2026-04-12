@@ -1,6 +1,9 @@
 name: filter
+color: "#aa44ff"
+icon: ◇
 label: null
-description: Lowpass via filters.lib (fi.lowpass) with cutoff, Q, detune offset, and output gain trim.
+description: Lowpass via filters.lib (fi.lowpass) with cutoff, Q, detune offset,
+  and output gain trim.
 type: dsp
 tags:
   - filter
@@ -15,6 +18,7 @@ inputs:
     interface: input
   - type: float
     name: frequency
+    label: Freq
     interface: slider
   - type: float
     name: q

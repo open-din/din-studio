@@ -7,6 +7,7 @@ import {
     MiniMap,
     BackgroundVariant,
     useOnSelectionChange,
+    type Connection,
     type Node,
     type Edge,
     type OnConnectStartParams,
@@ -29,7 +30,7 @@ import {
 import { MidiDevicePanel } from './editor/components/MidiDevicePanel';
 import { MIDI_PANEL_COPY } from './copy';
 import type { EditorNodeType } from './editor/nodeCatalog';
-import { EDITOR_NODE_CATALOG } from './editor/nodeCatalog';
+import { getEditorNodeCatalog } from './editor/nodeCatalog';
 
 import { useAudioGraphStore } from './editor/store';
 import type { AudioNodeData } from './editor/types';
@@ -47,6 +48,7 @@ import {
 } from './editor/audioLibrary';
 import { audioEngine } from './editor/AudioEngine';
 import {
+    canConnect,
     getCompatibleNodeSuggestions,
     type NodeSuggestion,
 } from './editor/nodeHelpers';
@@ -188,7 +190,7 @@ function getTopbarPhaseChip(phase: SourceControlPhase) {
 }
 
 const isEditorNodeType = (value: string): value is EditorNodeType =>
-    EDITOR_NODE_CATALOG.some((entry) => entry.type === value);
+    getEditorNodeCatalog().some((entry) => entry.type === value);
 
 const EditorContent: FC<EditorProps> = ({ project }) => {
     const fsAccessProject = project?.storageKind === 'browser-fs-handle';
@@ -1018,6 +1020,18 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         }
     }, [setAssistPosition]);
 
+    const isValidConnection = useCallback((edgeOrConnection: Connection | Edge) => {
+        const c: Connection = {
+            source: edgeOrConnection.source,
+            target: edgeOrConnection.target,
+            sourceHandle: edgeOrConnection.sourceHandle ?? null,
+            targetHandle: edgeOrConnection.targetHandle ?? null,
+        };
+        const state = useAudioGraphStore.getState();
+        const nodeById = new Map(state.nodes.map((node) => [node.id, node]));
+        return canConnect(c, nodeById, state.edges);
+    }, []);
+
     const assistSuggestions = useMemo(() => {
         if (!connectionAssist) return [];
         const all = getCompatibleNodeSuggestions(connectionAssist, nodes);
@@ -1271,6 +1285,7 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                                         edges={edges}
                                         onNodesChange={onNodesChange}
                                         onEdgesChange={onEdgesChange}
+                                        isValidConnection={isValidConnection}
                                         onConnect={(params) => {
                                             onConnect(params);
                                             setConnectionAssist(null);

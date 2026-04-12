@@ -1,0 +1,25 @@
+name: waveShaper
+color: "#ff7f50"
+icon: ∿
+label: null
+description: Waveshaping / distortion curve amount.
+type: dsp
+tags:
+  - waveshaper
+  - distortion
+  - faust
+customComponent: null
+inputs:
+  - type: audio
+    name: in
+    interface: input
+  - type: float
+    name: amount
+    interface: slider
+outputs:
+  - type: audio
+    name: out
+    interface: input
+dsp: |
+  import("stdfaust.lib");
+  process = _;

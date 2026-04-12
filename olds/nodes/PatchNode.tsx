@@ -6,18 +6,18 @@ import {
     listPatchSources,
     subscribeAssets,
     type ProjectPatchSourceRecord,
-} from '../audioLibrary';
+} from '../../ui/editor/audioLibrary';
 import {
     NodeHandleRow,
     NodeShell,
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { getNodeHandleDescriptors } from '../nodeCatalog';
-import { useAudioGraphStore } from '../store';
-import type { InputNodeData, PatchAudioMetadata, PatchNodeData, PatchSlot, PatchSourceKind } from '../types';
-import { validateOfflinePatchText } from '../../../core/offline';
+} from '../../ui/editor/components/NodeShell';
+import { getNodeHandleDescriptors } from '../../ui/editor/nodeCatalog';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { InputNodeData, PatchAudioMetadata, PatchNodeData, PatchSlot, PatchSourceKind } from '../../ui/editor/types';
+import { validateOfflinePatchText } from '../../core/offline';
 
 const DEFAULT_PATCH_AUDIO: PatchAudioMetadata = {
     input: { id: 'in', label: 'Audio In', type: 'audio' },

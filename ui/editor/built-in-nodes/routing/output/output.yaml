@@ -1,6 +1,10 @@
 name: output
+color: "#ff4466"
+icon: 🔊
+singleton: true
 label: Output
-description: Master output to speakers or render bus. One instance per graph; includes master gain.
+description: Master output to speakers or render bus. One instance per graph;
+  includes master gain.
 type: interface
 tags:
   - output
@@ -12,5 +16,6 @@ inputs:
     interface: input
   - type: float
     name: masterGain
+    label: Master
     interface: slider
 outputs: []

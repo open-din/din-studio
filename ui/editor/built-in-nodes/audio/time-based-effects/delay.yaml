@@ -1,4 +1,6 @@
 name: delay
+color: "#4488ff"
+icon: ⏱️
 label: null
 description: Simple delay line with feedback (delays.lib / de.fdelay).
 type: dsp

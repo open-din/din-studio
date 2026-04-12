@@ -1,4 +1,6 @@
 name: auxReturn
+color: "#ffaa44"
+icon: ↘️
 label: Aux Return
 description: Return path from an aux bus with output gain trim.
 type: dsp

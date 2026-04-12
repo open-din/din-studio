@@ -15,6 +15,7 @@ import { audioEngine } from './AudioEngine';
 import { normalizeGraphName } from './graphUtils';
 import {
     canConnect,
+    getConnectionEdgeStyle,
     isAudioConnection,
     type NormalizedConnectionDescriptor,
     migrateGraphEdges,
@@ -526,9 +527,7 @@ const createStyledEdge = (
     if (!canConnect(connection, nodeById, edges)) return null;
 
     const isAudioConnectionValue = isAudioConnection(connection, nodeById);
-    const edgeStyle = isAudioConnectionValue
-        ? { stroke: '#44cc44', strokeWidth: 3 }
-        : { stroke: '#4488ff', strokeWidth: 2, strokeDasharray: '5,5' };
+    const edgeStyle = getConnectionEdgeStyle(connection, nodeById);
 
     return addEdge({ ...connection, style: edgeStyle, animated: !isAudioConnectionValue }, edges);
 };

@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import type { NodeProps } from '@xyflow/react';
 import { useMidi } from '@open-din/react/midi';
-import { audioEngine } from '../AudioEngine';
+import { audioEngine } from '../../ui/editor/AudioEngine';
 import {
     NodeHandleRow,
     NodeNumberField,
@@ -10,10 +10,10 @@ import {
     NodeValueBadge,
     NodeWidget,
     NodeWidgetTitle,
-} from '../components/NodeShell';
-import { formatConnectedValue, useTargetHandleConnection } from '../paramConnections';
-import { useAudioGraphStore } from '../store';
-import type { MidiNoteOutputNodeData } from '../types';
+} from '../../ui/editor/components/NodeShell';
+import { formatConnectedValue, useTargetHandleConnection } from '../../ui/editor/paramConnections';
+import { useAudioGraphStore } from '../../ui/editor/store';
+import type { MidiNoteOutputNodeData } from '../../ui/editor/types';
 import { buildOutputOptions } from './midiNodeUtils';
 
 const MidiNoteOutputNode = memo(({ id, data, selected }: NodeProps) => {

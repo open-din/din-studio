@@ -1,4 +1,6 @@
 name: lfo
+color: "#aa44ff"
+icon: 🌀
 label: null
 description: Low-frequency oscillator for modulation (oscillators.lib + depth).
 type: dsp
