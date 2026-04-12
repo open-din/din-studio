@@ -58,6 +58,10 @@ import {
     isDataNodeType,
     resolveInputParamByHandle,
 } from './nodeHelpers';
+import type { FaustCompileManifest } from './faust/compileManifest';
+
+/** Narrow Faust WASM node surface used for live parameter control. */
+export type FaustDspParamSetter = { setParamValue(path: string, value: number): void };
 
 interface AudioNodeInstance {
     node: AudioNode;
@@ -325,6 +329,11 @@ export class AudioEngine {
      * building the Web Audio graph.  Used when Faust DSP is the sole audio path.
      */
     private faustMode = false;
+    /** Live Faust AudioWorklet node + manifest from {@link useFaustDsp}; Web Audio graph is not used for DSP in this mode. */
+    private faustDspNode: FaustDspParamSetter | null = null;
+    private faustManifest: FaustCompileManifest | null = null;
+    private faustParamKeyToPath = new Map<string, string>();
+
     constructor() {
         this.audioContext = null;
         void editorMidiRuntime.subscribe(() => {
@@ -1533,6 +1542,52 @@ export class AudioEngine {
      */
     setFaustMode(enabled: boolean): void {
         this.faustMode = enabled;
+        if (!enabled) {
+            this.attachFaustDsp(null, null);
+        }
+    }
+
+    /**
+     * Attach the live Faust DSP node and compile manifest for {@link setParamValue} routing.
+     * Pass null to clear (playback stopped or worklet torn down).
+     */
+    attachFaustDsp(node: FaustDspParamSetter | null, manifest: FaustCompileManifest | null): void {
+        this.faustDspNode = node;
+        this.faustManifest = manifest;
+        this.faustParamKeyToPath.clear();
+        if (manifest) {
+            for (const p of manifest.params) {
+                this.faustParamKeyToPath.set(`${p.nodeId}:${p.paramId}`, p.faustPath);
+            }
+        }
+    }
+
+    /**
+     * Push all manifest params from current graph node data (call after compile or refresh).
+     */
+    syncFaustParamsFromGraph(nodes: Node<AudioNodeData>[]): void {
+        if (!this.faustDspNode || !this.faustManifest) return;
+        const byId = new Map(nodes.map((n) => [n.id, n]));
+        for (const entry of this.faustManifest.params) {
+            const n = byId.get(entry.nodeId);
+            if (!n) continue;
+            const v = (n.data as Record<string, unknown>)[entry.paramId];
+            if (typeof v === 'number' && Number.isFinite(v)) {
+                this.faustDspNode.setParamValue(entry.faustPath, v);
+            }
+        }
+    }
+
+    private applyFaustParamPatch(nodeId: string, data: Partial<AudioNodeData>): void {
+        if (!this.faustMode || !this.faustDspNode) return;
+        for (const key of Object.keys(data)) {
+            const path = this.faustParamKeyToPath.get(`${nodeId}:${key}`);
+            if (!path) continue;
+            const v = (data as Record<string, unknown>)[key];
+            if (typeof v === 'number' && Number.isFinite(v)) {
+                this.faustDspNode.setParamValue(path, v);
+            }
+        }
     }
 
     /**
@@ -3048,6 +3103,7 @@ export class AudioEngine {
         if (!this.isPlaying || !this.audioContext) return;
         if (this.faustMode) {
             this.syncVisualGraph(nodes, edges);
+            this.syncFaustParamsFromGraph(nodes);
             return;
         }
         this.updateDataValues(nodes, edges);
@@ -3119,6 +3175,8 @@ export class AudioEngine {
             this.nodeById.set(nodeId, nextNode);
             this.visualNodes = this.visualNodes.map((node) => node.id === nodeId ? nextNode : node);
         }
+
+        this.applyFaustParamPatch(nodeId, data);
 
         const instance = this.audioNodes.get(nodeId);
 

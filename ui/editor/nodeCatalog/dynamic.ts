@@ -1,9 +1,14 @@
-import type { AudioNodeData, PatchNodeData } from '../types';
+import type { AudioNodeData, PatchNodeData, PatchSlot } from '../types';
 import { getInputParamHandleId } from '../handleIds';
 import { getStudioNodeDefinition } from './catalog';
 import { resolveStudioPortsToHandleDescriptors } from './handles';
 import { MATH_OPERATION_INPUT_LABELS, PATCH_AUDIO_INPUT_HANDLE, PATCH_AUDIO_OUTPUT_HANDLE, PATCH_INPUT_HANDLE_PREFIX, PATCH_OUTPUT_HANDLE_PREFIX } from './data';
+import type { StudioNodePortValueType } from './definition';
 import type { HandleDescriptor, HandleDirection } from './types';
+
+function patchSlotPortValueType(slotType: PatchSlot['type']): StudioNodePortValueType {
+    return slotType === 'audio' ? 'audio' : 'trigger';
+}
 
 function buildParamHandles(data: Extract<AudioNodeData, { type: 'input' | 'uiTokens' }>): HandleDescriptor[] {
     return data.params.map((param) => ({
@@ -25,25 +30,50 @@ function buildPatchHandles(data: PatchNodeData): HandleDescriptor[] {
     const handles: HandleDescriptor[] = [];
     const seen = new Set<string>();
 
-    const pushHandle = (id: string, direction: HandleDirection, label: string) => {
+    const pushHandle = (
+        id: string,
+        direction: HandleDirection,
+        label: string,
+        portValueType: StudioNodePortValueType,
+    ) => {
         if (!id || seen.has(id)) return;
         seen.add(id);
-        handles.push({ id, direction, label });
+        handles.push({ id, direction, label, portValueType });
     };
 
-    pushHandle(PATCH_AUDIO_INPUT_HANDLE, 'target', data.audio?.input?.label?.trim() || 'Audio In');
-    pushHandle(PATCH_AUDIO_OUTPUT_HANDLE, 'source', data.audio?.output?.label?.trim() || 'Audio Out');
+    pushHandle(
+        PATCH_AUDIO_INPUT_HANDLE,
+        'target',
+        data.audio?.input?.label?.trim() || 'Audio In',
+        'audio',
+    );
+    pushHandle(
+        PATCH_AUDIO_OUTPUT_HANDLE,
+        'source',
+        data.audio?.output?.label?.trim() || 'Audio Out',
+        'audio',
+    );
 
     for (const slot of data.inputs ?? []) {
         const slotId = String(slot?.id ?? '').trim();
         if (!slotId) continue;
-        pushHandle(`${PATCH_INPUT_HANDLE_PREFIX}${slotId}`, 'target', String(slot?.label ?? '').trim() || slotId);
+        pushHandle(
+            `${PATCH_INPUT_HANDLE_PREFIX}${slotId}`,
+            'target',
+            String(slot?.label ?? '').trim() || slotId,
+            patchSlotPortValueType(slot.type),
+        );
     }
 
     for (const slot of data.outputs ?? []) {
         const slotId = String(slot?.id ?? '').trim();
         if (!slotId) continue;
-        pushHandle(`${PATCH_OUTPUT_HANDLE_PREFIX}${slotId}`, 'source', String(slot?.label ?? '').trim() || slotId);
+        pushHandle(
+            `${PATCH_OUTPUT_HANDLE_PREFIX}${slotId}`,
+            'source',
+            String(slot?.label ?? '').trim() || slotId,
+            patchSlotPortValueType(slot.type),
+        );
     }
 
     return handles;

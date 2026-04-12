@@ -1,6 +1,12 @@
 import type { ExtractedDspNode, ExtractedDspSubgraph } from './extractDspSubgraph';
 import { getPrimitiveDefinition } from './dspPrimitiveRegistry';
 import type { FaustCompileManifest, FaustParamBindingEntry } from './compileManifest';
+import {
+    FAUST_FILTER_FREQUENCY,
+    FAUST_GAIN,
+    FAUST_OSC_FREQUENCY,
+    FAUST_OUTPUT_MASTER_GAIN,
+} from './faustPrimitiveParamMeta';
 import type { FilterNodeData, GainNodeData, OscNodeData, OutputNodeData } from '../types';
 
 export interface FaustCodegenResult {
@@ -61,38 +67,74 @@ export function orderChainToOutput(subgraph: ExtractedDspSubgraph): string[] | n
 function emitOsc(node: ExtractedDspNode, params: FaustParamBindingEntry[]): { decl: string; ref: string } {
     const d = node.data as OscNodeData;
     const path = `v/${node.mangledId}/frequency`;
-    params.push({ nodeId: node.id, paramId: 'frequency', faustPath: path });
+    const { min, max, step } = FAUST_OSC_FREQUENCY;
     const freq = d.frequency;
-    const decl = `${node.mangledId} = os.oscsin(hslider("${path}", ${freq}, 20, 20000, 0.01));`;
+    params.push({
+        nodeId: node.id,
+        paramId: 'frequency',
+        faustPath: path,
+        default: freq,
+        min,
+        max,
+        step,
+    });
+    const decl = `${node.mangledId} = os.oscsin(hslider("${path}", ${freq}, ${min}, ${max}, ${step}));`;
     return { decl, ref: node.mangledId };
 }
 
 function emitGain(node: ExtractedDspNode, params: FaustParamBindingEntry[]): { decl: string; ref: string } {
     const d = node.data as GainNodeData;
     const path = `v/${node.mangledId}/gain`;
-    params.push({ nodeId: node.id, paramId: 'gain', faustPath: path });
+    const { min, max, step } = FAUST_GAIN;
     const g = d.gain;
-    const decl = `${node.mangledId} = *(hslider("${path}", ${g}, 0, 4, 0.001));`;
+    params.push({
+        nodeId: node.id,
+        paramId: 'gain',
+        faustPath: path,
+        default: g,
+        min,
+        max,
+        step,
+    });
+    const decl = `${node.mangledId} = *(hslider("${path}", ${g}, ${min}, ${max}, ${step}));`;
     return { decl, ref: node.mangledId };
 }
 
 function emitFilter(node: ExtractedDspNode, params: FaustParamBindingEntry[]): { decl: string; ref: string } {
     const d = node.data as FilterNodeData;
     const pathFreq = `v/${node.mangledId}/frequency`;
-    params.push({ nodeId: node.id, paramId: 'frequency', faustPath: pathFreq });
+    const { min, max, step } = FAUST_FILTER_FREQUENCY;
     const fc = d.frequency;
+    params.push({
+        nodeId: node.id,
+        paramId: 'frequency',
+        faustPath: pathFreq,
+        default: fc,
+        min,
+        max,
+        step,
+    });
     // MVP: fixed order-3 lowpass; Q not mapped yet.
-    const decl = `${node.mangledId} = fi.lowpass(3, hslider("${pathFreq}", ${fc}, 20, 20000, 0.01));`;
+    const decl = `${node.mangledId} = fi.lowpass(3, hslider("${pathFreq}", ${fc}, ${min}, ${max}, ${step}));`;
     return { decl, ref: node.mangledId };
 }
 
 function emitOutput(_node: ExtractedDspNode, _params: FaustParamBindingEntry[]): { decl: string; ref: string } {
     const d = _node.data as OutputNodeData;
     const path = `v/${_node.mangledId}/masterGain`;
-    _params.push({ nodeId: _node.id, paramId: 'masterGain', faustPath: path });
+    const { min, max, step } = FAUST_OUTPUT_MASTER_GAIN;
     // Master gain as final stereo sink control (applied after mono→stereo split).
     const mg = d.masterGain ?? 1;
-    const decl = `${_node.mangledId} = *(hslider("${path}", ${mg}, 0, 2, 0.001));`;
+    _params.push({
+        nodeId: _node.id,
+        paramId: 'masterGain',
+        faustPath: path,
+        default: mg,
+        min,
+        max,
+        step,
+    });
+    const decl = `${_node.mangledId} = *(hslider("${path}", ${mg}, ${min}, ${max}, ${step}));`;
     return { decl, ref: _node.mangledId };
 }
 

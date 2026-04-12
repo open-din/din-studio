@@ -112,6 +112,8 @@ vi.mock('../../ui/editor/audioLibrary', () => ({
 
 vi.mock('../../ui/editor/AudioEngine', () => ({
         audioEngine: {
+        attachFaustDsp: vi.fn(),
+        syncFaustParamsFromGraph: vi.fn(),
         getControlInputValue: vi.fn(() => null),
         getContext: vi.fn(() => null),
         getSourceOutputValue: vi.fn(() => null),

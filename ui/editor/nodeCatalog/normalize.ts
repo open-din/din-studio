@@ -4,6 +4,7 @@
  * @see docs_v2/10-studio-node-ui-json-catalog.md
  */
 import type { RawStudioNodeDefinition, StudioNodeDefinition, StudioNodePortSchema } from './definition';
+import { findHsliderForPortName, parseFaustHsliders, type ParsedFaustHslider } from './parseFaustHsliders';
 
 function normalizeTags(raw: unknown): string[] {
     if (!Array.isArray(raw)) {
@@ -80,6 +81,31 @@ function normalizePorts(raw: unknown): StudioNodePortSchema[] {
     return raw.map(normalizeOnePort);
 }
 
+function mergePortFillIfMissingFromHslider(
+    port: StudioNodePortSchema,
+    sliders: Map<string, ParsedFaustHslider>,
+): StudioNodePortSchema {
+    if (port.type !== 'float' && port.type !== 'int') return port;
+    const meta = findHsliderForPortName(sliders, port.name);
+    if (!meta) return port;
+    return {
+        ...port,
+        ...(port.default === undefined ? { default: meta.default } : {}),
+        ...(port.min === undefined ? { min: meta.min } : {}),
+        ...(port.max === undefined ? { max: meta.max } : {}),
+        ...(port.step === undefined ? { step: meta.step } : {}),
+    };
+}
+
+function mergeInputsWithFaustHsliders(def: StudioNodeDefinition & { dsp: string }): StudioNodeDefinition {
+    const sliders = parseFaustHsliders(def.dsp);
+    if (sliders.size === 0) return def;
+    return {
+        ...def,
+        inputs: def.inputs.map((p) => mergePortFillIfMissingFromHslider(p, sliders)),
+    };
+}
+
 /**
  * Apply defaults: `label` / `customComponent` null, empty `tags`, `inputs`, `outputs`.
  */
@@ -146,7 +172,8 @@ export function normalizeStudioNodeDefinition(raw: RawStudioNodeDefinition): Stu
     };
 
     if (raw.type === 'dsp' && raw.dsp !== undefined && String(raw.dsp).trim() !== '') {
-        return { ...base, dsp: String(raw.dsp).trim() };
+        const dsp = String(raw.dsp).trim();
+        return mergeInputsWithFaustHsliders({ ...base, dsp });
     }
     return base;
 }

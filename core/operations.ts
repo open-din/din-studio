@@ -328,12 +328,15 @@ function bindAssetToNodeData(
 }
 
 function createDefaultGraph(graphId: string, name: string, order: number): GraphDocument {
-    const osc = createEditorNode('osc_1', 'osc', { x: 50, y: 150 });
-    const gain = createEditorNode('gain_1', 'gain', { x: 300, y: 150 });
+    const osc = createEditorNode('osc_1', 'osc', { x: -950, y: 460 });
+    const gain = createEditorNode('gain_1', 'gain', { x: -370, y: 320 });
+    if (osc && osc.data.type === 'osc') {
+        osc.data = { ...osc.data, frequency: 4334.635 };
+    }
     const output = {
         id: 'output_1',
         type: 'outputNode',
-        position: { x: 520, y: 150 },
+        position: { x: 350, y: 390 },
         dragHandle: '.node-header',
         data: createDefaultOutputData(),
     } satisfies Node<AudioNodeData>;

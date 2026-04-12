@@ -100,23 +100,23 @@ function createInitialGraphDocument(graphId = createProjectId(), name = 'Graph 1
             {
                 id: 'osc_1',
                 type: 'oscNode',
-                position: { x: 50, y: 150 },
+                position: { x: -950, y: 460 },
                 dragHandle: '.node-header',
-                data: { type: 'osc', frequency: 440, detune: 0, waveform: 'sine', label: 'Oscillator' },
+                data: { type: 'osc', frequency: 4334.635, detune: 0, waveform: 'sine', label: 'Oscillator' },
             },
             {
                 id: 'gain_1',
                 type: 'gainNode',
-                position: { x: 300, y: 150 },
+                position: { x: -370, y: 320 },
                 dragHandle: '.node-header',
                 data: { type: 'gain', gain: 0.5, label: 'Gain' },
             },
             {
                 id: 'output_1',
                 type: 'outputNode',
-                position: { x: 520, y: 150 },
+                position: { x: 350, y: 390 },
                 dragHandle: '.node-header',
-                data: { type: 'output', playing: false, masterGain: 0.8, label: 'Output' },
+                data: { type: 'output', playing: false, masterGain: 0.5, label: 'Output' },
             },
         ],
         edges: [

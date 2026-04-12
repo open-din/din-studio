@@ -65,6 +65,7 @@ export function useFaustDsp(
 
             liveNodeRef.current?.disconnect();
             liveNodeRef.current = null;
+            audioEngine.attachFaustDsp(null, null);
             setState({ status: 'idle', error: null });
         }
     }, [playing]);
@@ -85,7 +86,12 @@ export function useFaustDsp(
             const bundle = buildFaustBundleFromGraph(nodes, edges, 'din-studio');
 
             // Skip if nothing compilable (unsupported node types or empty chain).
-            if (!bundle.faust) return;
+            if (!bundle.faust) {
+                liveNodeRef.current?.disconnect();
+                liveNodeRef.current = null;
+                audioEngine.attachFaustDsp(null, null);
+                return;
+            }
 
             const thisVersion = ++versionRef.current;
             setState({ status: 'compiling', error: null });
@@ -141,9 +147,13 @@ export function useFaustDsp(
                 newNode.connect(ctx.destination);
                 liveNodeRef.current = newNode;
 
+                audioEngine.attachFaustDsp(newNode, bundle.manifest);
+                audioEngine.syncFaustParamsFromGraph(nodes);
+
                 setState({ status: 'live', error: null });
             } catch (err) {
                 if (thisVersion !== versionRef.current) return;
+                audioEngine.attachFaustDsp(null, null);
                 setState({
                     status: 'error',
                     error: err instanceof Error ? err.message : String(err),
@@ -164,6 +174,7 @@ export function useFaustDsp(
         return () => {
             liveNodeRef.current?.disconnect();
             liveNodeRef.current = null;
+            audioEngine.attachFaustDsp(null, null);
         };
     }, []);
 

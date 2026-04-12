@@ -96,6 +96,11 @@ describe('Faust registry and codegen', () => {
         const lines = bundle.faust.split('\n').filter((l) => l.startsWith('process ='));
         expect(lines).toHaveLength(1);
         expect(bundle.manifest.params.length).toBeGreaterThan(0);
+        const freq = bundle.manifest.params.find((p) => p.paramId === 'frequency' && p.nodeId === 'a');
+        expect(freq?.min).toBe(20);
+        expect(freq?.max).toBe(20000);
+        expect(freq?.step).toBe(0.01);
+        expect(bundle.faust).toMatch(/hslider\("[^"]+",\s*220,\s*20,\s*20000,\s*0\.01\)/);
     });
 
     it('compiles generated Faust with @grame/faustwasm', async () => {

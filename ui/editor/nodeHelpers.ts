@@ -13,16 +13,10 @@ import type {
     MidiNoteNodeData,
     OutputNodeData,
     OutputParam,
-    PatchNodeData,
     TransportNodeData,
     UiTokensNodeData,
 } from './types';
-import {
-    INPUT_PARAM_HANDLE_PREFIX,
-    getInputParamHandleId,
-    migrateLegacyInputHandle,
-    resolveInputParamByHandle,
-} from './handleIds';
+import { getInputParamHandleId, migrateLegacyInputHandle } from './handleIds';
 import {
     getEditorNodeCatalog,
     getNodeCatalogEntry,
@@ -138,78 +132,6 @@ const TRIGGER_SOURCE_TYPES = new Set<AudioNodeData['type']>([
     'midiNote',
     'midiPlayer',
 ]);
-
-const MODULATION_TARGET_HANDLES = new Set([
-    'frequency',
-    'detune',
-    'gain',
-    'q',
-    'delayTime',
-    'feedback',
-    'mix',
-    'pan',
-    'masterGain',
-    'rate',
-    'depth',
-    'playbackRate',
-    'portamento',
-    'attack',
-    'decay',
-    'sustain',
-    'release',
-    'threshold',
-    'knee',
-    'ratio',
-    'sidechainStrength',
-    'level',
-    'tone',
-    'drive',
-    'duration',
-    'offset',
-    'positionX',
-    'positionY',
-    'positionZ',
-    'refDistance',
-    'maxDistance',
-    'rolloffFactor',
-    'token',
-    'low',
-    'mid',
-    'high',
-    'lowFrequency',
-    'highFrequency',
-    'baseFrequency',
-    'stages',
-    'sendGain',
-    'value',
-    'min',
-    'max',
-    'a',
-    'b',
-    'c',
-    't',
-    'index',
-]);
-
-const PATCH_INPUT_HANDLE_PREFIX = 'in:';
-const PATCH_OUTPUT_HANDLE_PREFIX = 'out:';
-
-function getPatchSlotTypeFromHandle(
-    data: PatchNodeData,
-    direction: 'input' | 'output',
-    handleId: string,
-): 'audio' | 'midi' | null {
-    const prefix = direction === 'input' ? PATCH_INPUT_HANDLE_PREFIX : PATCH_OUTPUT_HANDLE_PREFIX;
-    if (!handleId.startsWith(prefix)) return null;
-    const slotId = handleId.slice(prefix.length).trim();
-    if (!slotId) return null;
-    const slots = direction === 'input' ? data.inputs : data.outputs;
-    const slot = Array.isArray(slots)
-        ? slots.find((entry) => String(entry?.id ?? '').trim() === slotId)
-        : undefined;
-    if (!slot) return null;
-    return slot.type === 'audio' ? 'audio' : 'midi';
-}
 
 const SINGLETON_NODE_TYPES = new Set(
     getEditorNodeCatalog()
@@ -456,8 +378,8 @@ export function getCatalogPortValueType(
 }
 
 /**
- * Whether two Studio catalog port value types may connect when both ends resolve to YAML/catalog types.
- * Rule: identical types connect; `int` ↔ `float` connect as numeric CV.
+ * Whether two Studio port value types may connect (YAML catalog and/or handle `portValueType`).
+ * Rules: same type; `int` ↔ `float` as numeric CV; `bool` and `enum` only to themselves.
  */
 export function studioPortValueTypesConnectable(
     source: StudioNodePortValueType,
@@ -474,9 +396,9 @@ export function studioPortValueTypesConnectable(
 
 /**
  * Resolved port `type` for connection checks: Studio YAML/catalog first, then `portValueType` on handle descriptors
- * (e.g. matrix cells) when the catalog row is not found by id.
+ * (e.g. matrix cells, patch slots) when the catalog row is not found by id.
  */
-function resolveConnectionPortValueType(
+export function resolveStudioPortValueTypeAtHandle(
     node: Node<AudioNodeData>,
     handleId: string,
     direction: HandleDirection,
@@ -494,28 +416,28 @@ function resolveConnectionPortValueType(
 }
 
 /**
- * When both handles resolve to typed ports, enforce matching `type`.
- * Returns `null` only when either side is untyped and legacy rules must decide.
+ * When both handles resolve to typed ports, enforce {@link studioPortValueTypesConnectable}.
+ * Returns `false` if either side has no resolved port type.
  */
 export function tryCatalogPortConnection(
     connection: GraphConnectionLike,
     nodeById: Map<string, Node<AudioNodeData>>,
     existingEdges?: Edge[],
-): boolean | null {
-    if (!connection.targetHandle) {
-        return null;
+): boolean {
+    if (!connection.targetHandle || !connection.source || !connection.target) {
+        return false;
     }
-    const sourceNode = connection.source ? nodeById.get(connection.source) : null;
-    const targetNode = connection.target ? nodeById.get(connection.target) : null;
+    const sourceNode = nodeById.get(connection.source);
+    const targetNode = nodeById.get(connection.target);
     if (!sourceNode || !targetNode) {
-        return null;
+        return false;
     }
     const sourceHandle = connection.sourceHandle ?? '';
     const targetHandle = connection.targetHandle;
-    const srcType = resolveConnectionPortValueType(sourceNode, sourceHandle, 'source');
-    const tgtType = resolveConnectionPortValueType(targetNode, targetHandle, 'target');
+    const srcType = resolveStudioPortValueTypeAtHandle(sourceNode, sourceHandle, 'source');
+    const tgtType = resolveStudioPortValueTypeAtHandle(targetNode, targetHandle, 'target');
     if (srcType === null || tgtType === null) {
-        return null;
+        return false;
     }
     if (!studioPortValueTypesConnectable(srcType, tgtType)) {
         return false;
@@ -545,34 +467,33 @@ export function getConnectionEdgeStyle(
     const sourceNode = connection.source ? nodeById.get(connection.source) : null;
     const sourceHandle = connection.sourceHandle ?? '';
     if (sourceNode) {
-        const srcCatalog = getCatalogPortValueType(sourceNode.data.type, sourceHandle, 'source', sourceNode.data);
-        if (srcCatalog === 'audio') {
+        const srcType = resolveStudioPortValueTypeAtHandle(sourceNode, sourceHandle, 'source');
+        if (srcType === 'audio') {
             return { stroke: FLOW_EDGE_STROKE.audio, strokeWidth: 3 };
         }
-        if (srcCatalog === 'trigger') {
+        if (srcType === 'trigger') {
             return { stroke: FLOW_EDGE_STROKE.trigger, strokeWidth: 2 };
         }
-        if (srcCatalog === 'int' || srcCatalog === 'float' || srcCatalog === 'bool' || srcCatalog === 'enum') {
+        if (srcType === 'int' || srcType === 'float' || srcType === 'bool' || srcType === 'enum') {
             return { stroke: FLOW_EDGE_STROKE.control, strokeWidth: 2, strokeDasharray: '5,5' };
         }
-    }
-    if (isAudioConnection(connection, nodeById)) {
-        return { stroke: FLOW_EDGE_STROKE.audio, strokeWidth: 3 };
     }
     return { stroke: FLOW_EDGE_STROKE.control, strokeWidth: 2, strokeDasharray: '5,5' };
 }
 
+/** True when both ends of the edge resolve to catalog `audio` ports (for animation / Web Audio routing hints). */
 export function isAudioConnection(
     connection: GraphConnectionLike,
     nodeById: Map<string, Node<AudioNodeData>>
 ): boolean {
-    const sourceNode = connection.source ? nodeById.get(connection.source) : null;
-    if (!sourceNode || !isAudioNodeType(sourceNode.data.type)) return false;
+    if (!connection.source || !connection.target || !connection.targetHandle) return false;
+    const sourceNode = nodeById.get(connection.source);
+    const targetNode = nodeById.get(connection.target);
+    if (!sourceNode || !targetNode) return false;
     const sourceHandle = connection.sourceHandle ?? '';
-    const isAudioOutHandle = sourceHandle === 'out' || /^out\d+$/.test(sourceHandle);
-    return isAudioOutHandle
-        && !!connection.target
-        && (connection.targetHandle === 'in' || /^in\d+$/.test(connection.targetHandle ?? ''));
+    const src = resolveStudioPortValueTypeAtHandle(sourceNode, sourceHandle, 'source');
+    const tgt = resolveStudioPortValueTypeAtHandle(targetNode, connection.targetHandle, 'target');
+    return src === 'audio' && tgt === 'audio';
 }
 
 /**
@@ -593,6 +514,10 @@ export function audioTargetAllowsFanIn(targetNode: Node<AudioNodeData>, targetHa
     return false;
 }
 
+/**
+ * Whether an edge is allowed: both handles must resolve to a catalog port value type
+ * (YAML and/or handle descriptors) and satisfy {@link studioPortValueTypesConnectable}.
+ */
 export function canConnect(
     connection: GraphConnectionLike,
     nodeById: Map<string, Node<AudioNodeData>>,
@@ -604,190 +529,7 @@ export function canConnect(
     if (!sourceNode || !targetNode) return false;
     if (connection.source === connection.target) return false;
 
-    const catalogDecision = tryCatalogPortConnection(connection, nodeById, existingEdges);
-    if (catalogDecision !== null) {
-        return catalogDecision;
-    }
-
-    if (isAudioConnection(connection, nodeById)) {
-        if (existingEdges) {
-            const th = connection.targetHandle ?? '';
-            if (!audioTargetAllowsFanIn(targetNode, th)) {
-                const occupied = existingEdges.some(
-                    (e) => e.target === connection.target && e.targetHandle === th
-                );
-                if (occupied) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    const { type: sourceType } = sourceNode.data;
-    const { type: targetType } = targetNode.data;
-    const sourceHandle = connection.sourceHandle ?? '';
-    const targetHandle = connection.targetHandle;
-
-    if (sourceType === 'patch') {
-        const patchSource = sourceNode.data as PatchNodeData;
-        if (sourceHandle === 'out' || /^out\d+$/.test(sourceHandle)) {
-            return targetHandle === 'in' || targetHandle.startsWith('in');
-        }
-        const outputSlotType = getPatchSlotTypeFromHandle(patchSource, 'output', sourceHandle);
-        if (!outputSlotType) return false;
-        if (outputSlotType === 'audio') {
-            return targetHandle === 'in' || targetHandle.startsWith('in');
-        }
-        if (targetType === 'patch') {
-            const patchTarget = targetNode.data as PatchNodeData;
-            return getPatchSlotTypeFromHandle(patchTarget, 'input', targetHandle) === 'midi';
-        }
-        return targetHandle !== 'transport'
-            && targetHandle !== 'in'
-            && targetHandle !== 'sidechainIn'
-            && !targetHandle.startsWith('in');
-    }
-
-    if (targetType === 'patch') {
-        const patchTarget = targetNode.data as PatchNodeData;
-        if (targetHandle === 'in') {
-            return sourceHandle === 'out' || /^out\d+$/.test(sourceHandle);
-        }
-        const inputSlotType = getPatchSlotTypeFromHandle(patchTarget, 'input', targetHandle);
-        if (!inputSlotType) return false;
-        if (inputSlotType === 'audio') {
-            return sourceHandle === 'out' || /^out\d+$/.test(sourceHandle);
-        }
-        return sourceHandle !== 'out' && !/^out\d+$/.test(sourceHandle);
-    }
-
-    if (
-        isAudioNodeType(sourceType)
-        && (sourceHandle === 'out' || /^out\d+$/.test(sourceHandle))
-        && targetType === 'compressor'
-        && targetHandle === 'sidechainIn'
-    ) {
-        return true;
-    }
-
-    if (sourceType === 'transport') {
-        return sourceHandle === 'out'
-            && targetHandle === 'transport'
-            && TRANSPORT_TARGET_TYPES.has(targetType);
-    }
-
-    // midiNote also emits frequency / note / gate / velocity; only the trigger output uses
-    // the shared trigger routing below.
-    if (TRIGGER_SOURCE_TYPES.has(sourceType) && sourceHandle === 'trigger') {
-        return (
-            (targetHandle === 'trigger' && (targetType === 'voice' || targetType === 'sampler'))
-            || (targetHandle === 'gate' && targetType === 'adsr')
-            || (targetHandle === 'trigger' && targetType === 'noiseBurst')
-            || (targetHandle === 'trigger' && targetType === 'midiNoteOutput')
-        );
-    }
-
-    if (sourceType === 'voice') {
-        if (sourceHandle === 'note') {
-            return targetHandle === 'frequency';
-        }
-        if (sourceHandle === 'gate') {
-            return targetHandle === 'gate'
-                || targetHandle === 'trigger'
-                || targetHandle === 'gain';
-        }
-        if (sourceHandle === 'velocity') {
-            return targetHandle !== 'transport'
-                && targetHandle !== 'in'
-                && targetHandle !== 'sidechainIn'
-                && !targetHandle.startsWith('in');
-        }
-        return false;
-    }
-
-    if (sourceType === 'midiNote') {
-        if (sourceHandle === 'frequency') {
-            return targetHandle === 'frequency';
-        }
-        if (sourceHandle === 'note') {
-            return targetHandle === 'note' || targetHandle === 'frequency';
-        }
-        if (sourceHandle === 'gate') {
-            return targetHandle === 'gate'
-                || targetHandle === 'trigger'
-                || targetHandle === 'gain';
-        }
-        if (sourceHandle === 'velocity') {
-            return targetHandle !== 'transport'
-                && targetHandle !== 'in'
-                && targetHandle !== 'sidechainIn'
-                && !targetHandle.startsWith('in');
-        }
-        return false;
-    }
-
-    if (sourceType === 'midiCC') {
-        return (sourceHandle === 'normalized' || sourceHandle === 'raw')
-            && targetHandle !== 'transport'
-            && targetHandle !== 'trigger'
-            && targetHandle !== 'in'
-            && targetHandle !== 'sidechainIn'
-            && !targetHandle.startsWith('in');
-    }
-
-    if (sourceType === 'note') {
-        return sourceHandle === 'freq' && targetHandle === 'frequency';
-    }
-
-    if (isInputLikeNodeType(sourceType)) {
-        if (!(sourceHandle.startsWith(INPUT_PARAM_HANDLE_PREFIX) || /^param_\d+$/.test(sourceHandle))) {
-            return false;
-        }
-        const inputData = sourceNode.data as InputNodeData | UiTokensNodeData;
-        const resolved = resolveInputParamByHandle(inputData.params, sourceHandle);
-        const kind = resolved?.param.socketKind ?? 'control';
-        if (kind === 'audio') {
-            return targetHandle === 'in' || /^in\d+$/.test(targetHandle) || targetHandle === 'sidechainIn';
-        }
-        if (kind === 'trigger') {
-            return targetHandle === 'trigger' || targetHandle === 'gate' || targetHandle === 'transport';
-        }
-        // control
-        return targetHandle !== 'transport'
-            && targetHandle !== 'trigger'
-            && targetHandle !== 'gate'
-            && targetHandle !== 'in'
-            && targetHandle !== 'sidechainIn'
-            && !targetHandle.startsWith('in');
-    }
-
-    if (sourceType === 'lfo') {
-        return sourceHandle === 'out'
-            && (MODULATION_TARGET_HANDLES.has(targetHandle) || targetHandle.startsWith('cell:'));
-    }
-
-    if (sourceType === 'adsr') {
-        return sourceHandle === 'envelope'
-            && (MODULATION_TARGET_HANDLES.has(targetHandle) || targetHandle.startsWith('cell:'));
-    }
-
-    if (sourceType === 'constantSource') {
-        return sourceHandle === 'out'
-            && (MODULATION_TARGET_HANDLES.has(targetHandle) || targetHandle.startsWith('cell:'));
-    }
-
-    if (isDataNodeType(sourceType)) {
-        return sourceHandle === 'out'
-            && targetHandle !== 'transport'
-            && targetHandle !== 'trigger'
-            && targetHandle !== 'gate'
-            && targetHandle !== 'in'
-            && targetHandle !== 'sidechainIn'
-            && !targetHandle.startsWith('in');
-    }
-
-    return false;
+    return tryCatalogPortConnection(connection, nodeById, existingEdges);
 }
 
 export function normalizeConnectionFromStart(
@@ -872,44 +614,6 @@ export function getCompatibleNodeSuggestions(
     const existingTypes = new Set(nodes.map((node) => node.data.type));
     const baseLookup = createNodeLookup(nodes);
     const expectedDirection: HandleDirection = start.handleType === 'source' ? 'target' : 'source';
-    const startNodeType = baseLookup.get(start.nodeId)?.data.type;
-
-    const getPriority = (suggestion: NodeSuggestion): number => {
-        if (!start.handleId || !startNodeType) return 0;
-
-        if (startNodeType === 'midiNote' && start.handleId === 'trigger') {
-            if (suggestion.type === 'voice') return 100;
-            if (suggestion.type === 'adsr') return 95;
-            if (suggestion.type === 'sampler') return 90;
-            if (suggestion.type === 'noiseBurst') return 85;
-            if (suggestion.type === 'midiNoteOutput') return 80;
-        }
-
-        if (startNodeType === 'midiNote' && start.handleId === 'frequency') {
-            if (suggestion.type === 'osc') return 100;
-            if (suggestion.type === 'filter') return 70;
-        }
-
-        if (startNodeType === 'midiCC' && (start.handleId === 'normalized' || start.handleId === 'raw')) {
-            if (suggestion.type === 'filter') return 100;
-            if (suggestion.type === 'gain') return 95;
-            if (suggestion.type === 'panner') return 90;
-            if (suggestion.type === 'lfo') return 85;
-            if (suggestion.type === 'midiCCOutput') return 80;
-        }
-
-        if (start.handleId === 'note' && suggestion.type === 'midiNoteOutput') {
-            return 100;
-        }
-        if (start.handleId === 'gate' && suggestion.type === 'midiNoteOutput') {
-            return 95;
-        }
-        if (start.handleId === 'trigger' && suggestion.type === 'midiNoteOutput') {
-            return 90;
-        }
-
-        return 0;
-    };
 
     return getEditorNodeCatalog().flatMap((entry) => {
         if (entry.singleton && existingTypes.has(entry.type)) {
@@ -943,11 +647,7 @@ export function getCompatibleNodeSuggestions(
                     title: `${entry.label} -> ${handle.label}`,
                 }];
             });
-    }).sort((left, right) => {
-        const score = getPriority(right) - getPriority(left);
-        if (score !== 0) return score;
-        return left.title.localeCompare(right.title);
-    });
+    }).sort((left, right) => left.title.localeCompare(right.title));
 }
 
 export function migrateGraphNodes(nodes: Node<AudioNodeData>[]): Node<AudioNodeData>[] {

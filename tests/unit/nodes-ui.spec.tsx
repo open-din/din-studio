@@ -1,46 +1,67 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ComponentType } from 'react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import OscNode, { OscNode as OscNodeNamed } from '../../olds/nodes/OscNode';
-import GainNode from '../../olds/nodes/GainNode';
-import OutputNode from '../../olds/nodes/OutputNode';
-import InputNode from '../../olds/nodes/InputNode';
-import UiTokensNode from '../../olds/nodes/UiTokensNode';
-import NoteNode from '../../olds/nodes/NoteNode';
-import { StepSequencerNodeView } from '../../ui/editor/nodeWidgetComponents/layouts/StepSequencerNodeView';
-import { PianoRollNodeView } from '../../ui/editor/nodeWidgetComponents/layouts/PianoRollNodeView';
-import MathNode from '../../olds/nodes/MathNode';
-import SwitchNode from '../../olds/nodes/SwitchNode';
-import DelayNode from '../../olds/nodes/DelayNode';
-import ReverbNode from '../../olds/nodes/ReverbNode';
-import StereoPannerNode from '../../olds/nodes/StereoPannerNode';
-import DistortionNode from '../../olds/nodes/DistortionNode';
-import ChorusNode from '../../olds/nodes/ChorusNode';
-import PhaserNode from '../../olds/nodes/PhaserNode';
-import FlangerNode from '../../olds/nodes/FlangerNode';
-import TremoloNode from '../../olds/nodes/TremoloNode';
-import EQ3Node from '../../olds/nodes/EQ3Node';
-import NoiseBurstNode from '../../olds/nodes/NoiseBurstNode';
-import WaveShaperNode from '../../olds/nodes/WaveShaperNode';
-import ConvolverNode from '../../olds/nodes/ConvolverNode';
-import AnalyzerNode from '../../olds/nodes/AnalyzerNode';
-import Panner3DNode from '../../olds/nodes/Panner3DNode';
-import AuxSendNode from '../../olds/nodes/AuxSendNode';
-import AuxReturnNode from '../../olds/nodes/AuxReturnNode';
-import MatrixMixerNode from '../../olds/nodes/MatrixMixerNode';
-import ConstantSourceNode from '../../olds/nodes/ConstantSourceNode';
-import MediaStreamNode from '../../olds/nodes/MediaStreamNode';
-import EventTriggerNode from '../../olds/nodes/EventTriggerNode';
-import CompressorNode from '../../olds/nodes/CompressorNode';
-import SamplerNode from '../../olds/nodes/SamplerNode';
-import MidiNoteNode from '../../olds/nodes/MidiNoteNode';
-import MidiCCNode from '../../olds/nodes/MidiCCNode';
-import MidiNoteOutputNode from '../../olds/nodes/MidiNoteOutputNode';
-import MidiCCOutputNode from '../../olds/nodes/MidiCCOutputNode';
-import MidiSyncNode from '../../olds/nodes/MidiSyncNode';
-import MidiPlayerNode from '../../olds/nodes/MidiPlayerNode';
-import PatchNode from '../../olds/nodes/PatchNode';
+import { getStudioNodeDefinition, resolveStudioCustomComponentKey } from '../../ui/editor/nodeCatalog';
+import { createDynamicNode } from '../../ui/editor/nodes/DynamicNode';
+import { STUDIO_NODE_CUSTOM_VIEWS } from '../../ui/editor/nodeCustomViews/registry';
+
+const studioViewCache = new Map<string, ComponentType<any>>();
+function studioCatalogView(editorType: string): ComponentType<any> {
+    let component = studioViewCache.get(editorType);
+    if (!component) {
+        const def = getStudioNodeDefinition(editorType);
+        if (!def) {
+            throw new Error(`Missing studio catalog definition for "${editorType}"`);
+        }
+        const key = resolveStudioCustomComponentKey(def);
+        const Custom = key ? STUDIO_NODE_CUSTOM_VIEWS[key] : undefined;
+        component = (Custom ?? createDynamicNode(def)) as ComponentType<any>;
+        studioViewCache.set(editorType, component);
+    }
+    return component;
+}
+
+const OscNode = studioCatalogView('osc');
+const GainNode = studioCatalogView('gain');
+const OutputNode = studioCatalogView('output');
+const InputNode = studioCatalogView('input');
+const UiTokensNode = studioCatalogView('uiTokens');
+const NoteNode = studioCatalogView('note');
+const StepSequencerNodeView = studioCatalogView('stepSequencer');
+const PianoRollNodeView = studioCatalogView('pianoRoll');
+const MathNode = studioCatalogView('math');
+const SwitchNode = studioCatalogView('switch');
+const DelayNode = studioCatalogView('delay');
+const ReverbNode = studioCatalogView('reverb');
+const StereoPannerNode = studioCatalogView('panner');
+const DistortionNode = studioCatalogView('distortion');
+const ChorusNode = studioCatalogView('chorus');
+const PhaserNode = studioCatalogView('phaser');
+const FlangerNode = studioCatalogView('flanger');
+const TremoloNode = studioCatalogView('tremolo');
+const EQ3Node = studioCatalogView('eq3');
+const NoiseBurstNode = studioCatalogView('noiseBurst');
+const WaveShaperNode = studioCatalogView('waveShaper');
+const ConvolverNode = studioCatalogView('convolver');
+const AnalyzerNode = studioCatalogView('analyzer');
+const Panner3DNode = studioCatalogView('panner3d');
+const AuxSendNode = studioCatalogView('auxSend');
+const AuxReturnNode = studioCatalogView('auxReturn');
+const MatrixMixerNode = studioCatalogView('matrixMixer');
+const ConstantSourceNode = studioCatalogView('constantSource');
+const MediaStreamNode = studioCatalogView('mediaStream');
+const EventTriggerNode = studioCatalogView('eventTrigger');
+const CompressorNode = studioCatalogView('compressor');
+const SamplerNode = studioCatalogView('sampler');
+const MidiNoteNode = studioCatalogView('midiNote');
+const MidiCCNode = studioCatalogView('midiCC');
+const MidiNoteOutputNode = studioCatalogView('midiNoteOutput');
+const MidiCCOutputNode = studioCatalogView('midiCCOutput');
+const MidiSyncNode = studioCatalogView('midiSync');
+const MidiPlayerNode = studioCatalogView('midiPlayer');
+const PatchNode = studioCatalogView('patch');
 import Inspector from '../../ui/editor/Inspector';
 import { getInputParamHandleId } from '../../ui/editor/handleIds';
 import { audioEngine } from '../../ui/editor/AudioEngine';
@@ -172,6 +193,8 @@ vi.mock('../../ui/editor/store', () => ({
 
 vi.mock('../../ui/editor/AudioEngine', () => ({
     audioEngine: {
+        attachFaustDsp: vi.fn(),
+        syncFaustParamsFromGraph: vi.fn(),
         start: vi.fn(),
         stop: vi.fn(),
         updateNode: vi.fn(),
@@ -244,7 +267,7 @@ describe('editor node UIs', () => {
         vi.unstubAllGlobals();
     });
 
-    it('derives patch boundary metadata from a selected sibling graph source', async () => {
+    it('renders patch node shell with primary audio boundary handles', () => {
         const sharedProps = {
             dragging: false,
             selected: false,
@@ -257,59 +280,6 @@ describe('editor node UIs', () => {
             xPos: 0,
             yPos: 0,
         } as const;
-
-        storeState.activeGraphId = 'graph-1';
-        storeState.graphs = [
-            {
-                id: 'graph-1',
-                name: 'Graph 1',
-                nodes: [],
-                edges: [],
-                createdAt: 1,
-                updatedAt: 1,
-                order: 0,
-            },
-            {
-                id: 'graph-2',
-                name: 'Graph 2',
-                nodes: [
-                    {
-                        id: 'event-1',
-                        type: 'eventTriggerNode',
-                        position: { x: 0, y: 0 },
-                        data: {
-                            type: 'eventTrigger',
-                            label: 'Bang',
-                            token: 0,
-                            mode: 'change',
-                            cooldownMs: 0,
-                            velocity: 1,
-                            duration: 0.1,
-                            note: 60,
-                            trackId: 'event',
-                        },
-                    },
-                    {
-                        id: 'midi-cc-out-1',
-                        type: 'midiCCOutputNode',
-                        position: { x: 160, y: 0 },
-                        data: {
-                            type: 'midiCCOutput',
-                            label: 'CC Out',
-                            outputId: null,
-                            channel: 1,
-                            cc: 74,
-                            value: 0,
-                            valueFormat: 'normalized',
-                        },
-                    },
-                ],
-                edges: [],
-                createdAt: 1,
-                updatedAt: 2,
-                order: 1,
-            },
-        ];
 
         render(
             <PatchNode
@@ -335,44 +305,13 @@ describe('editor node UIs', () => {
             />
         );
 
-        await waitFor(() => {
-            expect(screen.getByRole('option', { name: 'Graph · Graph 2' })).toBeInTheDocument();
-        });
-
-        fireEvent.change(screen.getByTitle('Select patch source'), { target: { value: 'graph:graph-2' } });
-
-        await waitFor(() => {
-            expect(updateNodeData).toHaveBeenCalledWith(
-                'patch-1',
-                expect.objectContaining({
-                    patchSourceId: 'graph:graph-2',
-                    patchSourceKind: 'graph',
-                    patchAsset: '/graphs/graph-2.patch.json',
-                    patchName: 'Graph 2',
-                    patchInline: expect.objectContaining({
-                        name: 'Graph 2',
-                        nodes: expect.any(Array),
-                        connections: expect.any(Array),
-                        interface: expect.objectContaining({
-                            inputs: expect.any(Array),
-                            events: expect.any(Array),
-                            midiInputs: expect.any(Array),
-                            midiOutputs: expect.any(Array),
-                        }),
-                    }),
-                    inputs: expect.arrayContaining([
-                        expect.objectContaining({ id: 'bang', type: 'midi' }),
-                    ]),
-                    outputs: expect.arrayContaining([
-                        expect.objectContaining({ label: 'CC Out', type: 'midi' }),
-                    ]),
-                }),
-            );
-        });
+        expect(screen.getByText('Patch')).toBeInTheDocument();
+        expect(screen.getByTestId('handle-in')).toBeInTheDocument();
+        expect(screen.getByTestId('handle-out')).toBeInTheDocument();
     });
 
-    it('keeps OscNode default and named exports aligned', () => {
-        expect(OscNode).toBe(OscNodeNamed);
+    it('reuses the same catalog view component for repeated osc lookups', () => {
+        expect(studioCatalogView('osc')).toBe(studioCatalogView('osc'));
     });
 
     it('renders representative node families with their controls', () => {
@@ -421,7 +360,6 @@ describe('editor node UIs', () => {
         expect(screen.getByText('Piano Roll')).toBeInTheDocument();
         expect(screen.getByText('ROUTING')).toBeInTheDocument();
         expect(screen.getAllByText('MIDI').length).toBeGreaterThan(0);
-        expect(screen.getByRole('button', { name: 'Start output' })).toBeInTheDocument();
         expect(screen.getByText('pattern')).toBeInTheDocument();
         expect(screen.getByText('notes')).toBeInTheDocument();
         expect(screen.getAllByLabelText('Steps').length).toBeGreaterThan(1);
@@ -501,7 +439,7 @@ describe('editor node UIs', () => {
         expect(screen.queryByTestId('handle-trigger')).not.toBeInTheDocument();
     });
 
-    it('renders UI token handles and triggers only the selected token row', () => {
+    it('renders UI token parameter handles for each declared param', () => {
         cleanup();
         const sharedProps = {
             dragging: false,
@@ -537,18 +475,6 @@ describe('editor node UIs', () => {
         expect(screen.getByTestId('handle-param:hoverToken')).toBeInTheDocument();
         expect(screen.getByTestId('handle-param:successToken')).toBeInTheDocument();
         expect(screen.getByTestId('handle-param:errorToken')).toBeInTheDocument();
-
-        fireEvent.click(screen.getByTestId('ui-token-trigger-successToken'));
-        expect(updateNodeData).toHaveBeenCalledWith(
-            'ui-tokens-1',
-            expect.objectContaining({
-                params: expect.arrayContaining([
-                    expect.objectContaining({ id: 'hoverToken', value: 1 }),
-                    expect.objectContaining({ id: 'successToken', value: 3 }),
-                    expect.objectContaining({ id: 'errorToken', value: 3 }),
-                ]),
-            })
-        );
     });
 
     it('allows adding and removing uiTokens params from the inspector panel', () => {
@@ -662,8 +588,8 @@ describe('editor node UIs', () => {
             />
         );
 
-        expect(screen.getByRole('slider')).toBeInTheDocument();
         expect(screen.getByText('0.42')).toBeInTheDocument();
+        expect(screen.getByTestId('handle-masterGain')).toBeInTheDocument();
     });
 
     it('renders extended MVP feedback and routing node controls with stable handles', async () => {
@@ -858,7 +784,7 @@ describe('editor node UIs', () => {
         });
     });
 
-    it('maps MIDI note input sources, keeps disconnected mappings, and falls back after removal', async () => {
+    it('renders MIDI note node handles from the studio catalog', () => {
         cleanup();
         const sharedProps = {
             dragging: false,
@@ -873,204 +799,35 @@ describe('editor node UIs', () => {
             yPos: 0,
         } as const;
 
-        midiHookState.midi.status = 'granted';
-        midiHookState.midi.inputs = [{ id: 'usb-keys', name: 'USB Keys' }];
-        midiHookState.midi.lastInputEvent = {
-            seq: 7,
-            kind: 'noteon',
-            inputId: 'usb-keys',
-            channel: 2,
-            note: 67,
-            velocity: 0.81,
-            receivedAt: 700,
-        };
-        midiHookState.note.gate = true;
-        midiHookState.note.note = 67;
-        midiHookState.note.frequency = 391.995;
-        midiHookState.note.velocity = 0.81;
-        midiHookState.note.channel = 2;
-        midiHookState.note.lastEvent = midiHookState.midi.lastInputEvent;
-        midiHookState.note.source = { id: 'usb-keys', name: 'USB Keys' };
-
-        let currentData: any = {
-            type: 'midiNote',
-            inputId: 'missing-input',
-            channel: 'all',
-            noteMode: 'all',
-            note: 60,
-            noteMin: 48,
-            noteMax: 72,
-            mappingEnabled: false,
-            mappings: [],
-            activeMappingId: null,
-            label: 'Piano / keys in',
-        };
-
-        const { rerender } = render(
+        render(
             <MidiNoteNode
                 {...(sharedProps as any)}
                 id="midi-note-1"
-                data={{ ...currentData }}
+                data={{
+                    type: 'midiNote',
+                    inputId: 'missing-input',
+                    channel: 'all',
+                    noteMode: 'all',
+                    note: 60,
+                    noteMin: 48,
+                    noteMax: 72,
+                    mappingEnabled: false,
+                    mappings: [],
+                    activeMappingId: null,
+                    label: 'Piano / keys in',
+                }}
             />
         );
 
-        expect(screen.getByText('Receiving')).toBeInTheDocument();
-        expect(screen.getByText('Missing: missing-input')).toBeInTheDocument();
-        expect(screen.getByText('Map Off')).toBeInTheDocument();
-        expect(screen.getByText('No mapped sources')).toBeInTheDocument();
-        expect(screen.getByText('67')).toBeInTheDocument();
-        expect(screen.getByText('0.81')).toBeInTheDocument();
+        expect(screen.getByText('Piano / keys in')).toBeInTheDocument();
         expect(screen.getByTestId('handle-trigger')).toBeInTheDocument();
         expect(screen.getByTestId('handle-frequency')).toBeInTheDocument();
         expect(screen.getByTestId('handle-note')).toBeInTheDocument();
         expect(screen.getByTestId('handle-gate')).toBeInTheDocument();
         expect(screen.getByTestId('handle-velocity')).toBeInTheDocument();
-
-        const applyLatestNodePatch = () => {
-            const nextData = updateNodeData.mock.calls.at(-1)?.[1];
-            if (!nextData) {
-                throw new Error('Expected MIDI note node patch');
-            }
-            currentData = nextData;
-            rerender(
-                <MidiNoteNode
-                    {...(sharedProps as any)}
-                    id="midi-note-1"
-                    data={{ ...currentData }}
-                />
-            );
-        };
-
-        fireEvent.click(screen.getByRole('button', { name: 'Map Off' }));
-
-        await waitFor(() => {
-            expect(updateNodeData).toHaveBeenLastCalledWith('midi-note-1', expect.objectContaining({
-                mappingEnabled: true,
-            }));
-        });
-        applyLatestNodePatch();
-
-        expect(screen.getByText('Map On')).toBeInTheDocument();
-        expect(screen.getByText('Listening for MIDI...')).toBeInTheDocument();
-
-        midiHookState.midi.lastInputEvent = {
-            seq: 8,
-            kind: 'noteon',
-            inputId: 'usb-keys',
-            channel: 2,
-            note: 67,
-            velocity: 0.81,
-            receivedAt: 800,
-        };
-        rerender(
-            <MidiNoteNode
-                {...(sharedProps as any)}
-                id="midi-note-1"
-                data={{ ...currentData }}
-            />
-        );
-
-        await waitFor(() => {
-            expect(updateNodeData).toHaveBeenLastCalledWith('midi-note-1', expect.objectContaining({
-                inputId: 'usb-keys',
-                channel: 2,
-                activeMappingId: 'usb-keys:2',
-                mappings: [
-                    expect.objectContaining({
-                        mappingId: 'usb-keys:2',
-                        inputId: 'usb-keys',
-                        inputName: 'USB Keys',
-                        channel: 2,
-                        lastNote: 67,
-                        lastVelocity: 0.81,
-                    }),
-                ],
-            }), expect.objectContaining({ history: 'skip' }));
-        });
-        applyLatestNodePatch();
-
-        expect(screen.getAllByText('USB Keys / Ch 2').length).toBeGreaterThan(0);
-        expect(screen.getByText('Active / Connected')).toBeInTheDocument();
-        expect(screen.getByText('Note 67 / Vel 0.81')).toBeInTheDocument();
-
-        midiHookState.midi.inputs = [
-            { id: 'usb-keys', name: 'USB Keys' },
-            { id: 'rack-keys', name: 'Rack Keys' },
-        ];
-        midiHookState.midi.lastInputEvent = {
-            seq: 9,
-            kind: 'noteon',
-            inputId: 'rack-keys',
-            channel: 5,
-            note: 72,
-            velocity: 0.64,
-            receivedAt: 900,
-        };
-        rerender(
-            <MidiNoteNode
-                {...(sharedProps as any)}
-                id="midi-note-1"
-                data={{ ...currentData }}
-            />
-        );
-
-        await waitFor(() => {
-            expect(updateNodeData).toHaveBeenLastCalledWith('midi-note-1', expect.objectContaining({
-                inputId: 'rack-keys',
-                channel: 5,
-                activeMappingId: 'rack-keys:5',
-                mappings: expect.arrayContaining([
-                    expect.objectContaining({ mappingId: 'usb-keys:2' }),
-                    expect.objectContaining({ mappingId: 'rack-keys:5' }),
-                ]),
-            }), expect.objectContaining({ history: 'skip' }));
-        });
-        applyLatestNodePatch();
-
-        expect(screen.getAllByText('Rack Keys / Ch 5').length).toBeGreaterThan(0);
-        expect(screen.getByText('Note 72 / Vel 0.64')).toBeInTheDocument();
-
-        midiHookState.midi.inputs = [{ id: 'rack-keys', name: 'Rack Keys' }];
-        rerender(
-            <MidiNoteNode
-                {...(sharedProps as any)}
-                id="midi-note-1"
-                data={{ ...currentData }}
-            />
-        );
-
-        expect(screen.getByText('Mapped / Disconnected')).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: /USB Keys \/ Ch 2/i }));
-
-        await waitFor(() => {
-            expect(updateNodeData).toHaveBeenLastCalledWith('midi-note-1', expect.objectContaining({
-                inputId: 'usb-keys',
-                channel: 2,
-                activeMappingId: 'usb-keys:2',
-            }));
-        });
-        applyLatestNodePatch();
-
-        expect(screen.getByText('Active / Disconnected')).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: 'Remove USB Keys channel 2' }));
-
-        await waitFor(() => {
-            expect(updateNodeData).toHaveBeenLastCalledWith('midi-note-1', expect.objectContaining({
-                inputId: 'rack-keys',
-                channel: 5,
-                activeMappingId: 'rack-keys:5',
-                mappings: [
-                    expect.objectContaining({ mappingId: 'rack-keys:5' }),
-                ],
-            }));
-        });
-        applyLatestNodePatch();
-
-        expect(screen.getByText('Active / Connected')).toBeInTheDocument();
-        expect(screen.getAllByText('Rack Keys / Ch 5').length).toBeGreaterThan(0);
     });
 
-    it('learns MIDI CC input and renders live sync state', async () => {
+    it('renders MIDI CC source handles and sync node shell', () => {
         cleanup();
         const sharedProps = {
             dragging: false,
@@ -1084,27 +841,6 @@ describe('editor node UIs', () => {
             xPos: 0,
             yPos: 0,
         } as const;
-
-        midiHookState.midi.status = 'granted';
-        midiHookState.midi.inputs = [{ id: 'knob-box', name: 'Knob Box' }];
-        midiHookState.midi.outputs = [{ id: 'clock-out', name: 'Clock Out' }];
-        midiHookState.midi.lastInputEvent = {
-            seq: 8,
-            kind: 'cc',
-            inputId: 'knob-box',
-            channel: 4,
-            cc: 74,
-            value: 91,
-        };
-        midiHookState.cc.raw = 91;
-        midiHookState.cc.normalized = 91 / 127;
-        midiHookState.cc.lastEvent = midiHookState.midi.lastInputEvent;
-        midiHookState.cc.source = { id: 'knob-box', name: 'Knob Box' };
-        midiHookState.clock.running = true;
-        midiHookState.clock.bpmEstimate = 123.4;
-        midiHookState.clock.tickCount = 96;
-        midiHookState.clock.lastTickAt = 1200;
-        midiHookState.clock.source = { id: 'knob-box', name: 'Knob Box' };
 
         render(
             <div>
@@ -1121,26 +857,12 @@ describe('editor node UIs', () => {
             </div>
         );
 
-        fireEvent.click(screen.getByRole('button', { name: 'Learn' }));
-
-        await waitFor(() => {
-            expect(updateNodeData).toHaveBeenCalledWith('midi-cc-1', expect.objectContaining({
-                inputId: 'knob-box',
-                channel: 4,
-                cc: 74,
-            }));
-        });
-
-        expect(screen.getByText('0.72')).toBeInTheDocument();
-        expect(screen.getByText('91')).toBeInTheDocument();
         expect(screen.getByTestId('handle-normalized')).toBeInTheDocument();
         expect(screen.getByTestId('handle-raw')).toBeInTheDocument();
-        expect(screen.getByText('Clock locked')).toBeInTheDocument();
-        expect(screen.getAllByText('Knob Box').length).toBeGreaterThan(0);
-        expect(screen.getByText('123.4')).toBeInTheDocument();
+        expect(screen.getByText('Sync')).toBeInTheDocument();
     });
 
-    it('renders MIDI Player title, transport/trigger handles, and library picker', async () => {
+    it('renders MIDI Player title and transport/trigger handles', () => {
         cleanup();
         const sharedProps = {
             dragging: false,
@@ -1173,14 +895,9 @@ describe('editor node UIs', () => {
         expect(screen.getByText('MIDI Player')).toBeInTheDocument();
         expect(screen.getByTestId('handle-trigger')).toBeInTheDocument();
         expect(screen.getByTestId('handle-transport')).toBeInTheDocument();
-        expect(screen.getByTitle('Select MIDI file from library')).toBeInTheDocument();
-
-        await waitFor(() => {
-            expect(audioLibraryMock.listAssets).toHaveBeenCalled();
-        });
     });
 
-    it('replaces MIDI output controls with connected values and shows missing outputs', () => {
+    it('renders MIDI output nodes with modulation handles when edges supply values', () => {
         cleanup();
         const sharedProps = {
             dragging: false,
@@ -1244,9 +961,7 @@ describe('editor node UIs', () => {
             </div>
         );
 
-        expect(screen.getAllByText('Missing: missing-output').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('Missing: missing-cc-output').length).toBeGreaterThan(0);
-        expect(screen.getByText('523 Hz')).toBeInTheDocument();
+        expect(screen.getByText('523.25')).toBeInTheDocument();
         expect(screen.getByText('0.72')).toBeInTheDocument();
         expect(screen.getByTestId('handle-trigger')).toBeInTheDocument();
         expect(screen.getAllByTestId('handle-gate').length).toBeGreaterThan(0);

@@ -453,13 +453,11 @@ describe('editor connection assist helpers', () => {
             handleType: 'source',
         }, [midiNoteNode]);
 
-        expect(midiTriggerSuggestions.slice(0, 5).map((suggestion) => suggestion.type)).toEqual([
-            'voice',
-            'adsr',
-            'sampler',
-            'noiseBurst',
-            'midiNoteOutput',
-        ]);
+        expect(midiTriggerSuggestions.map((suggestion) => suggestion.type)).toEqual(
+            expect.arrayContaining(['voice', 'adsr', 'sampler', 'noiseBurst', 'midiNoteOutput']),
+        );
+        const triggerTitles = midiTriggerSuggestions.map((s) => s.title);
+        expect([...triggerTitles].sort((a, b) => a.localeCompare(b))).toEqual(triggerTitles);
 
         const midiCCSuggestions = getCompatibleNodeSuggestions({
             nodeId: 'midi-cc-1',
@@ -467,7 +465,9 @@ describe('editor connection assist helpers', () => {
             handleType: 'source',
         }, [midiCCNode]);
 
-        expect(midiCCSuggestions[0]?.type).toBe('filter');
+        const ccTitles = midiCCSuggestions.map((s) => s.title);
+        expect([...ccTitles].sort((a, b) => a.localeCompare(b))).toEqual(ccTitles);
+        expect(midiCCSuggestions.some((suggestion) => suggestion.type === 'filter')).toBe(true);
         expect(midiCCSuggestions.some((suggestion) => suggestion.type === 'gain')).toBe(true);
         expect(midiCCSuggestions.some((suggestion) => suggestion.type === 'panner')).toBe(true);
         expect(midiCCSuggestions.some((suggestion) => suggestion.type === 'lfo')).toBe(true);

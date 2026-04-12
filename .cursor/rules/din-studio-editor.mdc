@@ -6,4 +6,4 @@ alwaysApply: false
 
 Follow @AGENTS.md. For node and catalog work use @project/skills/editor-node-change/SKILL.md and keep `ui/editor/nodeCatalog.ts` aligned with codegen tests.
 
-Port/socket connectability follows `@.cursor/rules/din-studio-port-connection.mdc` (`studioPortValueTypesConnectable`, `tryCatalogPortConnection`).
+Port/socket connectability follows `@.cursor/rules/din-studio-port-connection.mdc` (`resolveStudioPortValueTypeAtHandle`, `studioPortValueTypesConnectable`, `canConnect`).

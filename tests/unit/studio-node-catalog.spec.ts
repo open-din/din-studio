@@ -20,6 +20,7 @@ import {
     validateStudioNodeDefinition,
 } from '../../ui/editor/nodeCatalog';
 import { STUDIO_NODE_CUSTOM_VIEWS } from '../../ui/editor/nodeCustomViews/registry';
+import { parseFaustHsliders } from '../../ui/editor/nodeCatalog/parseFaustHsliders';
 
 describe('Studio node UI catalog', () => {
     it('maps category and subcategory slugs to palette labels', () => {
@@ -149,6 +150,61 @@ dsp: |
         });
         const v = validateStudioNodeDefinition(def);
         expect(v.ok).toBe(true);
+    });
+
+    it('fills float port min/max/default/step from dsp hslider when omitted in YAML', () => {
+        const def = normalizeStudioNodeDefinition({
+            name: 'hslider_merge',
+            description: 'd',
+            category: 'C',
+            subcategory: 'S',
+            type: 'dsp',
+            inputs: [{ type: 'float', name: 'frequency', interface: 'slider' }],
+            outputs: [{ type: 'audio', name: 'out', interface: 'input' }],
+            dsp: 'import("stdfaust.lib");\nprocess = os.oscsin(hslider("frequency", 440, 20, 20000, 0.001));',
+        });
+        const freq = def.inputs.find((i) => i.name === 'frequency');
+        expect(freq?.default).toBe(440);
+        expect(freq?.min).toBe(20);
+        expect(freq?.max).toBe(20000);
+        expect(freq?.step).toBe(0.001);
+    });
+
+    it('does not override explicit YAML port bounds when merging dsp hslider', () => {
+        const def = normalizeStudioNodeDefinition({
+            name: 'explicit_bounds',
+            description: 'd',
+            category: 'C',
+            subcategory: 'S',
+            type: 'dsp',
+            inputs: [{ type: 'float', name: 'frequency', interface: 'slider', min: 5, max: 10000 }],
+            outputs: [{ type: 'audio', name: 'out', interface: 'input' }],
+            dsp: 'process = os.oscsin(hslider("frequency", 440, 20, 20000, 0.001));',
+        });
+        const freq = def.inputs.find((i) => i.name === 'frequency');
+        expect(freq?.min).toBe(5);
+        expect(freq?.max).toBe(10000);
+    });
+
+    it('parseFaustHsliders exposes path labels and tail keys for matching ports', () => {
+        const m = parseFaustHsliders('n = hslider("v/n_osc_1/frequency", 220, 20, 20000, 0.01);');
+        expect(m.get('frequency')?.default).toBe(220);
+        expect(m.get('v/n_osc_1/frequency')?.min).toBe(20);
+    });
+
+    it('built-in osc catalog row picks up hslider ranges from dsp block', () => {
+        resetStudioNodeCatalogCache();
+        const osc = getStudioNodeDefinition('osc');
+        expect(osc).toBeDefined();
+        const freq = osc?.inputs.find((i) => i.name === 'frequency');
+        const det = osc?.inputs.find((i) => i.name === 'detune');
+        expect(freq?.min).toBe(20);
+        expect(freq?.max).toBe(20000);
+        expect(freq?.default).toBe(440);
+        expect(freq?.step).toBe(0.001);
+        expect(det?.min).toBe(-100);
+        expect(det?.max).toBe(100);
+        expect(det?.step).toBe(0.01);
     });
 
     it('rejects dsp nodes without dsp or with empty dsp', () => {

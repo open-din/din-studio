@@ -7,6 +7,12 @@ export interface FaustParamBindingEntry {
     paramId: string;
     /** Faust UI path segment emitted by codegen (vslider/vknob group). */
     faustPath: string;
+    /** hslider default at codegen time (matches emitted Faust). */
+    default?: number;
+    /** hslider min / max / step (matches emitted Faust). */
+    min?: number;
+    max?: number;
+    step?: number;
 }
 
 export interface FaustCompileManifest {

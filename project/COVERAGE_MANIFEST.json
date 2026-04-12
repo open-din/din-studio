@@ -5,7 +5,7 @@
       "id": "editor-node:OscNode",
       "kind": "editor-node",
       "name": "OscNode",
-      "source": "olds/nodes/OscNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/generators/osc.yaml",
       "docs": "project/features/32_node_osc.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -22,7 +22,7 @@
       "id": "editor-node:GainNode",
       "kind": "editor-node",
       "name": "GainNode",
-      "source": "olds/nodes/GainNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/gain-mix-and-stereo-dsp/gain.yaml",
       "docs": "project/features/41_node_gain.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -39,7 +39,7 @@
       "id": "editor-node:FilterNode",
       "kind": "editor-node",
       "name": "FilterNode",
-      "source": "olds/nodes/FilterNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/filters-and-tone/filter.yaml",
       "docs": "project/features/42_node_filter.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -56,7 +56,7 @@
       "id": "editor-node:OutputNode",
       "kind": "editor-node",
       "name": "OutputNode",
-      "source": "olds/nodes/OutputNode.tsx",
+      "source": "ui/editor/built-in-nodes/routing/output/output.yaml",
       "docs": "project/features/61_node_output.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -74,7 +74,7 @@
       "id": "editor-node:NoiseNode",
       "kind": "editor-node",
       "name": "NoiseNode",
-      "source": "olds/nodes/NoiseNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/generators/noise.yaml",
       "docs": "project/features/33_node_noise.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -91,7 +91,7 @@
       "id": "editor-node:DelayNode",
       "kind": "editor-node",
       "name": "DelayNode",
-      "source": "olds/nodes/DelayNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/time-based-effects/delay.yaml",
       "docs": "project/features/44_node_delay.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -108,7 +108,7 @@
       "id": "editor-node:ReverbNode",
       "kind": "editor-node",
       "name": "ReverbNode",
-      "source": "olds/nodes/ReverbNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/time-based-effects/reverb.yaml",
       "docs": "project/features/45_node_reverb.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -125,7 +125,7 @@
       "id": "editor-node:AnalyzerNode",
       "kind": "editor-node",
       "name": "AnalyzerNode",
-      "source": "olds/nodes/AnalyzerNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/analysis/analyzer.yaml",
       "docs": "project/features/54_node_analyzer.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -142,7 +142,7 @@
       "id": "editor-node:ChorusNode",
       "kind": "editor-node",
       "name": "ChorusNode",
-      "source": "olds/nodes/ChorusNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/time-based-effects/chorus.yaml",
       "docs": "project/features/51_node_chorus.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -159,7 +159,7 @@
       "id": "editor-node:CompressorNode",
       "kind": "editor-node",
       "name": "CompressorNode",
-      "source": "olds/nodes/CompressorNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/dynamics-and-nonlinear/compressor.yaml",
       "docs": "project/features/43_node_compressor.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -178,7 +178,7 @@
       "id": "editor-node:PhaserNode",
       "kind": "editor-node",
       "name": "PhaserNode",
-      "source": "olds/nodes/PhaserNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/time-based-effects/phaser.yaml",
       "docs": "project/features/46_node_phaser.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -196,7 +196,7 @@
       "id": "editor-node:FlangerNode",
       "kind": "editor-node",
       "name": "FlangerNode",
-      "source": "olds/nodes/FlangerNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/time-based-effects/flanger.yaml",
       "docs": "project/features/47_node_flanger.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -214,7 +214,7 @@
       "id": "editor-node:TremoloNode",
       "kind": "editor-node",
       "name": "TremoloNode",
-      "source": "olds/nodes/TremoloNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/time-based-effects/tremolo.yaml",
       "docs": "project/features/48_node_tremolo.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -232,7 +232,7 @@
       "id": "editor-node:EQ3Node",
       "kind": "editor-node",
       "name": "EQ3Node",
-      "source": "olds/nodes/EQ3Node.tsx",
+      "source": "ui/editor/built-in-nodes/audio/filters-and-tone/eq3.yaml",
       "docs": "project/features/49_node_eq3.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -250,7 +250,7 @@
       "id": "editor-node:ConstantSourceNode",
       "kind": "editor-node",
       "name": "ConstantSourceNode",
-      "source": "olds/nodes/ConstantSourceNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/values/constant-source.yaml",
       "docs": "project/features/27_node_constant_source.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -267,7 +267,7 @@
       "id": "editor-node:ConvolverNode",
       "kind": "editor-node",
       "name": "ConvolverNode",
-      "source": "olds/nodes/ConvolverNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/time-based-effects/convolver.yaml",
       "docs": "project/features/53_node_convolver.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -286,7 +286,7 @@
       "id": "editor-node:DistortionNode",
       "kind": "editor-node",
       "name": "DistortionNode",
-      "source": "olds/nodes/DistortionNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/dynamics-and-nonlinear/distortion.yaml",
       "docs": "project/features/50_node_distortion.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -303,7 +303,7 @@
       "id": "editor-node:EventTriggerNode",
       "kind": "editor-node",
       "name": "EventTriggerNode",
-      "source": "olds/nodes/EventTriggerNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/values/event-trigger.yaml",
       "docs": "project/features/22_node_event_trigger.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -320,7 +320,7 @@
       "id": "editor-node:MediaStreamNode",
       "kind": "editor-node",
       "name": "MediaStreamNode",
-      "source": "olds/nodes/MediaStreamNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/interfaces/media-stream.yaml",
       "docs": "project/features/28_node_media_stream.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -337,7 +337,7 @@
       "id": "editor-node:NoiseBurstNode",
       "kind": "editor-node",
       "name": "NoiseBurstNode",
-      "source": "olds/nodes/NoiseBurstNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/generators/noise-burst.yaml",
       "docs": "project/features/34_node_noise_burst.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -354,7 +354,7 @@
       "id": "editor-node:Panner3DNode",
       "kind": "editor-node",
       "name": "Panner3DNode",
-      "source": "olds/nodes/Panner3DNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/gain-mix-and-stereo-dsp/panner-3d.yaml",
       "docs": "project/features/56_node_panner_3d.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -371,7 +371,7 @@
       "id": "editor-node:StereoPannerNode",
       "kind": "editor-node",
       "name": "StereoPannerNode",
-      "source": "olds/nodes/StereoPannerNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/gain-mix-and-stereo-dsp/panner.yaml",
       "docs": "project/features/55_node_panner.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -388,7 +388,7 @@
       "id": "editor-node:WaveShaperNode",
       "kind": "editor-node",
       "name": "WaveShaperNode",
-      "source": "olds/nodes/WaveShaperNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/dynamics-and-nonlinear/wave-shaper.yaml",
       "docs": "project/features/52_node_wave_shaper.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -405,7 +405,7 @@
       "id": "editor-node:MixerNode",
       "kind": "editor-node",
       "name": "MixerNode",
-      "source": "olds/nodes/MixerNode.tsx",
+      "source": "ui/editor/built-in-nodes/routing/buses/mixer.yaml",
       "docs": "project/features/57_node_mixer.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -422,7 +422,7 @@
       "id": "editor-node:AuxSendNode",
       "kind": "editor-node",
       "name": "AuxSendNode",
-      "source": "olds/nodes/AuxSendNode.tsx",
+      "source": "ui/editor/built-in-nodes/routing/buses/aux-send.yaml",
       "docs": "project/features/58_node_aux_send.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -440,7 +440,7 @@
       "id": "editor-node:AuxReturnNode",
       "kind": "editor-node",
       "name": "AuxReturnNode",
-      "source": "olds/nodes/AuxReturnNode.tsx",
+      "source": "ui/editor/built-in-nodes/routing/buses/aux-return.yaml",
       "docs": "project/features/59_node_aux_return.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -458,7 +458,7 @@
       "id": "editor-node:MatrixMixerNode",
       "kind": "editor-node",
       "name": "MatrixMixerNode",
-      "source": "olds/nodes/MatrixMixerNode.tsx",
+      "source": "ui/editor/built-in-nodes/routing/buses/matrix-mixer.yaml",
       "docs": "project/features/60_node_matrix_mixer.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -477,7 +477,7 @@
       "id": "editor-node:InputNode",
       "kind": "editor-node",
       "name": "InputNode",
-      "source": "olds/nodes/InputNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/interfaces/input.yaml",
       "docs": "project/features/20_node_input.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -494,7 +494,7 @@
       "id": "editor-node:UiTokensNode",
       "kind": "editor-node",
       "name": "UiTokensNode",
-      "source": "olds/nodes/UiTokensNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/interfaces/ui-tokens.yaml",
       "docs": "project/features/21_node_ui_tokens.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -512,7 +512,7 @@
       "id": "editor-node:NoteNode",
       "kind": "editor-node",
       "name": "NoteNode",
-      "source": "olds/nodes/NoteNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/values/note.yaml",
       "docs": "project/features/31_node_note.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -529,7 +529,7 @@
       "id": "editor-node:TransportNode",
       "kind": "editor-node",
       "name": "TransportNode",
-      "source": "olds/nodes/TransportNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/transport/transport.yaml",
       "docs": "project/features/23_node_transport.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -547,7 +547,7 @@
       "id": "editor-node:StepSequencerNode",
       "kind": "editor-node",
       "name": "StepSequencerNode",
-      "source": "olds/nodes/StepSequencerNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/sequencers/step-sequencer.yaml",
       "docs": "project/features/24_node_step_sequencer.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -564,7 +564,7 @@
       "id": "editor-node:PianoRollNode",
       "kind": "editor-node",
       "name": "PianoRollNode",
-      "source": "olds/nodes/PianoRollNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/sequencers/piano-roll.yaml",
       "docs": "project/features/25_node_piano_roll.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -581,7 +581,7 @@
       "id": "editor-node:LFONode",
       "kind": "editor-node",
       "name": "LFONode",
-      "source": "olds/nodes/LFONode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/generators/lfo.yaml",
       "docs": "project/features/26_node_lfo.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -598,7 +598,7 @@
       "id": "editor-node:ADSRNode",
       "kind": "editor-node",
       "name": "ADSRNode",
-      "source": "olds/nodes/ADSRNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/envelopes-and-modulation/adsr.yaml",
       "docs": "project/features/30_node_adsr.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -615,7 +615,7 @@
       "id": "editor-node:VoiceNode",
       "kind": "editor-node",
       "name": "VoiceNode",
-      "source": "olds/nodes/VoiceNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/voice/voice.yaml",
       "docs": "project/features/29_node_voice.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -632,7 +632,7 @@
       "id": "editor-node:SamplerNode",
       "kind": "editor-node",
       "name": "SamplerNode",
-      "source": "olds/nodes/SamplerNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/assets/sampler.yaml",
       "docs": "project/features/35_node_sampler.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -651,7 +651,7 @@
       "id": "editor-node:MathNode",
       "kind": "editor-node",
       "name": "MathNode",
-      "source": "olds/nodes/MathNode.tsx",
+      "source": "ui/editor/built-in-nodes/math/general/math.yaml",
       "docs": "project/features/62_node_math.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -668,7 +668,7 @@
       "id": "editor-node:CompareNode",
       "kind": "editor-node",
       "name": "CompareNode",
-      "source": "olds/nodes/CompareNode.tsx",
+      "source": "ui/editor/built-in-nodes/math/general/compare.yaml",
       "docs": "project/features/63_node_compare.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -685,7 +685,7 @@
       "id": "editor-node:MixNode",
       "kind": "editor-node",
       "name": "MixNode",
-      "source": "olds/nodes/MixNode.tsx",
+      "source": "ui/editor/built-in-nodes/math/general/mix.yaml",
       "docs": "project/features/64_node_mix.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -702,7 +702,7 @@
       "id": "editor-node:ClampNode",
       "kind": "editor-node",
       "name": "ClampNode",
-      "source": "olds/nodes/ClampNode.tsx",
+      "source": "ui/editor/built-in-nodes/math/general/clamp.yaml",
       "docs": "project/features/65_node_clamp.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -719,7 +719,7 @@
       "id": "editor-node:SwitchNode",
       "kind": "editor-node",
       "name": "SwitchNode",
-      "source": "olds/nodes/SwitchNode.tsx",
+      "source": "ui/editor/built-in-nodes/math/general/switch.yaml",
       "docs": "project/features/66_node_switch.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -736,7 +736,7 @@
       "id": "editor-node:MidiNoteNode",
       "kind": "editor-node",
       "name": "MidiNoteNode",
-      "source": "olds/nodes/MidiNoteNode.tsx",
+      "source": "ui/editor/built-in-nodes/midi/general/midi-note.yaml",
       "docs": "project/features/36_node_midi_note.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -755,7 +755,7 @@
       "id": "editor-node:MidiCCNode",
       "kind": "editor-node",
       "name": "MidiCCNode",
-      "source": "olds/nodes/MidiCCNode.tsx",
+      "source": "ui/editor/built-in-nodes/midi/general/midi-cc.yaml",
       "docs": "project/features/37_node_midi_cc.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -774,7 +774,7 @@
       "id": "editor-node:MidiNoteOutputNode",
       "kind": "editor-node",
       "name": "MidiNoteOutputNode",
-      "source": "olds/nodes/MidiNoteOutputNode.tsx",
+      "source": "ui/editor/built-in-nodes/midi/general/midi-note-output.yaml",
       "docs": "project/features/38_node_midi_note_output.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -792,7 +792,7 @@
       "id": "editor-node:MidiCCOutputNode",
       "kind": "editor-node",
       "name": "MidiCCOutputNode",
-      "source": "olds/nodes/MidiCCOutputNode.tsx",
+      "source": "ui/editor/built-in-nodes/midi/general/midi-cc-output.yaml",
       "docs": "project/features/39_node_midi_cc_output.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -810,7 +810,7 @@
       "id": "editor-node:MidiSyncNode",
       "kind": "editor-node",
       "name": "MidiSyncNode",
-      "source": "olds/nodes/MidiSyncNode.tsx",
+      "source": "ui/editor/built-in-nodes/midi/general/midi-sync.yaml",
       "docs": "project/features/40_node_midi_sync.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",
@@ -828,7 +828,7 @@
       "id": "editor-node:MidiPlayerNode",
       "kind": "editor-node",
       "name": "MidiPlayerNode",
-      "source": "olds/nodes/MidiPlayerNode.tsx",
+      "source": "ui/editor/built-in-nodes/midi/general/midi-player.yaml",
       "docs": "project/features/67_node_midi_player.feature.md",
       "tests": [
         "tests/unit/midi-import.spec.ts",
@@ -853,7 +853,7 @@
       "id": "editor-node:PatchNode",
       "kind": "editor-node",
       "name": "PatchNode",
-      "source": "olds/nodes/PatchNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/interfaces/patch.yaml",
       "docs": "project/features/69_node_patch.feature.md",
       "tests": [
         "tests/unit/nodes-ui.spec.tsx",

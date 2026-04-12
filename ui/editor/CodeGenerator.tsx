@@ -377,7 +377,7 @@ export function generateCode(
     });
 
     const sidechainEdgesBySource = new Map<string, Edge[]>();
-    controlEdges
+    edges
         .filter((edge) => edge.targetHandle === 'sidechainIn')
         .forEach((edge) => {
             const list = sidechainEdgesBySource.get(edge.source) ?? [];
@@ -626,6 +626,7 @@ export function generateCode(
     const trackInfoById = new Map<string, TrackInfo>();
     let usesFeedbackDelay = false;
     const buildContext = {
+        audioEdgesByTarget,
         controlEdgesByTarget,
         nodeById,
         inputParamInfo,
@@ -1491,6 +1492,7 @@ function buildNodeProps(
     voiceEdges: Edge[],
     voiceVars: Set<string>,
     context: {
+        audioEdgesByTarget: Map<string, Edge[]>;
         controlEdgesByTarget: Map<string, Edge[]>;
         nodeById: Map<string, Node<AudioNodeData>>;
         inputParamInfo: { paramInfoByHandle: Map<string, ParamInfo> };
@@ -1504,6 +1506,7 @@ function buildNodeProps(
 
     const nodeData = node.data;
     const controlEdges = context.controlEdgesByTarget.get(node.id) ?? [];
+    const incomingAudio = context.audioEdgesByTarget.get(node.id) ?? [];
     const addBooleanProp = (name: string, value: boolean) => {
         if (value) props.push(name);
     };
@@ -1706,7 +1709,8 @@ function buildNodeProps(
             if (release.value !== undefined) addValueProp('release', release.value);
             const sidechainStrength = resolveHandleValue('sidechainStrength', { baseValue: compressor.sidechainStrength ?? 0.7, modulatable: true });
             if (sidechainStrength.value !== undefined) addValueProp('sidechainStrength', sidechainStrength.value);
-            const sidechainEdge = controlEdges.find((edge) => edge.targetHandle === 'sidechainIn');
+            const sidechainEdge = incomingAudio.find((edge) => edge.targetHandle === 'sidechainIn')
+                ?? controlEdges.find((edge) => edge.targetHandle === 'sidechainIn');
             if (sidechainEdge) {
                 addStringProp('sidechainBusId', `sc-${sidechainEdge.source}-${sidechainEdge.target}`);
             }
@@ -2098,7 +2102,7 @@ function buildPreviewGraphData(nodes: Node<AudioNodeData>[], edges: Edge[]): Pre
     });
 
     const sidechainEdgesBySource = new Map<string, Edge[]>();
-    controlEdges
+    edges
         .filter((edge) => edge.targetHandle === 'sidechainIn')
         .forEach((edge) => {
             const list = sidechainEdgesBySource.get(edge.source) ?? [];
@@ -2431,6 +2435,7 @@ const PreviewRenderer: React.FC<{ graph: PreviewGraphData; sequencerBpm?: number
                 .filter(Boolean);
 
             const props = buildPreviewProps(node, voiceEdges, context, {
+                audioEdgesByTarget: graph.audioEdgesByTarget,
                 controlEdgesByTarget: graph.controlEdgesByTarget,
                 nodeById: graph.nodeById,
                 paramsByHandle: graph.paramsByHandle,
@@ -2558,6 +2563,7 @@ function buildPreviewProps(
     voiceEdges: Edge[],
     voiceContext: VoiceRenderProps | undefined,
     context: {
+        audioEdgesByTarget: Map<string, Edge[]>;
         controlEdgesByTarget: Map<string, Edge[]>;
         nodeById: Map<string, Node<AudioNodeData>>;
         paramsByHandle: Map<string, number>;
@@ -2568,6 +2574,7 @@ function buildPreviewProps(
     const props: Record<string, any> = {};
     const nodeData = node.data;
     const controlEdges = context.controlEdgesByTarget.get(node.id) ?? [];
+    const incomingAudio = context.audioEdgesByTarget.get(node.id) ?? [];
 
     const resolveControlValue = (
         handle: string,
@@ -2716,7 +2723,8 @@ function buildPreviewProps(
             if (release.value !== undefined) props.release = release.value;
             const sidechainStrength = resolveControlValue('sidechainStrength', { baseValue: compressor.sidechainStrength ?? 0.7, modulatable: true });
             if (sidechainStrength.value !== undefined) props.sidechainStrength = sidechainStrength.value;
-            const sidechainEdge = controlEdges.find((edge) => edge.targetHandle === 'sidechainIn');
+            const sidechainEdge = incomingAudio.find((edge) => edge.targetHandle === 'sidechainIn')
+                ?? controlEdges.find((edge) => edge.targetHandle === 'sidechainIn');
             if (sidechainEdge) {
                 props.sidechainBusId = `sc-${sidechainEdge.source}-${sidechainEdge.target}`;
             }

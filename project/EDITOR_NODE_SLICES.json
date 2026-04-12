@@ -24,31 +24,31 @@
     {
       "type": "osc",
       "coverage_id": "editor-node:OscNode",
-      "source": "olds/nodes/OscNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/generators/osc.yaml",
       "feature": "project/features/32_node_osc.feature.md"
     },
     {
       "type": "gain",
       "coverage_id": "editor-node:GainNode",
-      "source": "olds/nodes/GainNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/gain-mix-and-stereo-dsp/gain.yaml",
       "feature": "project/features/41_node_gain.feature.md"
     },
     {
       "type": "filter",
       "coverage_id": "editor-node:FilterNode",
-      "source": "olds/nodes/FilterNode.tsx",
+      "source": "ui/editor/built-in-nodes/audio/filters-and-tone/filter.yaml",
       "feature": "project/features/42_node_filter.feature.md"
     },
     {
       "type": "transport",
       "coverage_id": "editor-node:TransportNode",
-      "source": "olds/nodes/TransportNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/transport/transport.yaml",
       "feature": "project/features/23_node_transport.feature.md"
     },
     {
       "type": "midiPlayer",
       "coverage_id": "editor-node:MidiPlayerNode",
-      "source": "olds/nodes/MidiPlayerNode.tsx",
+      "source": "ui/editor/built-in-nodes/midi/general/midi-player.yaml",
       "feature": "project/features/67_node_midi_player.feature.md",
       "extra_sources": [
         "ui/editor/midiDropTarget.ts",
@@ -58,7 +58,7 @@
     {
       "type": "patch",
       "coverage_id": "editor-node:PatchNode",
-      "source": "olds/nodes/PatchNode.tsx",
+      "source": "ui/editor/built-in-nodes/sources/interfaces/patch.yaml",
       "feature": "project/features/69_node_patch.feature.md",
       "extra_sources": [
         "ui/editor/CodeGenerator.tsx",

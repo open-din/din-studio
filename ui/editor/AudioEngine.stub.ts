@@ -28,6 +28,8 @@ export const audioEngine = {
         (typeof AudioContext !== 'undefined' ? new AudioContext() : ({} as AudioContext)),
     ),
     getContext: vi.fn(() => null),
+    attachFaustDsp: vi.fn(),
+    syncFaustParamsFromGraph: vi.fn(),
     setFaustMode: vi.fn(),
     prepareRecordingTap: vi.fn(),
     releaseRecordingTap: vi.fn(),

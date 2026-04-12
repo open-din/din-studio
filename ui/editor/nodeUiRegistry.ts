@@ -1,5 +1,11 @@
 import type { AudioNodeData, InputNodeData, UiTokensNodeData } from './store';
 import { getNodeCatalogEntry, type EditorNodeType } from './nodeCatalog';
+import {
+    FAUST_FILTER_FREQUENCY,
+    FAUST_GAIN,
+    FAUST_OSC_FREQUENCY,
+    FAUST_OUTPUT_MASTER_GAIN,
+} from './faust/faustPrimitiveParamMeta';
 export type NodeHandleRole = 'audio' | 'modulation' | 'trigger' | 'data' | 'sidechain' | 'utility';
 
 export type NodeInspectorField =
@@ -381,7 +387,12 @@ const NODE_UI_SCHEMAS: Partial<Record<AudioNodeData['type'], NodeUiSchema>> = {
                 id: 'essentials',
                 title: 'Essentials',
                 fields: [
-                    rangeField('frequency', 'Frequency', { min: 0, max: 20000, step: 0.01, handleId: 'frequency' }),
+                    rangeField('frequency', 'Frequency', {
+                        min: FAUST_OSC_FREQUENCY.min,
+                        max: FAUST_OSC_FREQUENCY.max,
+                        step: FAUST_OSC_FREQUENCY.step,
+                        handleId: 'frequency',
+                    }),
                     rangeField('detune', 'Detune', { min: -1200, max: 1200, step: 0.01, handleId: 'detune' }),
                     selectField('waveform', 'Waveform', WAVEFORM_OPTIONS),
                 ],
@@ -395,7 +406,12 @@ const NODE_UI_SCHEMAS: Partial<Record<AudioNodeData['type'], NodeUiSchema>> = {
             {
                 id: 'essentials',
                 title: 'Essentials',
-                fields: [rangeField('gain', 'Gain', { min: 0, max: 1, step: 0.01, handleId: 'gain' })],
+                fields: [rangeField('gain', 'Gain', {
+                    min: FAUST_GAIN.min,
+                    max: FAUST_GAIN.max,
+                    step: FAUST_GAIN.step,
+                    handleId: 'gain',
+                })],
             },
         ],
     }),
@@ -415,7 +431,12 @@ const NODE_UI_SCHEMAS: Partial<Record<AudioNodeData['type'], NodeUiSchema>> = {
                 title: 'Essentials',
                 fields: [
                     selectField('filterType', 'Filter Type', FILTER_TYPE_OPTIONS),
-                    rangeField('frequency', 'Frequency', { min: 20, max: 20000, step: 0.01, handleId: 'frequency' }),
+                    rangeField('frequency', 'Frequency', {
+                        min: FAUST_FILTER_FREQUENCY.min,
+                        max: FAUST_FILTER_FREQUENCY.max,
+                        step: FAUST_FILTER_FREQUENCY.step,
+                        handleId: 'frequency',
+                    }),
                     rangeField('detune', 'Detune', { min: -1200, max: 1200, step: 0.01, handleId: 'detune' }),
                     rangeField('q', 'Q', { min: 0.1, max: 20, step: 0.01, handleId: 'q' }),
                     rangeField('gain', 'Gain', { min: -40, max: 40, step: 0.01, handleId: 'gain' }),
@@ -460,7 +481,12 @@ const NODE_UI_SCHEMAS: Partial<Record<AudioNodeData['type'], NodeUiSchema>> = {
                 title: 'Essentials',
                 fields: [
                     checkboxField('playing', 'Playing'),
-                    rangeField('masterGain', 'Master Gain', { min: 0, max: 1, step: 0.01, handleId: 'masterGain' }),
+                    rangeField('masterGain', 'Master Gain', {
+                        min: FAUST_OUTPUT_MASTER_GAIN.min,
+                        max: FAUST_OUTPUT_MASTER_GAIN.max,
+                        step: FAUST_OUTPUT_MASTER_GAIN.step,
+                        handleId: 'masterGain',
+                    }),
                 ],
             },
         ],

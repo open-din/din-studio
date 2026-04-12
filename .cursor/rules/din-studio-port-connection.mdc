@@ -6,11 +6,11 @@ alwaysApply: false
 
 ## Port type connectability (Studio catalog)
 
-When both ends of a drag resolve to a `StudioNodePortValueType` (YAML catalog and/or handle `portValueType`), **`studioPortValueTypesConnectable`** in `ui/editor/nodeHelpers.ts` is the rule:
+Edges are allowed only when both handles resolve to a `StudioNodePortValueType` (YAML catalog and/or handle `portValueType` on descriptors, including dynamic nodes and patch slots). **`studioPortValueTypesConnectable`** and **`tryCatalogPortConnection`** / **`canConnect`** in `ui/editor/nodeHelpers.ts` implement:
 
-- Same type → connectable (e.g. audio-to-audio, float-to-float, trigger-to-trigger).
+- Same type → connectable (audio–audio, trigger–trigger, bool–bool, enum–enum).
 - `int` ↔ `float` → connectable (numeric CV).
 
-`tryCatalogPortConnection` runs **before** legacy `isAudioConnection` so named audio inputs (e.g. `sidechainIn`) match catalog audio ports the same way as `in`/`out`.
+There is no separate legacy path: if either handle has no resolved port type, the connection is rejected.
 
-If catalog types disagree, `tryCatalogPortConnection` returns `null` and **`canConnect`** may still allow edges via legacy rules (e.g. LFO `out` typed `audio` in YAML into float modulation targets). Do not remove those paths without replacing them with explicit compatibility rules.
+**`isAudioConnection`** (edge styling / audio-rate routing hints) is true only when **both** ends resolve to `audio`.
