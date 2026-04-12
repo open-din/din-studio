@@ -12,7 +12,7 @@ tags:
 customComponent: null
 inputs: []
 outputs:
-  - type: audio
+  - type: trigger
     name: out
     label: Clock
     interface: input

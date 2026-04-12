@@ -320,6 +320,11 @@ export class AudioEngine {
     private recorderMimeType = '';
     private liveControlInputValues: Map<string, number> = new Map();
     private controlValueTimerID: number | undefined = undefined;
+    /**
+     * When true, `start()` only initialises the AudioContext and skips
+     * building the Web Audio graph.  Used when Faust DSP is the sole audio path.
+     */
+    private faustMode = false;
     constructor() {
         this.audioContext = null;
         void editorMidiRuntime.subscribe(() => {
@@ -349,6 +354,22 @@ export class AudioEngine {
             return output.offset.value;
         }
         return null;
+    }
+
+    /**
+     * Short pulse on a patch Input / UI Tokens param output (ConstantSource) for manual trigger/event testing.
+     */
+    public pulsePatchInputParam(nodeId: string, sourceHandle: string): void {
+        const ctx = this.audioContext;
+        if (!ctx) return;
+        const instance = this.audioNodes.get(nodeId);
+        if (!instance?.outputs) return;
+        const output = instance.outputs.get(sourceHandle);
+        if (!(output instanceof ConstantSourceNode)) return;
+        const now = ctx.currentTime;
+        output.offset.cancelScheduledValues(now);
+        output.offset.setValueAtTime(1, now);
+        output.offset.setValueAtTime(0, now + 0.02);
     }
 
     private startControlValueLoop() {
@@ -1500,6 +1521,20 @@ export class AudioEngine {
         }
     }
 
+    /** Returns the current AudioContext without creating one (null if not yet initialised). */
+    getContext(): AudioContext | null {
+        return this.audioContext;
+    }
+
+    /**
+     * Enable or disable Faust DSP mode.
+     * When enabled, `start()` only creates the AudioContext — the Web Audio
+     * graph is not built so the Faust AudioWorkletNode is the sole audio path.
+     */
+    setFaustMode(enabled: boolean): void {
+        this.faustMode = enabled;
+    }
+
     /**
      * Initialize the AudioContext (requires user gesture)
      */
@@ -1752,6 +1787,13 @@ export class AudioEngine {
         if (this.isPlaying) return;
 
         this.syncVisualGraph(nodes, edges);
+
+        if (this.faustMode) {
+            // Faust DSP is the sole audio path — just create the AudioContext.
+            this.init();
+            this.isPlaying = true;
+            return;
+        }
 
         const ctx = this.init();
         this.cleanup();
@@ -3004,6 +3046,10 @@ export class AudioEngine {
 
     refreshDataValues(nodes: Node<AudioNodeData>[], edges: Edge[]): void {
         if (!this.isPlaying || !this.audioContext) return;
+        if (this.faustMode) {
+            this.syncVisualGraph(nodes, edges);
+            return;
+        }
         this.updateDataValues(nodes, edges);
     }
 
@@ -3014,6 +3060,17 @@ export class AudioEngine {
         if (!this.isPlaying || !this.audioContext) return;
 
         this.syncVisualGraph(nodes, edges);
+
+        // Faust is the sole audio path — never build a parallel Web Audio graph.
+        if (this.faustMode) {
+            if (this.isTransportRunning() && !this.timerID) {
+                this.startScheduler();
+            } else if (!this.isTransportRunning() && this.timerID) {
+                this.stopScheduler();
+            }
+            return;
+        }
+
         const ctx = this.audioContext;
 
         const activeIds = new Set(nodes.map((node) => node.id));

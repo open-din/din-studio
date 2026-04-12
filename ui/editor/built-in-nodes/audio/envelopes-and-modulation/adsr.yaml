@@ -12,9 +12,9 @@ tags:
   - stdfaust
 customComponent: null
 inputs:
-  - type: float
+  - type: trigger
     name: gate
-    interface: slider
+    interface: input
   - type: float
     name: attack
     interface: slider
@@ -28,7 +28,7 @@ inputs:
     name: release
     interface: slider
 outputs:
-  - type: audio
+  - type: float
     name: envelope
     interface: input
 dsp: |

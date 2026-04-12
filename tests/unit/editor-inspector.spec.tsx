@@ -54,7 +54,7 @@ describe('editor inspector', () => {
         render(<Inspector />);
 
         expect(screen.getByDisplayValue('Cutoff')).toBeInTheDocument();
-        expect(screen.getAllByDisplayValue('440').length).toBeGreaterThan(0);
+        expect(screen.getAllByRole('button', { name: '440.00' }).length).toBeGreaterThan(0);
 
         fireEvent.change(screen.getByDisplayValue('Cutoff'), { target: { value: 'Brightness' } });
 

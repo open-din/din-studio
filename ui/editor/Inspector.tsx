@@ -1,5 +1,24 @@
 import React, { useMemo, useState } from 'react';
-import { useAudioGraphStore, type AudioNodeData, type InputNodeData, type InputParam, type OutputNodeData, type OutputParam, type UiTokensNodeData } from './store';
+import {
+    useAudioGraphStore,
+    type AudioNodeData,
+    type InputNodeData,
+    type InputParam,
+    type InputParamValueKind,
+    type OutputNodeData,
+    type OutputParam,
+    type UiTokensNodeData,
+} from './store';
+import { INPUT_PARAM_KINDS_INPUT_NODE, INPUT_PARAM_NUMERIC_KINDS } from './types';
+import { audioEngine } from './AudioEngine';
+import { ensureInputParam } from './nodeHelpers';
+import { getInputParamHandleId } from './handleIds';
+import {
+    NodeCheckboxField,
+    NodeNumberField,
+    NodeSelectField,
+    NodeTextField,
+} from './components/NodeShell';
 import { CodeGenerator } from './CodeGenerator';
 import { formatConnectedValue, useTargetHandleConnection } from './paramConnections';
 import {
@@ -84,32 +103,32 @@ function InspectorRow({ nodeId, nodeData, field, updateNodeData }: InspectorRowP
             </div>
 
             {field.kind === 'checkbox' && (
-                <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                <div className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
                     <span className="text-[11px] text-[var(--text)]">{field.label}</span>
-                    <input
-                        type="checkbox"
+                    <NodeCheckboxField
                         checked={Boolean(value)}
-                        onChange={(event) => updateNodeField(updateNodeData, nodeId, field.key, event.target.checked)}
-                        className="h-4 w-4 accent-[var(--accent)]"
+                        onChange={(checked) => updateNodeField(updateNodeData, nodeId, field.key, checked)}
+                        className="!m-0 shrink-0 border-0 bg-transparent p-0"
                     />
-                </label>
+                </div>
             )}
 
             {field.kind === 'select' && (
-                <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                <div className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
                     <span className="text-[11px] text-[var(--text)]">{field.label}</span>
-                    <select
+                    <NodeSelectField
                         value={typeof value === 'string' ? value : field.options[0]?.value ?? ''}
-                        onChange={(event) => updateNodeField(updateNodeData, nodeId, field.key, event.target.value)}
-                        className="min-w-0 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                        onChange={(v) => updateNodeField(updateNodeData, nodeId, field.key, v)}
+                        className="min-w-0 flex-1"
+                        aria-label={field.label}
                     >
                         {field.options.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
                             </option>
                         ))}
-                    </select>
-                </label>
+                    </NodeSelectField>
+                </div>
             )}
 
             {field.kind === 'text' && (
@@ -126,26 +145,24 @@ function InspectorRow({ nodeId, nodeData, field, updateNodeData }: InspectorRowP
             )}
 
             {field.kind === 'number' && (
-                <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                <div className="flex min-h-10 flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
                     <span className="text-[11px] text-[var(--text)]">{field.label}</span>
                     {isConnectedTarget ? (
-                        <div className="flex items-center gap-2">
-                            <span className="rounded-full border border-[var(--accent)]/35 bg-[var(--accent-soft)] px-2 py-1 text-[10px] font-semibold text-[var(--accent)]">
-                                Connected {formatConnectedValue(targetHandleInfo.value)}
-                            </span>
-                        </div>
+                        <span className="rounded-full border border-[var(--accent)]/35 bg-[var(--accent-soft)] px-2 py-1 text-[10px] font-semibold text-[var(--accent)]">
+                            Connected {formatConnectedValue(targetHandleInfo.value)}
+                        </span>
                     ) : (
-                        <input
-                            type="number"
+                        <NodeNumberField
                             value={typeof value === 'number' ? value : 0}
                             min={field.min}
                             max={field.max}
                             step={field.step ?? 0.01}
-                            onChange={(event) => updateNodeField(updateNodeData, nodeId, field.key, Number(event.target.value))}
-                            className="w-24 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-right text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                            onChange={(v) => updateNodeField(updateNodeData, nodeId, field.key, v)}
+                            className="min-w-0 flex-1"
+                            aria-label={field.label}
                         />
                     )}
-                </label>
+                </div>
             )}
 
             {field.kind === 'range' && (
@@ -156,25 +173,21 @@ function InspectorRow({ nodeId, nodeData, field, updateNodeData }: InspectorRowP
                             <span className="rounded-full border border-[var(--accent)]/35 bg-[var(--accent-soft)] px-2 py-1 text-[10px] font-semibold text-[var(--accent)]">
                                 Connected {formatConnectedValue(targetHandleInfo.value, field.displayValue)}
                             </span>
-                        ) : (
-                            <span className="font-mono text-[10px] text-[var(--accent)]">
-                                {formatConnectedValue(typeof value === 'number' ? value : 0, field.displayValue)}
-                            </span>
-                        )}
+                        ) : null}
                     </div>
                     {isConnectedTarget ? (
                         <div className="rounded-lg border border-dashed border-[var(--panel-border)] px-3 py-2 text-[10px] text-[var(--text-subtle)]">
                             Slider hidden while the handle is connected.
                         </div>
                     ) : (
-                        <input
-                            type="range"
+                        <NodeNumberField
+                            value={typeof value === 'number' ? value : field.min}
                             min={field.min}
                             max={field.max}
                             step={field.step ?? 0.01}
-                            value={typeof value === 'number' ? value : field.min}
-                            onChange={(event) => updateNodeField(updateNodeData, nodeId, field.key, Number(event.target.value))}
-                            className="w-full accent-[var(--accent)]"
+                            onChange={(v) => updateNodeField(updateNodeData, nodeId, field.key, v)}
+                            className="w-full"
+                            aria-label={field.label}
                         />
                     )}
                 </div>
@@ -214,35 +227,35 @@ function PrimitiveRows({ nodeId, updateNodeData, entries }: PrimitiveRowsProps) 
                             </span>
                         </div>
                         {typeof rawValue === 'boolean' ? (
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                            <div className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
                                 <span className="text-[11px] text-[var(--text)]">{label}</span>
-                                <input
-                                    type="checkbox"
+                                <NodeCheckboxField
                                     checked={rawValue}
-                                    onChange={(event) => updateNodeField(updateNodeData, nodeId, entry.key, event.target.checked)}
-                                    className="h-4 w-4 accent-[var(--accent)]"
+                                    onChange={(checked) => updateNodeField(updateNodeData, nodeId, entry.key, checked)}
+                                    className="!m-0 shrink-0 border-0 bg-transparent p-0"
                                 />
-                            </label>
+                            </div>
                         ) : typeof rawValue === 'number' ? (
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                            <div className="flex min-h-10 flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
                                 <span className="text-[11px] text-[var(--text)]">{label}</span>
-                                <input
-                                    type="number"
+                                <NodeNumberField
                                     value={rawValue}
-                                    onChange={(event) => updateNodeField(updateNodeData, nodeId, entry.key, Number(event.target.value))}
-                                    className="w-24 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-right text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                                    onChange={(v) => updateNodeField(updateNodeData, nodeId, entry.key, v)}
+                                    step={0.01}
+                                    className="min-w-0 flex-1"
+                                    aria-label={label}
                                 />
-                            </label>
+                            </div>
                         ) : (
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                            <div className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
                                 <span className="text-[11px] text-[var(--text)]">{label}</span>
-                                <input
-                                    type="text"
+                                <NodeTextField
                                     value={typeof rawValue === 'string' ? rawValue : ''}
-                                    onChange={(event) => updateNodeField(updateNodeData, nodeId, entry.key, event.target.value)}
-                                    className="min-w-0 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                                    onChange={(v) => updateNodeField(updateNodeData, nodeId, entry.key, v)}
+                                    className="min-w-0 flex-1"
+                                    aria-label={label}
                                 />
-                            </label>
+                            </div>
                         )}
                     </div>
                 );
@@ -322,6 +335,84 @@ function InspectorSectionView({
     );
 }
 
+function buildNewParamDraft(
+    kind: InputParamValueKind,
+    nodeId: string,
+    nextIndex: number,
+    isUiTokensNode: boolean,
+): InputParam {
+    const label = `Param ${nextIndex + 1}`;
+    const id = getStableId('param');
+    if (kind === 'float') {
+        return ensureInputParam(
+            {
+                id,
+                name: label,
+                label,
+                type: 'float',
+                defaultValue: 0,
+                value: 0,
+                min: 0,
+                max: isUiTokensNode ? 9999 : 1,
+                step: 0.01,
+            },
+            nodeId,
+            nextIndex,
+        );
+    }
+    if (kind === 'int') {
+        return ensureInputParam(
+            {
+                id,
+                name: label,
+                label,
+                type: 'int',
+                defaultValue: 0,
+                value: 0,
+                min: 0,
+                max: 127,
+                step: 1,
+            },
+            nodeId,
+            nextIndex,
+        );
+    }
+    if (kind === 'range') {
+        return ensureInputParam(
+            {
+                id,
+                name: label,
+                label,
+                type: 'range',
+                defaultValue: 0.5,
+                value: 0.5,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            nodeId,
+            nextIndex,
+        );
+    }
+    if (kind === 'audio') {
+        return ensureInputParam({ id, name: label, label, type: 'audio', audioSource: 'none' }, nodeId, nextIndex);
+    }
+    return ensureInputParam(
+        {
+            id,
+            name: label,
+            label,
+            type: kind,
+            defaultValue: 0,
+            value: 0,
+            min: 0,
+            max: 1,
+        },
+        nodeId,
+        nextIndex,
+    );
+}
+
 function TokenParamEditor({
     nodeId,
     nodeData,
@@ -331,43 +422,53 @@ function TokenParamEditor({
     nodeData: InputNodeData | UiTokensNodeData;
     updateNodeData: (nodeId: string, data: Partial<AudioNodeData>) => void;
 }) {
-    const [newParamName, setNewParamName] = useState('');
+    const [addKind, setAddKind] = useState<InputParamValueKind>('float');
+    const [presetTokenId, setPresetTokenId] = useState<(typeof UI_TOKEN_IDS)[number] | ''>('');
 
     const params = nodeData.params ?? [];
     const isUiTokensNode = nodeData.type === 'uiTokens';
 
+    const addKindOptions: InputParamValueKind[] = isUiTokensNode
+        ? [...INPUT_PARAM_NUMERIC_KINDS]
+        : [...INPUT_PARAM_KINDS_INPUT_NODE];
+
     const handleAddParam = () => {
-        const trimmedName = newParamName.trim();
-        if (!trimmedName) return;
-
-        const tokenParam = isUiTokensNode && (UI_TOKEN_IDS as readonly string[]).includes(trimmedName)
-            ? createUiTokenParam(trimmedName as (typeof UI_TOKEN_IDS)[number])
-            : {
-                id: getStableId('param'),
-                name: trimmedName,
-                label: trimmedName,
-                type: 'float' as const,
-                defaultValue: 0,
-                value: 0,
-                min: 0,
-                max: isUiTokensNode ? 9999 : 1,
-            };
-
-        updateNodeData(nodeId, { params: [...params, tokenParam] });
-        setNewParamName('');
+        if (isUiTokensNode && presetTokenId) {
+            const tokenParam = createUiTokenParam(presetTokenId);
+            updateNodeData(nodeId, { params: [...params, ensureInputParam(tokenParam, nodeId, params.length)] });
+            setPresetTokenId('');
+            return;
+        }
+        const next = buildNewParamDraft(addKind, nodeId, params.length, isUiTokensNode);
+        updateNodeData(nodeId, { params: [...params, next] });
     };
 
     const handleUpdateParam = (index: number, updates: Partial<InputParam>) => {
         const nextParams = [...params];
-        nextParams[index] = { ...nextParams[index], ...updates };
+        const merged = { ...nextParams[index], ...updates };
+        nextParams[index] = ensureInputParam(merged, nodeId, index);
+        updateNodeData(nodeId, { params: nextParams });
+    };
+
+    const handleChangeParamKind = (index: number, kind: InputParamValueKind) => {
+        if (isUiTokensNode && !INPUT_PARAM_NUMERIC_KINDS.includes(kind)) return;
+        const cur = params[index];
+        const next = buildNewParamDraft(kind, nodeId, index, isUiTokensNode);
+        next.id = cur.id;
+        next.label = cur.label ?? cur.name;
+        next.name = cur.name;
+        const nextParams = [...params];
+        nextParams[index] = ensureInputParam(next, nodeId, index);
         updateNodeData(nodeId, { params: nextParams });
     };
 
     const handleRemoveParam = (index: number) => {
         const nextParams = [...params];
         nextParams.splice(index, 1);
-        updateNodeData(nodeId, { params: nextParams });
+        updateNodeData(nodeId, { params: nextParams.map((p, i) => ensureInputParam(p, nodeId, i)) });
     };
+
+    const numericKind = (t: InputParamValueKind) => t === 'float' || t === 'int' || t === 'range';
 
     return (
         <section className="rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-bg)]">
@@ -384,14 +485,14 @@ function TokenParamEditor({
 
             <div className="space-y-3 px-4 py-4">
                 {params.map((param, index) => (
-                    <div key={param.id} className="rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-muted)]/70 p-3">
+                    <div key={`${param.id}-${index}`} className="rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-muted)]/70 p-3">
                         <div className="mb-3 flex items-start justify-between gap-3">
                             <div className="min-w-0">
                                 <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--text-subtle)]">
-                                    Parameter
+                                    {param.type}
                                 </div>
                                 <div className="mt-1 font-mono text-[10px] text-[var(--text-subtle)]">
-                                    {param.id}
+                                    {getInputParamHandleId(param)}
                                 </div>
                             </div>
                             <button
@@ -404,103 +505,208 @@ function TokenParamEditor({
                         </div>
 
                         <div className="space-y-3">
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
-                                <span className="text-[11px] text-[var(--text)]">Label</span>
-                                <input
-                                    type="text"
-                                    value={param.label || param.name}
-                                    onChange={(event) => handleUpdateParam(index, { label: event.target.value, name: event.target.value })}
-                                    className="min-w-0 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                            <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                <span className="text-[11px] text-[var(--text)]">Param id</span>
+                                <NodeTextField
+                                    value={param.id}
+                                    onChange={(v) => handleUpdateParam(index, { id: v.trim() })}
+                                    className="min-w-0 flex-1 font-mono text-[11px]"
+                                    aria-label="Param id"
                                 />
-                            </label>
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
-                                <span className="text-[11px] text-[var(--text)]">Default</span>
-                                <input
-                                    type="number"
-                                    value={param.defaultValue}
-                                    onChange={(event) => handleUpdateParam(index, { defaultValue: Number(event.target.value), value: Number(event.target.value) })}
-                                    step="0.01"
-                                    className="w-24 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-right text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
-                                />
-                            </label>
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
-                                <span className="text-[11px] text-[var(--text)]">Min</span>
-                                <input
-                                    type="number"
-                                    value={param.min}
-                                    onChange={(event) => handleUpdateParam(index, { min: Number(event.target.value) })}
-                                    step="0.01"
-                                    className="w-24 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-right text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
-                                />
-                            </label>
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
-                                <span className="text-[11px] text-[var(--text)]">Max</span>
-                                <input
-                                    type="number"
-                                    value={param.max}
-                                    onChange={(event) => handleUpdateParam(index, { max: Number(event.target.value) })}
-                                    step="0.01"
-                                    className="w-24 rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-right text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
-                                />
-                            </label>
+                            </div>
                             {!isUiTokensNode && (
-                                <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
-                                    <span className="text-[11px] text-[var(--text)]">Socket</span>
-                                    <select
-                                        value={param.socketKind ?? 'control'}
-                                        onChange={(event) => handleUpdateParam(index, { socketKind: event.target.value as 'audio' | 'control' | 'trigger' })}
-                                        className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-muted)] px-2 py-1 text-[11px] text-[var(--text)] focus:border-[var(--accent)] focus:outline-none"
+                                <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                    <span className="text-[11px] text-[var(--text)]">Kind</span>
+                                    <NodeSelectField
+                                        value={param.type}
+                                        onChange={(v) => handleChangeParamKind(index, v as InputParamValueKind)}
+                                        className="min-w-0 flex-1"
+                                        aria-label="Parameter kind"
                                     >
-                                        <option value="control">control</option>
-                                        <option value="audio">audio</option>
-                                        <option value="trigger">trigger</option>
-                                    </select>
-                                </label>
-                            )}
-                            <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
-                                <span className="text-[11px] text-[var(--text)]">Current</span>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="range"
-                                        min={param.min}
-                                        max={param.max}
-                                        step="0.01"
-                                        value={param.value}
-                                        onChange={(event) => handleUpdateParam(index, { value: Number(event.target.value) })}
-                                        className="w-36 accent-[var(--accent)]"
-                                    />
-                                    <span className="w-16 text-right font-mono text-[10px] text-[var(--accent)]">
-                                        {param.value.toFixed(2)}
-                                    </span>
+                                        {INPUT_PARAM_KINDS_INPUT_NODE.map((k) => (
+                                            <option key={k} value={k}>
+                                                {k}
+                                            </option>
+                                        ))}
+                                    </NodeSelectField>
                                 </div>
-                            </label>
+                            )}
+                            {isUiTokensNode && (
+                                <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                    <span className="text-[11px] text-[var(--text)]">Kind</span>
+                                    <NodeSelectField
+                                        value={param.type}
+                                        onChange={(v) => handleChangeParamKind(index, v as InputParamValueKind)}
+                                        className="min-w-0 flex-1"
+                                        aria-label="Token kind"
+                                    >
+                                        {INPUT_PARAM_NUMERIC_KINDS.map((k) => (
+                                            <option key={k} value={k}>
+                                                {k}
+                                            </option>
+                                        ))}
+                                    </NodeSelectField>
+                                </div>
+                            )}
+                            <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                <span className="text-[11px] text-[var(--text)]">Label</span>
+                                <NodeTextField
+                                    value={param.label || param.name}
+                                    onChange={(v) => handleUpdateParam(index, { label: v, name: v })}
+                                    className="min-w-0 flex-1 text-[11px]"
+                                    aria-label="Label"
+                                />
+                            </div>
+
+                            {param.type === 'audio' && (
+                                <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                    <span className="text-[11px] text-[var(--text)]">Audio source</span>
+                                    <NodeSelectField
+                                        value={param.audioSource ?? 'none'}
+                                        onChange={(v) => handleUpdateParam(index, { audioSource: v as InputParam['audioSource'] })}
+                                        className="min-w-0 flex-1"
+                                        aria-label="Audio source"
+                                    >
+                                        <option value="none">None</option>
+                                        <option value="mic">Microphone</option>
+                                        <option value="file">Audio file</option>
+                                    </NodeSelectField>
+                                </div>
+                            )}
+
+                            {numericKind(param.type) && (
+                                <>
+                                    <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                        <span className="text-[11px] text-[var(--text)]">Default</span>
+                                        <NodeNumberField
+                                            value={param.defaultValue}
+                                            {...(param.type === 'range'
+                                                ? { min: param.min, max: param.max }
+                                                : param.type === 'int'
+                                                    ? { min: param.min, max: param.max }
+                                                    : {})}
+                                            step={param.step ?? (param.type === 'int' ? 1 : 0.01)}
+                                            onChange={(v) => handleUpdateParam(index, { defaultValue: v, value: v })}
+                                            className="min-w-0 flex-1"
+                                            aria-label="Default"
+                                        />
+                                    </div>
+                                    {(param.type === 'int' || param.type === 'range') && (
+                                        <>
+                                            <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                                <span className="text-[11px] text-[var(--text)]">Min</span>
+                                                <NodeNumberField
+                                                    value={param.min}
+                                                    step={param.type === 'int' ? 1 : param.step ?? 0.01}
+                                                    onChange={(v) => handleUpdateParam(index, { min: v })}
+                                                    className="min-w-0 flex-1"
+                                                    aria-label="Min"
+                                                />
+                                            </div>
+                                            <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                                <span className="text-[11px] text-[var(--text)]">Max</span>
+                                                <NodeNumberField
+                                                    value={param.max}
+                                                    step={param.type === 'int' ? 1 : param.step ?? 0.01}
+                                                    onChange={(v) => handleUpdateParam(index, { max: v })}
+                                                    className="min-w-0 flex-1"
+                                                    aria-label="Max"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                    {param.type === 'range' && (
+                                        <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                            <span className="text-[11px] text-[var(--text)]">Step</span>
+                                            <NodeNumberField
+                                                value={param.step ?? 0.01}
+                                                min={0.0001}
+                                                max={1}
+                                                step={0.001}
+                                                onChange={(v) => handleUpdateParam(index, { step: v })}
+                                                className="min-w-0 flex-1"
+                                                aria-label="Step"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2">
+                                        <div className="mb-2 text-[11px] text-[var(--text)]">Current</div>
+                                        <NodeNumberField
+                                            value={param.value}
+                                            {...(param.type === 'range' || param.type === 'int'
+                                                ? { min: param.min, max: param.max }
+                                                : {})}
+                                            step={param.step ?? (param.type === 'int' ? 1 : 0.01)}
+                                            onChange={(v) => handleUpdateParam(index, { value: v })}
+                                            className="w-full"
+                                            aria-label="Current value"
+                                        />
+                                    </div>
+                                </>
+                            )}
+
+                            {(param.type === 'trigger' || param.type === 'event') && (
+                                <button
+                                    type="button"
+                                    onClick={() => audioEngine.pulsePatchInputParam(nodeId, getInputParamHandleId(param))}
+                                    className="w-full rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                                >
+                                    Fire
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
 
                 <div className="rounded-2xl border border-dashed border-[var(--panel-border)] bg-[var(--panel-muted)]/40 p-3">
                     <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--text-subtle)]">
-                        Add Parameter
+                        Add parameter
                     </div>
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="text"
-                            placeholder={isUiTokensNode ? 'New token name...' : 'New param name...'}
-                            value={newParamName}
-                            onChange={(event) => setNewParamName(event.target.value)}
-                            onKeyDown={(event) => {
-                                if (event.key === 'Enter') {
-                                    handleAddParam();
-                                }
-                            }}
-                            className="h-10 min-w-0 flex-1 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] px-3 text-[11px] text-[var(--text)] placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)] focus:outline-none"
-                        />
+                    {isUiTokensNode && (
+                        <div className="mb-3 flex flex-wrap items-center gap-2">
+                            <span className="text-[10px] text-[var(--text-subtle)]">Preset token</span>
+                            <NodeSelectField
+                                value={presetTokenId}
+                                onChange={(v) => setPresetTokenId(v as (typeof UI_TOKEN_IDS)[number] | '')}
+                                className="min-w-[10rem]"
+                                aria-label="Preset token"
+                            >
+                                <option value="">—</option>
+                                {UI_TOKEN_IDS.map((id) => (
+                                    <option key={id} value={id}>
+                                        {id}
+                                    </option>
+                                ))}
+                            </NodeSelectField>
+                            <button
+                                type="button"
+                                onClick={() => presetTokenId && handleAddParam()}
+                                disabled={!presetTokenId}
+                                className="rounded-lg border border-[var(--panel-border)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text)] disabled:opacity-40 hover:border-[var(--accent)]"
+                            >
+                                Add preset
+                            </button>
+                        </div>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <NodeSelectField
+                            value={addKind}
+                            onChange={(v) => setAddKind(v as InputParamValueKind)}
+                            className="min-w-[8rem]"
+                            aria-label="New parameter kind"
+                        >
+                            {addKindOptions.map((k) => (
+                                <option key={k} value={k}>
+                                    {k}
+                                </option>
+                            ))}
+                        </NodeSelectField>
                         <button
                             type="button"
                             onClick={handleAddParam}
                             className="h-10 rounded-xl border border-[var(--panel-border)] px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
                         >
-                            +
+                            Add
                         </button>
                     </div>
                 </div>

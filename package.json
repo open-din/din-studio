@@ -24,6 +24,7 @@
     "validate:docs": "node ./scripts/validate-docs.mjs",
     "docs:generate": "typedoc",
     "ci:check": "npm run lint && npm run typecheck && npm run validate:manifests && npm run validate:docs && npm run test && npm run test:e2e",
+    "setup:faust": "node ./scripts/copy-faust-wasm.mjs",
     "prepare": "husky"
   },
   "dependencies": {

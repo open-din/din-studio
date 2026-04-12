@@ -301,16 +301,36 @@ export interface MatrixMixerNodeData {
     [key: string]: unknown;
 }
 
+/** Patch interface param discriminant (controls inspector + handle semantics). */
+export type InputParamValueKind = 'float' | 'int' | 'range' | 'audio' | 'trigger' | 'event';
+
+export const INPUT_PARAM_NUMERIC_KINDS: readonly InputParamValueKind[] = ['float', 'int', 'range'];
+
+export const INPUT_PARAM_KINDS_INPUT_NODE: readonly InputParamValueKind[] = [
+    'float',
+    'int',
+    'range',
+    'audio',
+    'trigger',
+    'event',
+];
+
+/** Host-side audio source hint for `type: 'audio'` (runtime wiring may follow later). */
+export type InputParamAudioSource = 'mic' | 'file' | 'none';
+
 export interface InputParam {
     id: string; // Unique ID for keying
     name: string;
-    type: 'float'; // Extensible for later
+    type: InputParamValueKind;
     defaultValue: number;
-    value: number; // Current value
+    value: number; // Current value (numeric kinds); ignored for audio/trigger/event in UI
     min: number;
     max: number;
+    /** Step for int/range/float editing (defaults applied in normalization). */
+    step?: number;
     label?: string; // Optional display label
-    socketKind?: 'audio' | 'control' | 'trigger'; // Socket type for this param handle; defaults to 'control'
+    socketKind?: 'audio' | 'control' | 'trigger'; // Derived from `type` when omitted; defaults to 'control'
+    audioSource?: InputParamAudioSource;
 }
 
 export interface OutputParam {

@@ -63,6 +63,20 @@ function DynamicTargetHandleRow({
         );
     }
 
+    if (
+        pi === 'input'
+        && (pv === 'bool' || pv === 'int' || pv === 'float' || pv === 'enum')
+    ) {
+        return (
+            <NodeHandleRow
+                direction="target"
+                label={descriptor.label}
+                handleId={descriptor.id}
+                handleKind={kind}
+            />
+        );
+    }
+
     const raw = (nodeData as Record<string, unknown>)[descriptor.id];
     const cp = descriptor.catalogPort;
     let control: ReactNode = null;

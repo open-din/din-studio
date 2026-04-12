@@ -111,6 +111,24 @@ import {
     isDataNodeType,
     isInputLikeNodeType,
 } from './nodeHelpers';
+import { buildFaustBundleFromGraph } from './faust/graphFaustPipeline';
+
+function formatFaustBundleForDisplay(faust: string, diagnostics: string[]): string {
+    const lines: string[] = [];
+    if (diagnostics.length > 0) {
+        lines.push('// Diagnostics:');
+        for (const d of diagnostics) {
+            lines.push(`// ${d}`);
+        }
+        lines.push('');
+    }
+    if (faust.trim()) {
+        lines.push(faust);
+    } else {
+        lines.push('// (No Faust program generated — see diagnostics above.)');
+    }
+    return lines.join('\n');
+}
 
 export const CodeGenerator: React.FC = () => {
     const nodes = useAudioGraphStore((s) => s.nodes);
@@ -121,10 +139,15 @@ export const CodeGenerator: React.FC = () => {
     });
     const [includeProvider, setIncludeProvider] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [outputMode, setOutputMode] = useState<'faust' | 'react'>('faust');
 
     const generatedCode = useMemo(() => {
+        if (outputMode === 'faust') {
+            const { faust, diagnostics } = buildFaustBundleFromGraph(nodes, edges, graphName);
+            return formatFaustBundleForDisplay(faust, diagnostics);
+        }
         return generateCode(nodes, edges, includeProvider, graphName);
-    }, [nodes, edges, includeProvider, graphName]);
+    }, [nodes, edges, includeProvider, graphName, outputMode]);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(generatedCode);
@@ -137,29 +160,66 @@ export const CodeGenerator: React.FC = () => {
     return (
         <div className="flex h-full flex-col bg-[var(--panel-bg)] text-[var(--text)]">
             <div className="flex items-center justify-between border-b border-[var(--panel-border)] bg-[var(--panel-muted)] px-4 py-3">
-                <h4 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-                    Code Generator
-                </h4>
-                <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)]">
-                    <label className="flex items-center gap-1" title="Wrap in self-contained AudioContext logic">
-                        <input
-                            type="checkbox"
-                            checked={includeProvider}
-                            onChange={(e) => setIncludeProvider(e.target.checked)}
-                            className="accent-[var(--accent)]"
-                        />
-                        Include Provider
-                    </label>
-                    <button
-                        onClick={handleTogglePreview}
-                        className={`rounded border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
-                            showPreview
-                                ? 'border-[var(--accent)] text-[var(--accent)]'
-                                : 'border-[var(--panel-border)] text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
-                        }`}
+                <div className="flex flex-col gap-2">
+                    <h4 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
+                        Code Generator
+                    </h4>
+                    <div
+                        className="flex rounded border border-[var(--panel-border)] p-0.5"
+                        role="group"
+                        aria-label="Generated output format"
                     >
-                        {showPreview ? 'Stop' : 'Test'}
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setOutputMode('faust');
+                                setShowPreview(false);
+                            }}
+                            className={`rounded px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] transition ${
+                                outputMode === 'faust'
+                                    ? 'bg-[var(--accent)] text-[var(--panel-bg)]'
+                                    : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+                            }`}
+                        >
+                            Faust
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setOutputMode('react')}
+                            className={`rounded px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] transition ${
+                                outputMode === 'react'
+                                    ? 'bg-[var(--accent)] text-[var(--panel-bg)]'
+                                    : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+                            }`}
+                        >
+                            React
+                        </button>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)]">
+                    {outputMode === 'react' && (
+                        <label className="flex items-center gap-1" title="Wrap in self-contained AudioContext logic">
+                            <input
+                                type="checkbox"
+                                checked={includeProvider}
+                                onChange={(e) => setIncludeProvider(e.target.checked)}
+                                className="accent-[var(--accent)]"
+                            />
+                            Include Provider
+                        </label>
+                    )}
+                    {outputMode === 'react' && (
+                        <button
+                            onClick={handleTogglePreview}
+                            className={`rounded border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
+                                showPreview
+                                    ? 'border-[var(--accent)] text-[var(--accent)]'
+                                    : 'border-[var(--panel-border)] text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
+                            }`}
+                        >
+                            {showPreview ? 'Stop' : 'Test'}
+                        </button>
+                    )}
                     <button
                         onClick={handleCopy}
                         className="rounded border border-[var(--panel-border)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
@@ -168,7 +228,7 @@ export const CodeGenerator: React.FC = () => {
                     </button>
                 </div>
             </div>
-            {showPreview && (
+            {outputMode === 'react' && showPreview && (
                 <div className="border-b border-[var(--panel-border)] bg-[var(--panel-muted)]/60">
                     <div className="flex items-center justify-between px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
                         Test Component

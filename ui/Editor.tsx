@@ -53,6 +53,7 @@ import {
     type NodeSuggestion,
 } from './editor/nodeHelpers';
 import { McpStatusBadge } from '../bridge/McpStatusBadge';
+import { useFaustDsp, type FaustDspStatus } from './editor/faust/useFaustDsp';
 import { createAtmosphericBreakbeatArcTemplate } from './editor/templates/atmosphericBreakbeatArcTemplate';
 import { createWestcoastGfunk64Template } from './editor/templates/westcoastGfunk64Template';
 import { ActivityRail } from './shell/ActivityRail';
@@ -191,6 +192,30 @@ function getTopbarPhaseChip(phase: SourceControlPhase) {
 
 const isEditorNodeType = (value: string): value is EditorNodeType =>
     getEditorNodeCatalog().some((entry) => entry.type === value);
+
+function FaustDspBadge({ status, error }: { status: FaustDspStatus; error: string | null }) {
+    if (status === 'idle') return null;
+
+    const dot =
+        status === 'compiling'
+            ? 'animate-pulse bg-yellow-400'
+            : status === 'live'
+                ? 'bg-green-400'
+                : 'bg-red-400';
+
+    const label =
+        status === 'compiling' ? 'Faust compiling…' : status === 'live' ? 'Faust DSP live' : 'Faust error';
+
+    return (
+        <span
+            title={status === 'error' && error ? error : label}
+            className="inline-flex items-center gap-1.5 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]"
+        >
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+            {label}
+        </span>
+    );
+}
 
 const EditorContent: FC<EditorProps> = ({ project }) => {
     const fsAccessProject = project?.storageKind === 'browser-fs-handle';
@@ -1035,11 +1060,9 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
     const assistSuggestions = useMemo(() => {
         if (!connectionAssist) return [];
         const all = getCompatibleNodeSuggestions(connectionAssist, nodes);
-        if (!assistQuery) return all.slice(0, 8);
         return all.filter(s => 
-            s.title.toLowerCase().includes(assistQuery.toLowerCase()) || 
             s.type.toLowerCase().includes(assistQuery.toLowerCase())
-        ).slice(0, 8);
+        );
     }, [connectionAssist, nodes, assistQuery]);
 
     const handleSelectSuggestion = useCallback((suggestion: NodeSuggestion) => {
@@ -1095,6 +1118,11 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
         : outputNode
             ? 'Audio Ready'
             : 'Audio Idle';
+
+    // Live Faust DSP — auto-recompiles on graph change, connects to the shared AudioContext.
+    const getAudioContext = useCallback(() => audioEngine.getContext(), []);
+    const isPlaying = outputNode?.data.type === 'output' ? outputNode.data.playing : false;
+    const faustDsp = useFaustDsp(nodes, edges, getAudioContext, isPlaying);
     const viewportPlayLabel = outputNode?.data.type === 'output' && outputNode.data.playing ? 'Pause graph output' : 'Play graph output';
     const recordButtonLabel =
         recordingPhase === 'idle'
@@ -1438,7 +1466,12 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
                     <FooterStatus
                         gitLabel={gitStatusLabel}
                         audioLabel={audioStatusLabel}
-                        mcpBadge={<McpStatusBadge />}
+                        mcpBadge={
+                            <>
+                                <FaustDspBadge status={faustDsp.status} error={faustDsp.error} />
+                                <McpStatusBadge />
+                            </>
+                        }
                     />
                 </footer>
 

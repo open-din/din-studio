@@ -16,6 +16,7 @@ import type {
     ADSRNodeData,
     AudioNodeData,
     CompressorNodeData,
+    InputNodeData,
     OscNodeData,
     PhaserNodeData,
     VoiceNodeData,
@@ -105,6 +106,23 @@ describe('getNodeHandleDescriptors (Studio catalog)', () => {
         const out = h.find((x) => x.id === 'out');
         expect(out?.portValueType).toBe('audio');
         expect(out?.direction).toBe('source');
+    });
+
+    it('derives dynamic handle types from node parameter objects', () => {
+        const data: InputNodeData = {
+            type: 'input',
+            label: 'Input',
+            params: [
+                { id: 'cutoff', name: 'cutoff', label: 'Cutoff', type: 'float', value: 0, defaultValue: 0, min: 0, max: 1 },
+                { id: 'gate', name: 'gate', label: 'Gate', type: 'trigger', value: 0, defaultValue: 0, min: 0, max: 1 },
+                { id: 'mic', name: 'mic', label: 'Mic', type: 'audio', value: 0, defaultValue: 0, min: 0, max: 1, audioSource: 'mic' },
+            ],
+        };
+
+        const handles = getNodeHandleDescriptors(data);
+        expect(handles.find((x) => x.id === 'param:cutoff')?.portValueType).toBe('float');
+        expect(handles.find((x) => x.id === 'param:gate')?.portValueType).toBe('trigger');
+        expect(handles.find((x) => x.id === 'param:mic')?.portValueType).toBe('audio');
     });
 
     it('allows same catalog port types (float CV) and sets edge style from source port', () => {
@@ -226,5 +244,51 @@ describe('getNodeHandleDescriptors (Studio catalog)', () => {
         );
         expect(style.stroke).toBe('#FF5F58');
         expect(style.strokeWidth).toBe(2);
+    });
+
+    it('uses corrected catalog kinds for modulation and transport wiring', () => {
+        resetStudioNodeCatalogCache();
+        const lfoNode = {
+            id: 'lfo-1',
+            type: 'lfoNode',
+            position: { x: 0, y: 0 },
+            data: { type: 'lfo', rate: 1, depth: 0.5, waveform: 'sine', label: 'LFO' } as AudioNodeData,
+        } as Node<AudioNodeData>;
+        const adsrNode = {
+            id: 'adsr-1',
+            type: 'adsrNode',
+            position: { x: 0, y: 0 },
+            data: { type: 'adsr', attack: 0.01, decay: 0.1, sustain: 0.7, release: 0.2, label: 'ADSR' } as ADSRNodeData,
+        } as Node<AudioNodeData>;
+        const gainNode = {
+            id: 'gain-1',
+            type: 'gainNode',
+            position: { x: 0, y: 0 },
+            data: { type: 'gain', gain: 0.5, label: 'Gain' } as AudioNodeData,
+        } as Node<AudioNodeData>;
+        const stepSequencerNode = {
+            id: 'seq-1',
+            type: 'stepSequencerNode',
+            position: { x: 0, y: 0 },
+            data: { type: 'stepSequencer', steps: 4, pattern: [1, 0, 0, 0], activeSteps: [true, false, false, false], label: 'Seq' } as AudioNodeData,
+        } as Node<AudioNodeData>;
+        const transportNode = {
+            id: 'transport-1',
+            type: 'transportNode',
+            position: { x: 0, y: 0 },
+            data: { type: 'transport', bpm: 120, playing: false, beatsPerBar: 4, beatUnit: 4, stepsPerBeat: 4, barsPerPhrase: 4, swing: 0, label: 'Transport' } as AudioNodeData,
+        } as Node<AudioNodeData>;
+        const nodeById = new Map<string, Node<AudioNodeData>>([
+            [lfoNode.id, lfoNode],
+            [adsrNode.id, adsrNode],
+            [gainNode.id, gainNode],
+            [stepSequencerNode.id, stepSequencerNode],
+            [transportNode.id, transportNode],
+        ]);
+
+        expect(canConnect({ source: 'lfo-1', target: 'gain-1', sourceHandle: 'out', targetHandle: 'gain' }, nodeById)).toBe(true);
+        expect(canConnect({ source: 'adsr-1', target: 'gain-1', sourceHandle: 'envelope', targetHandle: 'gain' }, nodeById)).toBe(true);
+        expect(canConnect({ source: 'transport-1', target: 'seq-1', sourceHandle: 'out', targetHandle: 'transport' }, nodeById)).toBe(true);
+        expect(canConnect({ source: 'lfo-1', target: 'gain-1', sourceHandle: 'out', targetHandle: 'in' }, nodeById)).toBe(false);
     });
 });

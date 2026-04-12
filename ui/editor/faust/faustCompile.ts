@@ -58,6 +58,7 @@ export type FaustCompileResult = FaustCompileOk | FaustCompileErr;
  */
 export async function compileFaustDspToWasm(name: string, dspCode: string): Promise<FaustCompileResult> {
     const compiler = await getCompiler();
+    console.log('[dsp source]', dspCode);
     const factory = await compiler.createMonoDSPFactory(name, dspCode, '-O1');
     if (!factory) {
         return { ok: false, error: compiler.getErrorMessage() || 'Faust compile failed' };

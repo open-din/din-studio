@@ -19,7 +19,7 @@ inputs:
     name: depth
     interface: slider
 outputs:
-  - type: audio
+  - type: float
     name: out
     interface: input
 dsp: |

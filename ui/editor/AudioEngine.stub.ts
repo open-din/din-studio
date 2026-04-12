@@ -27,6 +27,8 @@ export const audioEngine = {
     init: vi.fn().mockImplementation(() =>
         (typeof AudioContext !== 'undefined' ? new AudioContext() : ({} as AudioContext)),
     ),
+    getContext: vi.fn(() => null),
+    setFaustMode: vi.fn(),
     prepareRecordingTap: vi.fn(),
     releaseRecordingTap: vi.fn(),
     beginMediaRecorder: vi.fn(),

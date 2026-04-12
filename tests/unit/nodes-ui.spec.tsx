@@ -176,6 +176,7 @@ vi.mock('../../ui/editor/AudioEngine', () => ({
         stop: vi.fn(),
         updateNode: vi.fn(),
         subscribeStep: audioEngineMock.subscribeStep,
+        getContext: vi.fn(() => null),
         getControlInputValue: vi.fn(() => null),
         getSourceOutputValue: vi.fn(() => null),
         updateSamplerParam: vi.fn(),
@@ -183,6 +184,7 @@ vi.mock('../../ui/editor/AudioEngine', () => ({
         stopSampler: vi.fn(),
         loadSamplerBuffer: vi.fn(),
         onSamplerEnd: () => () => {},
+        setFaustMode: vi.fn(),
     },
 }));
 
@@ -566,8 +568,9 @@ describe('editor node UIs', () => {
 
         render(<Inspector />);
 
-        fireEvent.change(screen.getByPlaceholderText('New token name...'), { target: { value: 'Warning Token' } });
-        fireEvent.click(screen.getByText('+'));
+        fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+        const labelFields = screen.getAllByLabelText('Label');
+        fireEvent.change(labelFields[labelFields.length - 1]!, { target: { value: 'Warning Token' } });
 
         expect(updateNodeData).toHaveBeenCalledWith(
             'ui-tokens-1',

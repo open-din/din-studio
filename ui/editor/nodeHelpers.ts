@@ -233,22 +233,59 @@ export function createInputParamId(nodeId: string, index: number): string {
     return `${nodeId}-param-${index + 1}`;
 }
 
+const INPUT_PARAM_VALUE_KINDS = new Set<InputParam['type']>([
+    'float',
+    'int',
+    'range',
+    'audio',
+    'trigger',
+    'event',
+]);
+
+function socketKindFromParamType(type: InputParam['type']): 'audio' | 'control' | 'trigger' {
+    if (type === 'audio') return 'audio';
+    if (type === 'trigger' || type === 'event') return 'trigger';
+    return 'control';
+}
+
+function normalizeInputParamType(param: Partial<InputParam>): InputParam['type'] {
+    const sk = param.socketKind;
+    if (sk === 'audio') return 'audio';
+    if (sk === 'trigger') return 'trigger';
+    const raw = param.type;
+    if (raw && INPUT_PARAM_VALUE_KINDS.has(raw)) {
+        return raw;
+    }
+    return 'float';
+}
+
+function isValidAudioSource(v: unknown): v is NonNullable<InputParam['audioSource']> {
+    return v === 'mic' || v === 'file' || v === 'none';
+}
+
 export function ensureInputParam(param: Partial<InputParam>, nodeId: string, index: number): InputParam {
     const fallbackName = param.name?.trim() || param.label?.trim() || `Param ${index + 1}`;
+    const pType = normalizeInputParamType(param);
     const defaultValue = Number.isFinite(param.defaultValue) ? Number(param.defaultValue) : Number(param.value ?? 0);
     const value = Number.isFinite(param.value) ? Number(param.value) : defaultValue;
     const min = Number.isFinite(param.min) ? Number(param.min) : 0;
     const max = Number.isFinite(param.max) ? Number(param.max) : 1;
+    const stepRaw = param.step;
+    const step = Number.isFinite(stepRaw) ? Number(stepRaw) : pType === 'int' ? 1 : 0.01;
 
-    const validKinds = ['audio', 'control', 'trigger'] as const;
-    const socketKind = validKinds.includes(param.socketKind as (typeof validKinds)[number])
-        ? (param.socketKind as (typeof validKinds)[number])
-        : 'control';
+    const socketKind = socketKindFromParamType(pType);
 
-    return {
+    const audioSource: InputParam['audioSource'] | undefined =
+        pType === 'audio'
+            ? isValidAudioSource(param.audioSource)
+                ? param.audioSource
+                : 'none'
+            : undefined;
+
+    const base: InputParam = {
         id: param.id?.trim() || createInputParamId(nodeId, index),
         name: fallbackName,
-        type: 'float',
+        type: pType,
         defaultValue,
         value,
         min,
@@ -256,6 +293,14 @@ export function ensureInputParam(param: Partial<InputParam>, nodeId: string, ind
         label: param.label?.trim() || fallbackName,
         socketKind,
     };
+
+    if (pType === 'float' || pType === 'int' || pType === 'range') {
+        return { ...base, step };
+    }
+    if (pType === 'audio') {
+        return { ...base, audioSource };
+    }
+    return base;
 }
 
 export function normalizeInputNodeData(nodeId: string, data: InputNodeData): InputNodeData {
@@ -412,8 +457,7 @@ export function getCatalogPortValueType(
 
 /**
  * Whether two Studio catalog port value types may connect when both ends resolve to YAML/catalog types.
- * Rule: identical types connect; `int` ↔ `float` connect as numeric CV. Other pairs are not catalog-compatible
- * (legacy `canConnect` rules may still allow special cases such as audio-rate CV into float params).
+ * Rule: identical types connect; `int` ↔ `float` connect as numeric CV.
  */
 export function studioPortValueTypesConnectable(
     source: StudioNodePortValueType,
@@ -450,8 +494,8 @@ function resolveConnectionPortValueType(
 }
 
 /**
- * When both handles resolve to ports in the Studio YAML catalog, enforce matching `type`.
- * Returns `null` when either side is not catalog-backed (fall through to legacy rules).
+ * When both handles resolve to typed ports, enforce matching `type`.
+ * Returns `null` only when either side is untyped and legacy rules must decide.
  */
 export function tryCatalogPortConnection(
     connection: GraphConnectionLike,
@@ -474,7 +518,7 @@ export function tryCatalogPortConnection(
         return null;
     }
     if (!studioPortValueTypesConnectable(srcType, tgtType)) {
-        return null;
+        return false;
     }
     if (tgtType === 'audio' && existingEdges) {
         if (!audioTargetAllowsFanIn(targetNode, targetHandle)) {

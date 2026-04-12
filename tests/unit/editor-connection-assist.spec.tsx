@@ -127,11 +127,13 @@ vi.mock('../../ui/editor/audioLibrary', () => ({
 
 vi.mock('../../ui/editor/AudioEngine', () => ({
     audioEngine: {
+        getContext: vi.fn(() => null),
         loadSamplerBuffer: vi.fn(),
         onSamplerEnd: () => () => {},
         playSampler: vi.fn(),
         refreshConnections: vi.fn(),
         refreshDataValues: vi.fn(),
+        setFaustMode: vi.fn(),
         stop: vi.fn(),
         stopSampler: vi.fn(),
         subscribeStep: vi.fn(() => () => {}),

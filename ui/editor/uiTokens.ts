@@ -1,4 +1,4 @@
-import type { InputParam } from './store';
+import { INPUT_PARAM_NUMERIC_KINDS, type InputParam, type InputParamValueKind } from './types';
 
 export const UI_TOKEN_IDS = ['hoverToken', 'successToken', 'errorToken'] as const;
 export type UiTokenId = (typeof UI_TOKEN_IDS)[number];
@@ -32,6 +32,8 @@ export function createUiTokenParam(tokenId: UiTokenId): InputParam {
         defaultValue: 0,
         min: DEFAULT_MIN,
         max: DEFAULT_MAX,
+        step: 0.01,
+        socketKind: 'control',
     };
 }
 
@@ -59,6 +61,8 @@ export function hasAnyUiTokenInputParam(params: InputParam[] | undefined): boole
     });
 }
 
+const NUMERIC_KINDS = new Set<InputParamValueKind>(INPUT_PARAM_NUMERIC_KINDS);
+
 export function normalizeUiTokenParams(params: InputParam[] | undefined): InputParam[] {
     const result: InputParam[] = [];
     const usedIds = new Set<string>();
@@ -81,15 +85,26 @@ export function normalizeUiTokenParams(params: InputParam[] | undefined): InputP
         const defaultValue = toFiniteNumber(param.defaultValue, toFiniteNumber(param.value, 0));
         const value = toFiniteNumber(param.value, defaultValue);
 
+        const pType: InputParamValueKind =
+            param.type && NUMERIC_KINDS.has(param.type) ? param.type : 'float';
+        const stepRaw = param.step;
+        const step = Number.isFinite(stepRaw)
+            ? Number(stepRaw)
+            : pType === 'int'
+                ? 1
+                : 0.01;
+
         result.push({
             id: nextId,
             name: fallbackName,
             label: param.label?.trim() || defaultLabel,
-            type: 'float',
+            type: pType,
             defaultValue,
             value,
             min: toFiniteNumber(param.min, DEFAULT_MIN),
             max: toFiniteNumber(param.max, DEFAULT_MAX),
+            step,
+            socketKind: 'control',
         });
     });
 

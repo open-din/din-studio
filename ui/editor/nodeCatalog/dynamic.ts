@@ -10,6 +10,14 @@ function buildParamHandles(data: Extract<AudioNodeData, { type: 'input' | 'uiTok
         id: getInputParamHandleId(param.id),
         direction: 'source',
         label: param.label || param.name,
+        portValueType:
+            param.socketKind === 'audio' || param.type === 'audio'
+                ? 'audio'
+                : param.socketKind === 'trigger' || param.type === 'trigger' || param.type === 'event'
+                    ? 'trigger'
+                    : param.type === 'int'
+                        ? 'int'
+                        : 'float',
     }));
 }
 
@@ -49,23 +57,27 @@ export function getNodeHandleDescriptors(data: AudioNodeData): HandleDescriptor[
         case 'math': {
             const inputs = MATH_OPERATION_INPUT_LABELS[data.operation] ?? MATH_OPERATION_INPUT_LABELS.add;
             return [
-                { id: 'out', direction: 'source', label: 'Out' },
+                { id: 'out', direction: 'source', label: 'Out', portValueType: 'float', portInterface: 'slider' },
                 ...inputs.map((input) => ({
                     id: input.id,
                     direction: 'target' as const,
                     label: input.label,
+                    portValueType: 'float' as const,
+                    portInterface: 'slider' as const,
                 })),
             ];
         }
         case 'switch': {
             const inputs = Math.min(Math.max(data.inputs || 2, 2), 8);
             return [
-                { id: 'out', direction: 'source', label: 'Out' },
-                { id: 'index', direction: 'target', label: 'Index' },
+                { id: 'out', direction: 'source', label: 'Out', portValueType: 'float', portInterface: 'slider' },
+                { id: 'index', direction: 'target', label: 'Index', portValueType: 'float', portInterface: 'slider' },
                 ...Array.from({ length: inputs }, (_, index) => ({
                     id: `in_${index}`,
                     direction: 'target' as const,
                     label: `In ${index + 1}`,
+                    portValueType: 'float' as const,
+                    portInterface: 'slider' as const,
                 })),
             ];
         }
@@ -77,12 +89,16 @@ export function getNodeHandleDescriptors(data: AudioNodeData): HandleDescriptor[
                     id: `in${index + 1}`,
                     direction: 'target' as const,
                     label: `In ${index + 1}`,
+                    portValueType: 'audio' as const,
+                    portInterface: 'input' as const,
                 })),
-                { id: 'out', direction: 'source', label: 'Out Mix' },
+                { id: 'out', direction: 'source', label: 'Out Mix', portValueType: 'audio', portInterface: 'input' },
                 ...Array.from({ length: outputs }, (_, index) => ({
                     id: `out${index + 1}`,
                     direction: 'source' as const,
                     label: `Out ${index + 1}`,
+                    portValueType: 'audio' as const,
+                    portInterface: 'input' as const,
                 })),
             ];
 
@@ -92,6 +108,8 @@ export function getNodeHandleDescriptors(data: AudioNodeData): HandleDescriptor[
                         id: `cell:${row}:${column}`,
                         direction: 'target',
                         label: `M${row + 1}${column + 1}`,
+                        portValueType: 'float',
+                        portInterface: 'slider',
                     });
                 }
             }
