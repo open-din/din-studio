@@ -71,6 +71,12 @@ export function validateStudioNodeDefinition(def: StudioNodeDefinition): StudioN
     if (def.singleton !== undefined && typeof def.singleton !== 'boolean') {
         errors.push('singleton must be a boolean when set');
     }
+    if (def.editableInputsParams !== undefined && typeof def.editableInputsParams !== 'boolean') {
+        errors.push('editableInputsParams must be a boolean when set');
+    }
+    if (def.editableOutputsParams !== undefined && typeof def.editableOutputsParams !== 'boolean') {
+        errors.push('editableOutputsParams must be a boolean when set');
+    }
 
     for (const t of def.tags) {
         if (!t.trim()) {
@@ -90,6 +96,26 @@ export function validateStudioNodeDefinition(def: StudioNodeDefinition): StudioN
         }
         if (port.label !== undefined && port.label !== null && port.label.trim() === '') {
             errors.push(`port "${port.name}" label must be null or a non-empty string`);
+        }
+
+        if (port.type === 'enum') {
+            if (!port.enumOptions || port.enumOptions.length === 0) {
+                errors.push(`port "${port.name}" (enum) requires non-empty enumOptions`);
+            }
+            if (port.enumDefault !== undefined && port.enumOptions && !port.enumOptions.includes(port.enumDefault)) {
+                errors.push(`port "${port.name}" enumDefault must be one of enumOptions`);
+            }
+        } else if (port.enumOptions !== undefined || port.enumDefault !== undefined) {
+            errors.push(`port "${port.name}" enumOptions/enumDefault are only valid when type is enum`);
+        }
+
+        const hasNumericMeta =
+            port.default !== undefined || port.min !== undefined || port.max !== undefined || port.step !== undefined;
+        if (hasNumericMeta && port.type !== 'int' && port.type !== 'float') {
+            errors.push(`port "${port.name}" default/min/max/step are only for int/float ports`);
+        }
+        if ((port.type === 'int' || port.type === 'float') && port.min !== undefined && port.max !== undefined && port.min > port.max) {
+            errors.push(`port "${port.name}" min must be <= max`);
         }
     }
 

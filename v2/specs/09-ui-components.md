@@ -135,6 +135,8 @@ This format is **Studio-only**. It does **not** define the `.din` file schema, r
 | `category` | `string` | yes | Top-level palette group. |
 | `subcategory` | `string` | yes | Second-level group within `category`. Free-form strings (not fixed enums). |
 | `dsp` | `string` | conditional | **Required** when `type === "dsp"` (non-empty string). **Forbidden** when `type !== "dsp"`. Plain Faust source only; Studio metadata — does not define `.din` `engine` persistence. |
+| `editableInputsParams` | `boolean` | no | Default `false`. When `true`, the inspector may edit this node instance’s input port list (`studioPortOverrides.inputs` in graph state). |
+| `editableOutputsParams` | `boolean` | no | Default `false`. When `true`, the inspector may edit this node instance’s output port list (`studioPortOverrides.outputs` in graph state). |
 
 ### 10.4 Port schema (`NodePortSchema`)
 
@@ -150,9 +152,15 @@ Example:
 
 | Field | Type | Required | Allowed values / rules |
 |-------|------|----------|-------------------------|
-| `type` | enum | yes | `int`, `float`, `audio`, `trigger`, `bool`, `enum` |
+| `type` | enum | yes | `int`, `float`, `audio`, `trigger`, `bool`, `enum`. YAML may use `number` as an alias for `float` (normalized at load). |
 | `name` | `string` | yes | Stable port id; **unique** within the local `inputs` array or local `outputs` array. |
 | `interface` | enum | yes | `input`, `slider`, `checkbox` — default Studio UI treatment. **Same schema** for inputs and outputs. On outputs, `interface` is **metadata only**; Studio MAY ignore UI-oriented hints at render time. |
+| `default` | `number` | no | For `int` / `float` ports: default control value in the canvas shell / inspector. |
+| `min` | `number` | no | For `int` / `float`: range lower bound (with `max`, must satisfy `min <= max`). |
+| `max` | `number` | no | For `int` / `float`: range upper bound. |
+| `step` | `number` | no | For `int` / `float`: step for sliders/number fields. |
+| `enumOptions` | `string[]` | conditional | **Required** when `type === "enum"` (non-empty). |
+| `enumDefault` | `string` | no | For `enum`: must be one of `enumOptions` when both are set. |
 
 ### 10.5 Validation rules
 

@@ -10,6 +10,7 @@ import {
     getStudioTargetHandleIds,
     humanizeStudioNodeName,
     loadBuiltInNodeRawDefinitions,
+    loadStudioNodeCatalog,
     normalizeStudioNodeDefinition,
     resetStudioNodeCatalogCache,
     resolveDefaultStudioTitle,
@@ -18,6 +19,7 @@ import {
     subcategorySlugToLabel,
     validateStudioNodeDefinition,
 } from '../../ui/editor/nodeCatalog';
+import { STUDIO_NODE_CUSTOM_VIEWS } from '../../ui/editor/nodeCustomViews/registry';
 
 describe('Studio node UI catalog', () => {
     it('maps category and subcategory slugs to palette labels', () => {
@@ -103,6 +105,7 @@ dsp: |
         const sampler = getStudioNodeDefinition('sampler');
         expect(sampler?.category).toBe('Sources');
         expect(sampler?.type).toBe('asset');
+        expect(sampler?.customComponent).toBe('sampler');
         expect(getStudioDspSource(sampler!)).toBeUndefined();
     });
 
@@ -119,6 +122,8 @@ dsp: |
         expect(def.tags).toEqual([]);
         expect(def.inputs).toEqual([]);
         expect(def.outputs).toEqual([]);
+        expect(def.editableInputsParams).toBe(false);
+        expect(def.editableOutputsParams).toBe(false);
     });
 
     it('accepts a minimal non-DSP definition after normalization', () => {
@@ -229,6 +234,33 @@ dsp: |
         expect(humanizeStudioNodeName('low_pass')).toBe('Low Pass');
     });
 
+    it('normalizes port type alias number to float', () => {
+        const def = normalizeStudioNodeDefinition({
+            name: 'n',
+            description: 'd',
+            category: 'C',
+            subcategory: 'S',
+            type: 'value',
+            inputs: [{ type: 'number', name: 'x', interface: 'slider' } as { type: string; name: string; interface: 'slider' }],
+            outputs: [],
+        });
+        expect(def.inputs[0]?.type).toBe('float');
+        expect(validateStudioNodeDefinition(def).ok).toBe(true);
+    });
+
+    it('rejects enum ports without enumOptions', () => {
+        const def = normalizeStudioNodeDefinition({
+            name: 'e',
+            description: 'd',
+            category: 'C',
+            subcategory: 'S',
+            type: 'value',
+            inputs: [{ type: 'enum', name: 'mode', interface: 'input' }],
+            outputs: [],
+        });
+        expect(validateStudioNodeDefinition(def).ok).toBe(false);
+    });
+
     it('resolves customComponent key for shell selection', () => {
         const def = normalizeStudioNodeDefinition({
             name: 'c',
@@ -241,6 +273,18 @@ dsp: |
         expect(resolveStudioCustomComponentKey(def)).toBe('MyKey');
         const nullComp = { ...def, customComponent: null };
         expect(resolveStudioCustomComponentKey(nullComp)).toBeNull();
+    });
+
+    it('maps every non-null catalog customComponent to STUDIO_NODE_CUSTOM_VIEWS', () => {
+        resetStudioNodeCatalogCache();
+        for (const def of loadStudioNodeCatalog()) {
+            const key = def.customComponent;
+            if (key === null) continue;
+            expect(
+                STUDIO_NODE_CUSTOM_VIEWS[key],
+                `node "${def.name}" customComponent "${key}" is not registered in ui/editor/nodeCustomViews/registry.tsx`,
+            ).toBeDefined();
+        }
     });
 
     it('exposes Faust dsp only for dsp types via catalog helpers', () => {

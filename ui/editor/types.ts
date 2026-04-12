@@ -1,5 +1,6 @@
 import type { Edge, Node } from '@xyflow/react';
 import type { MidiTransportSyncMode, MidiValueFormat } from '@open-din/react/midi';
+import type { StudioPortOverrides } from './nodeCatalog/definition';
 
 // ============================================================================
 // Audio Node Data Types
@@ -645,7 +646,7 @@ export type AudioNodeData = (
     | MixNodeData
     | ClampNodeData
     | SwitchNodeData
-) & Record<string, unknown>;
+) & { studioPortOverrides?: StudioPortOverrides } & Record<string, unknown>;
 
 // ============================================================================
 // Session recording (graph output capture)

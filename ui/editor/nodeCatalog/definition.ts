@@ -29,6 +29,18 @@ export interface StudioNodePortSchema {
     interface: StudioNodePortInterface;
     /** Display label for React Flow handles; null/absent means derive from `name`. */
     label?: string | null;
+    /** For `int` / `float`: optional default and range for inspector / canvas controls. */
+    default?: number;
+    min?: number;
+    max?: number;
+    step?: number;
+    /** For `type === 'enum'`: allowed values; required when type is enum. */
+    enumOptions?: string[];
+    /**
+     * For `type === 'enum'`: default selected option (must appear in `enumOptions` when both set).
+     * For `int` / `float`, use `default` (number).
+     */
+    enumDefault?: string;
 }
 
 /**
@@ -51,6 +63,16 @@ export interface StudioNodeDefinition {
     icon?: string | null;
     /** When true, only one instance should exist in a graph (e.g. output, transport). */
     singleton?: boolean;
+    /**
+     * When true, the inspector allows editing the inputs port list for this node instance
+     * (`studioPortOverrides.inputs` in graph state).
+     */
+    editableInputsParams?: boolean;
+    /**
+     * When true, the inspector allows editing the outputs port list for this node instance
+     * (`studioPortOverrides.outputs` in graph state).
+     */
+    editableOutputsParams?: boolean;
     /** Present only for `type === 'dsp'` (non-empty Faust source). */
     dsp?: string;
 }
@@ -65,4 +87,13 @@ export type RawStudioNodeDefinition = Partial<StudioNodeDefinition> & {
 export interface StudioNodeValidationResult {
     ok: boolean;
     errors: string[];
+}
+
+/**
+ * Per-graph-instance overrides for catalog ports when `editableInputsParams` / `editableOutputsParams` are true.
+ * Each side is optional: when absent, the corresponding side uses the static catalog list.
+ */
+export interface StudioPortOverrides {
+    inputs?: StudioNodePortSchema[];
+    outputs?: StudioNodePortSchema[];
 }

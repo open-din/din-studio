@@ -1,0 +1,16 @@
+---
+description: Studio graph edge rules — catalog port types and connectability
+globs: ui/editor/nodeHelpers.ts,ui/editor/nodeCatalog/**,ui/editor/components/CustomHandle.tsx,ui/Editor.tsx
+alwaysApply: false
+---
+
+## Port type connectability (Studio catalog)
+
+When both ends of a drag resolve to a `StudioNodePortValueType` (YAML catalog and/or handle `portValueType`), **`studioPortValueTypesConnectable`** in `ui/editor/nodeHelpers.ts` is the rule:
+
+- Same type → connectable (e.g. audio-to-audio, float-to-float, trigger-to-trigger).
+- `int` ↔ `float` → connectable (numeric CV).
+
+`tryCatalogPortConnection` runs **before** legacy `isAudioConnection` so named audio inputs (e.g. `sidechainIn`) match catalog audio ports the same way as `in`/`out`.
+
+If catalog types disagree, `tryCatalogPortConnection` returns `null` and **`canConnect`** may still allow edges via legacy rules (e.g. LFO `out` typed `audio` in YAML into float modulation targets). Do not remove those paths without replacing them with explicit compatibility rules.

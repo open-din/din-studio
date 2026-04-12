@@ -7,7 +7,8 @@ type: timeline
 tags:
   - piano-roll
   - sources
-customComponent: null
+# Registry key → ui/editor/nodeWidgetComponents/layouts/PianoRollNodeView.tsx
+customComponent: pianoRoll
 inputs:
   - type: trigger
     name: transport

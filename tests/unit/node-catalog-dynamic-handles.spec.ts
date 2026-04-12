@@ -7,7 +7,11 @@ import {
     resetStudioNodeCatalogCache,
     studioDefinitionToHandleDescriptors,
 } from '../../ui/editor/nodeCatalog';
-import { canConnect, getConnectionEdgeStyle } from '../../ui/editor/nodeHelpers';
+import {
+    canConnect,
+    getConnectionEdgeStyle,
+    studioPortValueTypesConnectable,
+} from '../../ui/editor/nodeHelpers';
 import type {
     ADSRNodeData,
     AudioNodeData,
@@ -16,6 +20,21 @@ import type {
     PhaserNodeData,
     VoiceNodeData,
 } from '../../ui/editor/types';
+
+describe('studioPortValueTypesConnectable', () => {
+    it('allows same kind and int/float CV pairing', () => {
+        expect(studioPortValueTypesConnectable('float', 'float')).toBe(true);
+        expect(studioPortValueTypesConnectable('trigger', 'trigger')).toBe(true);
+        expect(studioPortValueTypesConnectable('audio', 'audio')).toBe(true);
+        expect(studioPortValueTypesConnectable('int', 'float')).toBe(true);
+        expect(studioPortValueTypesConnectable('float', 'int')).toBe(true);
+    });
+
+    it('rejects unlike kinds', () => {
+        expect(studioPortValueTypesConnectable('trigger', 'float')).toBe(false);
+        expect(studioPortValueTypesConnectable('audio', 'float')).toBe(false);
+    });
+});
 
 describe('getNodeHandleDescriptors (Studio catalog)', () => {
     beforeEach(() => {
@@ -145,6 +164,39 @@ describe('getNodeHandleDescriptors (Studio catalog)', () => {
         expect(
             canConnect({ source: 'v1', target: 'o1', sourceHandle: 'gate', targetHandle: 'frequency' }, nodeById),
         ).toBe(false);
+    });
+
+    it('allows audio to named audio inputs (e.g. compressor sidechain) via catalog types', () => {
+        resetStudioNodeCatalogCache();
+        const oscData: OscNodeData = {
+            type: 'osc',
+            frequency: 440,
+            detune: 0,
+            waveform: 'sine',
+            label: 'Osc',
+        };
+        const compData: CompressorNodeData = {
+            type: 'compressor',
+            threshold: -24,
+            knee: 30,
+            ratio: 12,
+            attack: 0.003,
+            release: 0.25,
+            sidechainStrength: 0.7,
+            label: 'Comp',
+        };
+        const oscNode = { id: 'o1', type: 'oscNode', position: { x: 0, y: 0 }, data: oscData } as Node<AudioNodeData>;
+        const compNode = { id: 'c1', type: 'compressorNode', position: { x: 0, y: 0 }, data: compData } as Node<AudioNodeData>;
+        const nodeById = new Map<string, Node<AudioNodeData>>([
+            [oscNode.id, oscNode],
+            [compNode.id, compNode],
+        ]);
+        expect(
+            canConnect(
+                { source: 'o1', target: 'c1', sourceHandle: 'out', targetHandle: 'sidechainIn' },
+                nodeById,
+            ),
+        ).toBe(true);
     });
 
     it('colors trigger edges from catalog source port', () => {

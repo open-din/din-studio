@@ -1,5 +1,5 @@
 import type { AudioNodeData } from '../types';
-import type { StudioNodePortInterface, StudioNodePortValueType } from './definition';
+import type { StudioNodePortInterface, StudioNodePortSchema, StudioNodePortValueType } from './definition';
 
 export type EditorNodeType = AudioNodeData['type'];
 export type HandleDirection = 'source' | 'target';
@@ -13,6 +13,8 @@ export interface HandleDescriptor {
     portValueType?: StudioNodePortValueType;
     /** From YAML for target ports; drives inline control (when not audio/trigger). */
     portInterface?: StudioNodePortInterface;
+    /** Full catalog row when built from Studio port schema (enum options, numeric ranges). */
+    catalogPort?: StudioNodePortSchema;
 }
 
 export interface NodeCatalogEntry {

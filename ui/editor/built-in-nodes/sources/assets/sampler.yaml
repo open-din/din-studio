@@ -8,7 +8,8 @@ type: asset
 tags:
   - sampler
   - sources
-customComponent: null
+# Registry key → ui/editor/nodeWidgetComponents/layouts/SamplerNodeView.tsx
+customComponent: sampler
 inputs:
   - type: trigger
     name: trigger

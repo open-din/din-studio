@@ -8,7 +8,8 @@ tags:
   - convolver
   - reverb
   - faust
-customComponent: null
+# Registry key → ui/editor/nodeWidgetComponents/layouts/ConvolverNodeView.tsx
+customComponent: convolver
 inputs:
   - type: audio
     name: in

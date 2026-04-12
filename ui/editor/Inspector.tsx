@@ -14,6 +14,8 @@ import {
     type NodeHandleRole,
 } from './nodeUiRegistry';
 import { UI_TOKEN_IDS, createUiTokenParam } from './uiTokens';
+import { getStudioNodeDefinition } from './nodeCatalog/catalog';
+import { StudioPortEditor } from './StudioPortEditor';
 
 interface InspectorRowProps {
     nodeId: string;
@@ -640,6 +642,7 @@ const Inspector: React.FC = () => {
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
     const schema = useMemo(() => (nodeData ? getNodeUiSchema(nodeData.type) : null), [nodeData]);
+    const studioCatalogDef = useMemo(() => (nodeData ? getStudioNodeDefinition(nodeData.type) : undefined), [nodeData]);
     const nodeLabel = nodeData ? (nodeData.label?.trim() || schema?.label || getNodeDisplayLabel(nodeData.type)) : '';
     const inlineControls = nodeData ? getNodeInlineControls(nodeData.type) : [];
     const sections = nodeData ? getNodeInspectorSections(nodeData.type) : [];
@@ -667,6 +670,9 @@ const Inspector: React.FC = () => {
     );
 
     const isTokenNode = isTokenParamNode(nodeData);
+    const showStudioPortEditor =
+        studioCatalogDef
+        && (studioCatalogDef.editableInputsParams || studioCatalogDef.editableOutputsParams);
 
     return (
         <div className="flex h-full flex-col bg-[var(--panel-bg)] text-[11px] text-[var(--text)]">
@@ -705,6 +711,14 @@ const Inspector: React.FC = () => {
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+                {showStudioPortEditor && studioCatalogDef && (
+                    <StudioPortEditor
+                        nodeId={selectedNode.id}
+                        nodeData={nodeData}
+                        studioDef={studioCatalogDef}
+                        updateNodeData={updateNodeData}
+                    />
+                )}
                 {isTokenNode && (
                     <TokenParamEditor
                         nodeId={selectedNode.id}

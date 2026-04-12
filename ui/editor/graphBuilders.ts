@@ -13,7 +13,24 @@ import type {
     UiTokensNodeData,
 } from './types';
 import type { EditorNodeType } from './nodeCatalog';
+import { getStudioNodeDefinition } from './nodeCatalog/catalog';
+import type { StudioPortOverrides } from './nodeCatalog/definition';
 import { createUiTokenParams, normalizeUiTokensNodeData } from './uiTokens';
+
+function withStudioPortOverridesSeed(type: EditorNodeType, data: AudioNodeData): AudioNodeData {
+    const def = getStudioNodeDefinition(type);
+    if (!def || (!def.editableInputsParams && !def.editableOutputsParams)) {
+        return data;
+    }
+    const seed: StudioPortOverrides = {};
+    if (def.editableInputsParams) {
+        seed.inputs = def.inputs.map((p) => ({ ...p }));
+    }
+    if (def.editableOutputsParams) {
+        seed.outputs = def.outputs.map((p) => ({ ...p }));
+    }
+    return { ...data, studioPortOverrides: seed };
+}
 
 export const DEFAULT_NODE_SIZE = {
     width: 160,
@@ -136,6 +153,7 @@ export function createEditorNode(
     type: EditorNodeType,
     position: { x: number; y: number }
 ): Node<AudioNodeData> | null {
+    const built = ((): Node<AudioNodeData> | null => {
     switch (type) {
         case 'osc':
             return {
@@ -645,4 +663,9 @@ export function createEditorNode(
         default:
             return null;
     }
+    })();
+    if (!built) {
+        return null;
+    }
+    return { ...built, data: withStudioPortOverridesSeed(type, built.data) };
 }

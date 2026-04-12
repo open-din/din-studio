@@ -4,6 +4,7 @@ import {
     NodeCheckboxField,
     NodeHandleRow,
     NodeNumberField,
+    NodeSelectField,
     NodeShell,
     NodeValueBadge,
     type NodeHandleKind,
@@ -63,6 +64,7 @@ function DynamicTargetHandleRow({
     }
 
     const raw = (nodeData as Record<string, unknown>)[descriptor.id];
+    const cp = descriptor.catalogPort;
     let control: ReactNode = null;
 
     if (pv === 'bool' && pi === 'checkbox') {
@@ -78,17 +80,45 @@ function DynamicTargetHandleRow({
             />
         );
     } else if ((pv === 'int' || pv === 'float') && (pi === 'input' || pi === 'slider')) {
+        const fallbackNum = typeof cp?.default === 'number' && Number.isFinite(cp.default) ? cp.default : 0;
+        const numVal = typeof raw === 'number' && Number.isFinite(raw) ? raw : fallbackNum;
+        const step = cp?.step ?? (pv === 'int' ? 1 : 0.01);
         control = connection.connected ? (
             <NodeValueBadge live className="node-shell__row-field">
                 {formatConnectedDisplay(connection.value, pv)}
             </NodeValueBadge>
         ) : (
             <NodeNumberField
-                value={typeof raw === 'number' && Number.isFinite(raw) ? raw : 0}
-                step={pv === 'int' ? 1 : 0.01}
+                value={numVal}
+                min={cp?.min}
+                max={cp?.max}
+                step={step}
                 onChange={(v) => applyPatch({ [descriptor.id]: v } as Partial<AudioNodeData>)}
                 className="node-shell__row-field"
             />
+        );
+    } else if (pv === 'enum' && (pi === 'input' || pi === 'slider')) {
+        const opts = cp?.enumOptions ?? [];
+        const fallbackStr =
+            (cp?.enumDefault && opts.includes(cp.enumDefault) ? cp.enumDefault : undefined) ?? opts[0] ?? '';
+        const strVal = typeof raw === 'string' && raw.length > 0 ? raw : fallbackStr;
+        control = connection.connected ? (
+            <NodeValueBadge live className="node-shell__row-field">
+                {formatConnectedDisplay(connection.value, 'float')}
+            </NodeValueBadge>
+        ) : (
+            <NodeSelectField
+                value={strVal}
+                onChange={(v) => applyPatch({ [descriptor.id]: v } as Partial<AudioNodeData>)}
+                className="node-shell__row-field"
+                aria-label={descriptor.label}
+            >
+                {opts.map((opt) => (
+                    <option key={opt} value={opt}>
+                        {opt}
+                    </option>
+                ))}
+            </NodeSelectField>
         );
     }
 

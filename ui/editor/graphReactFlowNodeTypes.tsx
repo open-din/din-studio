@@ -4,7 +4,8 @@
  */
 import type { NodeTypes } from '@xyflow/react';
 import type { EditorNodeType } from './nodeCatalog';
-import { loadStudioNodeCatalog } from './nodeCatalog/catalog';
+import { loadStudioNodeCatalog, resolveStudioCustomComponentKey } from './nodeCatalog/catalog';
+import { STUDIO_NODE_CUSTOM_VIEWS } from './nodeCustomViews/registry';
 import { createDynamicNode } from './nodes/DynamicNode';
 
 /** XYFlow `node.type` string used in persisted graphs (`gain` → `gainNode`). */
@@ -19,7 +20,9 @@ export function buildReactFlowNodeTypesFromStudioCatalog(): NodeTypes {
     const out: NodeTypes = {};
     for (const def of loadStudioNodeCatalog()) {
         const editorType = def.name as EditorNodeType;
-        out[editorTypeToReactFlowType(editorType)] = createDynamicNode(def) as NodeTypes[string];
+        const key = resolveStudioCustomComponentKey(def);
+        const Custom = key ? STUDIO_NODE_CUSTOM_VIEWS[key] : undefined;
+        out[editorTypeToReactFlowType(editorType)] = (Custom ?? createDynamicNode(def)) as NodeTypes[string];
     }
     return out;
 }

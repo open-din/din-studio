@@ -32,6 +32,7 @@ import {
     type EditorNodeType,
 } from './nodeCatalog';
 import { getStudioNodeDefinition } from './nodeCatalog/catalog';
+import { resolveStudioPortsForInstance } from './nodeCatalog/handles';
 import type { StudioNodePortValueType } from './nodeCatalog/definition';
 import { createEditorNode } from './graphBuilders';
 import {
@@ -392,22 +393,32 @@ export function getSingletonNodeTypes(): ReadonlySet<AudioNodeData['type']> {
     return SINGLETON_NODE_TYPES;
 }
 
-/** Port type from built-in YAML catalog when the editor node type is catalog-backed. */
+/** Port type from built-in YAML catalog when the editor node type is catalog-backed (respects `studioPortOverrides`). */
 export function getCatalogPortValueType(
     nodeType: EditorNodeType,
     handleId: string,
     direction: HandleDirection,
+    nodeData?: AudioNodeData,
 ): StudioNodePortValueType | null {
     const def = getStudioNodeDefinition(nodeType);
     if (!def) {
         return null;
     }
-    const ports = direction === 'source' ? def.outputs : def.inputs;
+    const { inputs, outputs } = nodeData ? resolveStudioPortsForInstance(nodeData, def) : def;
+    const ports = direction === 'source' ? outputs : inputs;
     const port = ports.find((p) => p.name === handleId);
     return port?.type ?? null;
 }
 
-function catalogPortTypesCompatible(source: StudioNodePortValueType, target: StudioNodePortValueType): boolean {
+/**
+ * Whether two Studio catalog port value types may connect when both ends resolve to YAML/catalog types.
+ * Rule: identical types connect; `int` ↔ `float` connect as numeric CV. Other pairs are not catalog-compatible
+ * (legacy `canConnect` rules may still allow special cases such as audio-rate CV into float params).
+ */
+export function studioPortValueTypesConnectable(
+    source: StudioNodePortValueType,
+    target: StudioNodePortValueType,
+): boolean {
     if (source === target) {
         return true;
     }
@@ -415,6 +426,27 @@ function catalogPortTypesCompatible(source: StudioNodePortValueType, target: Stu
         return true;
     }
     return false;
+}
+
+/**
+ * Resolved port `type` for connection checks: Studio YAML/catalog first, then `portValueType` on handle descriptors
+ * (e.g. matrix cells) when the catalog row is not found by id.
+ */
+function resolveConnectionPortValueType(
+    node: Node<AudioNodeData>,
+    handleId: string,
+    direction: HandleDirection,
+): StudioNodePortValueType | null {
+    const fromCatalog = getCatalogPortValueType(node.data.type, handleId, direction, node.data);
+    if (fromCatalog !== null) {
+        return fromCatalog;
+    }
+    for (const h of getNodeHandleDescriptors(node.data)) {
+        if (h.id === handleId && h.direction === direction && h.portValueType !== undefined) {
+            return h.portValueType;
+        }
+    }
+    return null;
 }
 
 /**
@@ -436,12 +468,12 @@ export function tryCatalogPortConnection(
     }
     const sourceHandle = connection.sourceHandle ?? '';
     const targetHandle = connection.targetHandle;
-    const srcType = getCatalogPortValueType(sourceNode.data.type, sourceHandle, 'source');
-    const tgtType = getCatalogPortValueType(targetNode.data.type, targetHandle, 'target');
+    const srcType = resolveConnectionPortValueType(sourceNode, sourceHandle, 'source');
+    const tgtType = resolveConnectionPortValueType(targetNode, targetHandle, 'target');
     if (srcType === null || tgtType === null) {
         return null;
     }
-    if (!catalogPortTypesCompatible(srcType, tgtType)) {
+    if (!studioPortValueTypesConnectable(srcType, tgtType)) {
         return null;
     }
     if (tgtType === 'audio' && existingEdges) {
@@ -469,7 +501,7 @@ export function getConnectionEdgeStyle(
     const sourceNode = connection.source ? nodeById.get(connection.source) : null;
     const sourceHandle = connection.sourceHandle ?? '';
     if (sourceNode) {
-        const srcCatalog = getCatalogPortValueType(sourceNode.data.type, sourceHandle, 'source');
+        const srcCatalog = getCatalogPortValueType(sourceNode.data.type, sourceHandle, 'source', sourceNode.data);
         if (srcCatalog === 'audio') {
             return { stroke: FLOW_EDGE_STROKE.audio, strokeWidth: 3 };
         }
@@ -528,6 +560,11 @@ export function canConnect(
     if (!sourceNode || !targetNode) return false;
     if (connection.source === connection.target) return false;
 
+    const catalogDecision = tryCatalogPortConnection(connection, nodeById, existingEdges);
+    if (catalogDecision !== null) {
+        return catalogDecision;
+    }
+
     if (isAudioConnection(connection, nodeById)) {
         if (existingEdges) {
             const th = connection.targetHandle ?? '';
@@ -541,11 +578,6 @@ export function canConnect(
             }
         }
         return true;
-    }
-
-    const catalogDecision = tryCatalogPortConnection(connection, nodeById, existingEdges);
-    if (catalogDecision !== null) {
-        return catalogDecision;
     }
 
     const { type: sourceType } = sourceNode.data;

@@ -8,8 +8,8 @@ import OutputNode from '../../olds/nodes/OutputNode';
 import InputNode from '../../olds/nodes/InputNode';
 import UiTokensNode from '../../olds/nodes/UiTokensNode';
 import NoteNode from '../../olds/nodes/NoteNode';
-import { StepSequencerNode } from '../../olds/nodes/StepSequencerNode';
-import { PianoRollNode } from '../../olds/nodes/PianoRollNode';
+import { StepSequencerNodeView } from '../../ui/editor/nodeWidgetComponents/layouts/StepSequencerNodeView';
+import { PianoRollNodeView } from '../../ui/editor/nodeWidgetComponents/layouts/PianoRollNodeView';
 import MathNode from '../../olds/nodes/MathNode';
 import SwitchNode from '../../olds/nodes/SwitchNode';
 import DelayNode from '../../olds/nodes/DelayNode';
@@ -401,8 +401,8 @@ describe('editor node UIs', () => {
                 <NoteNode {...(sharedProps as any)} id="note-1" data={{ type: 'note', note: 'C', octave: 4, frequency: 261.6, language: 'en', label: 'Note' }} />
                 <OscNode {...(sharedProps as any)} id="osc-1" data={{ type: 'osc', frequency: 440, detune: 0, waveform: 'sine', label: 'Oscillator' }} />
                 <OutputNode {...(sharedProps as any)} id="out-1" data={{ type: 'output', playing: false, masterGain: 0.5, label: 'Output' }} />
-                <StepSequencerNode {...(sharedProps as any)} id="seq-1" data={{ type: 'stepSequencer', steps: 4, pattern: [1, 0, 1, 0], activeSteps: [true, false, true, false], label: 'Step Sequencer' }} />
-                <PianoRollNode {...(sharedProps as any)} id="pr-1" data={{ type: 'pianoRoll', steps: 16, octaves: 2, baseNote: 48, notes: [], label: 'Piano Roll' }} />
+                <StepSequencerNodeView {...(sharedProps as any)} id="seq-1" data={{ type: 'stepSequencer', steps: 4, pattern: [1, 0, 1, 0], activeSteps: [true, false, true, false], label: 'Step Sequencer' }} />
+                <PianoRollNodeView {...(sharedProps as any)} id="pr-1" data={{ type: 'pianoRoll', steps: 16, octaves: 2, baseNote: 48, notes: [], label: 'Piano Roll' }} />
                 <DelayNode {...(sharedProps as any)} id="delay-1" data={{ type: 'delay', delayTime: 0.25, feedback: 0.5, label: 'Delay' }} />
                 <ReverbNode {...(sharedProps as any)} id="reverb-1" data={{ type: 'reverb', decay: 2.5, mix: 0.4, label: 'Reverb' }} />
                 <StereoPannerNode {...(sharedProps as any)} id="panner-1" data={{ type: 'panner', pan: 0.25, label: 'Pan' }} />
@@ -1271,12 +1271,12 @@ describe('editor node UIs', () => {
 
         const { container } = render(
             <div>
-                <StepSequencerNode
+                <StepSequencerNodeView
                     {...(sharedProps as any)}
                     id="seq-size"
                     data={{ type: 'stepSequencer', steps: 32, pattern: Array(32).fill(0.5), activeSteps: Array(32).fill(true), label: 'Step Sequencer' }}
                 />
-                <PianoRollNode
+                <PianoRollNodeView
                     {...(sharedProps as any)}
                     id="piano-size"
                     data={{ type: 'pianoRoll', steps: 32, octaves: 4, baseNote: 48, notes: [{ pitch: 60, step: 2, duration: 2, velocity: 0.8 }], label: 'Piano Roll' }}

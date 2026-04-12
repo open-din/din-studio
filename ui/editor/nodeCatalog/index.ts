@@ -30,6 +30,7 @@ export type {
     StudioNodePortValueType,
     StudioNodeType,
     StudioNodeValidationResult,
+    StudioPortOverrides,
 } from './definition';
 export {
     getStudioDspHintForEditorType,
@@ -43,7 +44,10 @@ export {
     getStudioSourceHandleIds,
     getStudioTargetHandleIds,
     humanizeStudioPortName,
+    resolveStudioPortsForInstance,
+    resolveStudioPortsToHandleDescriptors,
     studioDefinitionToHandleDescriptors,
+    studioPortSchemasToHandleDescriptors,
 } from './handles';
 export { descriptorToHandleKind, portValueTypeToHandleKind, type PortHandleKind } from './portHandleKind';
 export { legacyBootstrapStudioDefinitions, STUDIO_UI_TYPE_BY_EDITOR } from './legacyBootstrap';

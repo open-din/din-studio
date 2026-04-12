@@ -44,7 +44,8 @@ Catalog `label` (or derived title from `name`) is the default for new nodes. Ins
 
 ## Port `type`, `interface`, sockets, edges, and connections
 
-- Each port row in YAML has a value `type` (`int` | `float` | `audio` | `trigger` | `bool` | `enum`) and an `interface` (`input` | `slider` | `checkbox`). These are copied into `HandleDescriptor.portValueType` / `portInterface` in `handles.ts`.
+- Each port row in YAML has a value `type` (`int` | `float` | `audio` | `trigger` | `bool` | `enum`; YAML may use `number` as an alias for `float`) and an `interface` (`input` | `slider` | `checkbox`). These are copied into `HandleDescriptor.portValueType` / `portInterface` in `handles.ts`. Optional `default`, `min`, `max`, `step` apply to `int`/`float`; `enumOptions` / `enumDefault` apply to `enum`.
+- Node rows may set `editableInputsParams` / `editableOutputsParams` (default `false`). When true, graph instances store `studioPortOverrides` and the inspector can edit that side’s port list; `getNodeHandleDescriptors` uses `resolveStudioPortsToHandleDescriptors`.
 - **Sockets:** green = `audio`, red = `trigger`, blue = `int` / `float` / `bool` / `enum` (see `--semantic-flow-*` in `ui/index.css` and handle classes in `editor.css`).
 - **Cables:** new edges get stroke colors from `getConnectionEdgeStyle` (`nodeHelpers.ts`) so they match the **source** port’s catalog `type` (audio solid green, trigger solid red, control dashed blue).
 - **Connectability:** when both ends resolve to ports on loaded catalog rows, connections are allowed if the port types match (with `int` ↔ `float` allowed). If the YAML types disagree, rules fall through to legacy `canConnect` logic (e.g. transport clock vs trigger-shaped `transport` input, ADSR `envelope` to modulation targets). React Flow uses `isValidConnection` wired to `canConnect`.

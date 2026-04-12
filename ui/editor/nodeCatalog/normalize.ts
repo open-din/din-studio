@@ -12,20 +12,65 @@ function normalizeTags(raw: unknown): string[] {
     return raw.map((t) => String(t).trim().toLowerCase()).filter((t) => t.length > 0);
 }
 
+function numOrUndef(v: unknown): number | undefined {
+    if (v === undefined || v === null || v === '') return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+function strArrOrUndef(v: unknown): string[] | undefined {
+    if (!Array.isArray(v)) return undefined;
+    const out = v.map((x) => String(x).trim()).filter((s) => s.length > 0);
+    return out.length > 0 ? out : undefined;
+}
+
 function normalizeOnePort(p: unknown): StudioNodePortSchema {
     if (!p || typeof p !== 'object') {
         return { type: 'float', name: '', interface: 'slider' };
     }
     const o = p as Record<string, unknown>;
     const name = String(o.name ?? '').trim();
-    const type = (o.type as StudioNodePortSchema['type']) ?? 'float';
+    let rawType = String(o.type ?? 'float').trim();
+    if (rawType === 'number') {
+        rawType = 'float';
+    }
+    const type = rawType as StudioNodePortSchema['type'];
     const iface = (o.interface as StudioNodePortSchema['interface']) ?? 'slider';
     let portLabel: string | null = null;
     if (o.label !== undefined && o.label !== null) {
         const pl = String(o.label).trim();
         portLabel = pl.length === 0 ? null : pl;
     }
-    return { type, name, interface: iface, label: portLabel };
+    const base: StudioNodePortSchema = { type, name, interface: iface, label: portLabel };
+
+    const d = numOrUndef(o.default);
+    if (d !== undefined) {
+        base.default = d;
+    }
+    const mn = numOrUndef(o.min);
+    if (mn !== undefined) {
+        base.min = mn;
+    }
+    const mx = numOrUndef(o.max);
+    if (mx !== undefined) {
+        base.max = mx;
+    }
+    const st = numOrUndef(o.step);
+    if (st !== undefined) {
+        base.step = st;
+    }
+    const enumOpts = strArrOrUndef(o.enumOptions);
+    if (enumOpts) {
+        base.enumOptions = enumOpts;
+    }
+    if (o.enumDefault !== undefined && o.enumDefault !== null) {
+        const ed = String(o.enumDefault).trim();
+        if (ed.length > 0) {
+            base.enumDefault = ed;
+        }
+    }
+
+    return base;
 }
 
 function normalizePorts(raw: unknown): StudioNodePortSchema[] {
@@ -73,6 +118,15 @@ export function normalizeStudioNodeDefinition(raw: RawStudioNodeDefinition): Stu
         singleton = Boolean(raw.singleton);
     }
 
+    let editableInputsParams = false;
+    if (raw.editableInputsParams !== undefined && raw.editableInputsParams !== null) {
+        editableInputsParams = Boolean(raw.editableInputsParams);
+    }
+    let editableOutputsParams = false;
+    if (raw.editableOutputsParams !== undefined && raw.editableOutputsParams !== null) {
+        editableOutputsParams = Boolean(raw.editableOutputsParams);
+    }
+
     const base: StudioNodeDefinition = {
         name,
         label,
@@ -84,6 +138,8 @@ export function normalizeStudioNodeDefinition(raw: RawStudioNodeDefinition): Stu
         tags: normalizeTags(raw.tags),
         category,
         subcategory,
+        editableInputsParams,
+        editableOutputsParams,
         ...(color !== null ? { color } : {}),
         ...(icon !== null ? { icon } : {}),
         ...(singleton !== undefined ? { singleton } : {}),
