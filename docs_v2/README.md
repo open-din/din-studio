@@ -21,3 +21,19 @@ English only. Each implementable task under `tasks/todo/` should gain a matching
 - Studio product: `v2/specs/*.md` in this repo.
 - Document interchange: workspace `open-din/v2` (schemas and examples).
 - Core behavior: `din-core/v2/specs` (validation, runtime, WASM boundaries).
+
+## Cross-repo v2 references
+
+| Role | Path |
+|------|------|
+| Normative DinDocument | `open-din/v2/` |
+| Studio product specs | `v2/specs/` (this repo) |
+| Core implementation specs | `din-core/v2/specs/` |
+
+## Agent documentation load order (minimize context)
+
+1. Legacy `docs/` (and root `specs/` if needed) — **only paths relevant to the task.**
+2. This folder — matching `docs_v2/<task-slug>.md` when it exists.
+3. `v2/specs/` — **only** files cited by the task.
+4. `v2/user-stories/` — **only** `.feature` files the task references.
+5. `open-din/v2` — **only** files cited in the task `Background` (schemas, examples, specs).

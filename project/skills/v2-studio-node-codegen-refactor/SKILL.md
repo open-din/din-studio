@@ -13,13 +13,18 @@
 
 1. Read `AGENTS.md`, `project/ROUTE_CARD.json`, and this skill.
 2. Pick **one** task file from `tasks/todo/*.feature` and move it to `tasks/doing/`.
-3. Read linked sections in `v2/specs` and the relevant `open-din/v2` schema or examples cited in the task `Background`.
-4. For din-core integration points, read the cited `din-core/v2/specs` paths (validation, runtime, WASM) without redefining ownership.
-5. **TDD**: add failing tests first (unit, integration, MCP/e2e as appropriate), then implement.
-6. Add or update **JSDoc** (or module docs) for all new public API in scope.
-7. Add or update **`docs_v2/<task-slug>.md`** describing behavior, modules, fixtures, and how to run tests for that task.
-8. Run `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:e2e`.
-9. Move the task file from `tasks/doing/` to `tasks/done/`, then to **`v2/features/`** once documentation is complete.
+3. **Documentation (smallest context first, only cited paths):**
+   - Legacy `docs/` or root `specs/` **if** the task compares or migrates old behavior.
+   - `docs_v2/<task-slug>.md` if it exists.
+   - `v2/specs/*.md` **only** files referenced by the task or slice.
+   - `v2/user-stories/*.feature` **only** stories the task links or needs.
+   - `open-din/v2` — schema, examples, or `din-document-*.md` **cited in the task**.
+   - For din-core boundaries: **only** `din-core/v2/specs` files cited in the task (validation, runtime, WASM); do not redefine ownership.
+4. **TDD**: add failing tests first (unit, integration, MCP/e2e as appropriate), then implement.
+5. Add or update **JSDoc** (or module docs) for all new public API in scope.
+6. Add or update **`docs_v2/<task-slug>.md`** describing behavior, modules, fixtures, and how to run tests for that task.
+7. Run `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:e2e`.
+8. Move the task file from `tasks/doing/` to `tasks/done/`, then to **`v2/features/`** once documentation is complete.
 
 ## CONSTRAINTS
 

@@ -17,7 +17,18 @@ Follow `AGENTS.md` load order first.
 - **Normative DinDocument interchange**: sibling workspace `open-din/v2` (schemas, markdown specs, examples).
 - **Studio product specs**: `v2/specs/*.md` in this repo.
 - **Core behavior** (validation, runtime session, WASM): `din-core/v2/specs` in the `din-core` repo.
+- Cross-repo index: `v2/specs/README.md` (table: `open-din/v2`, `din-studio/v2/specs`, `din-core/v2/specs`).
 - When `v2/specs`, `open-din/v2`, or `din-core/v2/specs` conflict with legacy editor or `CodeGenerator.tsx` behavior, **v2 specs take precedence** for new work.
+
+## Documentation load order (minimize context)
+
+Read **only paths cited by the active task** — not whole trees — in this order:
+
+1. Legacy `docs/` and root `specs/` when the task touches pre-v2 or comparative behavior.
+2. `docs_v2/<task-slug>.md` when present.
+3. `v2/specs/` numbered files cited by the task.
+4. `v2/user-stories/*.feature` files the task requires.
+5. `open-din/v2` files cited in the task; then `din-core/v2/specs` files cited for core boundaries.
 
 ## Language
 
