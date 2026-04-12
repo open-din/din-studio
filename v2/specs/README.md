@@ -19,7 +19,7 @@ Implementation-oriented technical specs for **din-studio**: the editor, shell, g
 6. [06-params-binding.md](./06-params-binding.md) — widgets, externalization, runtime binding
 7. [07-graph-editor.md](./07-graph-editor.md) — React Flow editor surface
 8. [08-primitives-catalog.md](./08-primitives-catalog.md) — built-in DSP primitives
-9. [09-ui-components.md](./09-ui-components.md) — React UI registry
+9. [09-ui-components.md](./09-ui-components.md) — React UI registry and Studio node catalog JSON (§10)
 10. [10-runtime-bridge.md](./10-runtime-bridge.md) — WASM / AudioWorklet / worker alignment
 
 ## Boundary map

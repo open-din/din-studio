@@ -1,20 +1,21 @@
 # din-studio v2 technical documentation
 
-English only. Each implementable task under `tasks/todo/` should gain a matching page here when work completes, before the task’s `.feature` file moves to `v2/features/`.
+English only. Completed Gherkin tasks live in `v2/features/`. Extend this index with `docs_v2/<slug>.md` pages as APIs stabilize.
 
 ## Index (populate per task)
 
 | Task slug | Document | Status |
 |-----------|----------|--------|
-| `01-dindocument-editor-bridge` | `01-dindocument-editor-bridge.md` | Pending implementation |
-| `02-node-catalog-taxonomy` | `02-node-catalog-taxonomy.md` | Pending implementation |
-| `03-graph-editor-ports-edges` | `03-graph-editor-ports-edges.md` | Pending implementation |
-| `04-primitives-dsp-registry` | `04-primitives-dsp-registry.md` | Pending implementation |
-| `05-dsp-subgraph-extraction` | `05-dsp-subgraph-extraction.md` | Pending implementation |
-| `06-faust-codegen-single-process` | `06-faust-codegen-single-process.md` | Pending implementation |
-| `07-params-binding-manifest` | `07-params-binding-manifest.md` | Pending implementation |
-| `08-runtime-bridge-integration` | `08-runtime-bridge-integration.md` | Pending implementation |
-| `09-mcp-codegen-contract` | `09-mcp-codegen-contract.md` | Pending implementation |
+| `01-dindocument-editor-bridge` | `ui/editor/dinDocument/dinDocumentBridge.ts`, `core/dinWasmValidation.ts` | Baseline (DinDocument JSON + din-wasm validation) |
+| `02-node-catalog-taxonomy` | `ui/editor/faust/taxonomy.ts`, `ui/editor/nodeCatalog/index.ts` exports | Baseline |
+| `03-graph-editor-ports-edges` | `ui/editor/nodeHelpers.ts` (`canConnect` + fan-in), `CustomHandle.tsx` | Baseline |
+| `04-primitives-dsp-registry` | `ui/editor/faust/dspPrimitiveRegistry.ts` | Baseline |
+| `05-dsp-subgraph-extraction` | `ui/editor/faust/extractDspSubgraph.ts` | Baseline |
+| `06-faust-codegen-single-process` | `ui/editor/faust/faustCodegen.ts`, `graphFaustPipeline.ts` | Baseline (osc/gain/filter/output chain) |
+| `07-params-binding-manifest` | `ui/editor/faust/compileManifest.ts` | Baseline |
+| `08-runtime-bridge-integration` | `workers/faustCompile.worker.ts`, `faustCompile.ts` | Baseline |
+| `09-mcp-codegen-contract` | `targets/mcp/src/runtime/handlers.ts`, `bridge/protocol.ts` | Baseline (Faust fields on codegen) |
+| `10-studio-node-ui-json-catalog` | `docs_v2/10-studio-node-ui-json-catalog.md`, `v2/specs/09-ui-components.md` §10 | Todo (Gherkin: `tasks/todo/10-studio-node-ui-json-catalog.feature`) |
 
 ## Authority
 

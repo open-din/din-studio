@@ -17,4 +17,9 @@ export default defineConfig({
         include: ['tests/unit/**/*.spec.ts', 'tests/unit/**/*.spec.tsx'],
         setupFiles: [resolve(__dirname, './vitest.setup.ts')],
     },
+    server: {
+        deps: {
+            inline: ['@grame/faustwasm', 'din-wasm'],
+        },
+    },
 });

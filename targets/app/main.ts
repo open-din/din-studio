@@ -484,8 +484,22 @@ async function loadProjectFromDisk(project: ProjectManifest): Promise<ProjectWor
         }),
     );
 
-    const hydratedGraphs = graphs.filter(Boolean).map((graph) => hydrateGraphAssetReferences(graph!, manifest.assets));
-    const nextGraphs = hydratedGraphs.length > 0 ? hydratedGraphs : [createInitialGraphDocument(undefined, 'Graph 1', 0)];
+    const hydratedGraphs = graphs.filter(Boolean).map((graph) =>
+        hydrateGraphAssetReferences(graph! as ProjectGraphDocument, manifest.assets),
+    );
+    const nextGraphs: ProjectGraphDocument[] =
+        hydratedGraphs.length > 0
+            ? hydratedGraphs.map((g, idx) => ({
+                ...g,
+                id: g.id ?? `graph_${idx}`,
+                name: g.name ?? 'Graph',
+                nodes: [...g.nodes],
+                edges: [...(g.edges ?? [])],
+                createdAt: g.createdAt ?? Date.now(),
+                updatedAt: g.updatedAt ?? Date.now(),
+                order: g.order ?? idx,
+            }))
+            : [createInitialGraphDocument(undefined, 'Graph 1', 0)];
     const nextProject = syncProjectManifest({
         ...manifest,
         path: project.path,

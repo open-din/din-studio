@@ -152,7 +152,16 @@ Full rules: [04-dsp-and-faust.md](./04-dsp-and-faust.md), [05-faust-codegen.md](
 
 When compiled to Faust, analyzer taps SHOULD use **parallel routing** (`<:` / `,`) with care to avoid altering dry path gain.
 
-## 8. Validation expectations
+## 8. Studio node UI JSON (catalog) vs `.din` persistence
+
+The **Studio node catalog** MAY be authored as **Studio-only JSON** definitions that drive React Flow handles, palette grouping, inspector copy, and optional Faust source metadata for DSP nodes. That contract is **not** part of the DinDocument / `.din` interchange schema and MUST NOT be treated as persisted graph node shape.
+
+- **`.din` nodes** use the payload in §3 (ports, params, `engine`, `ui`, etc.) and interchange rules owned by `din-core` / `open-din/v2`.
+- **Catalog JSON** is the editor’s **interface definition source of truth** for built-in and authored palette entries; it maps into the UI layer only.
+
+Normative field list, port schema, validation, and TypeScript types: [09-ui-components.md §10](./09-ui-components.md#10-studio-node-catalog-json-ui-contract).
+
+## 9. Validation expectations
 
 Studio validation SHOULD (delegating to din-core where integrated):
 

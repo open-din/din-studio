@@ -226,7 +226,20 @@ function App() {
                 throw new Error(APP_COPY.errors.missingPatchTarget);
             }
 
-            await saveGraphIntoProject(projectId, graph, !targetProjectId);
+            await saveGraphIntoProject(
+                projectId,
+                {
+                    ...graph,
+                    id: graph.id ?? `graph_${Date.now()}`,
+                    name: graph.name ?? 'Imported',
+                    nodes: [...graph.nodes],
+                    edges: [...(graph.edges ?? [])],
+                    createdAt: graph.createdAt ?? now,
+                    updatedAt: graph.updatedAt ?? now,
+                    order: graph.order ?? 0,
+                },
+                !targetProjectId,
+            );
             await openPreparedProject(projectId);
         } catch (nextError) {
             setError(nextError instanceof Error ? nextError.message : APP_COPY.errors.importPatch);

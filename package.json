@@ -17,6 +17,7 @@
     "test:mcp": "node ./node_modules/vitest/vitest.mjs --config targets/mcp/vitest.config.ts --run",
     "test:e2e": "playwright test",
     "test": "npm run test:unit && npm run test:mcp",
+    "build:din-wasm": "wasm-pack build ../din-core/crates/din-wasm --target web --out-dir ../../din-studio/vendor/din-wasm-pkg",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p targets/mcp/tsconfig.json --noEmit && tsc -p targets/app/tsconfig.json --noEmit",
     "validate:manifests": "node ./scripts/validate-manifests.mjs",
@@ -26,6 +27,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@grame/faustwasm": "^0.16.1",
+    "din-wasm": "file:./vendor/din-wasm-pkg",
     "@open-din/react": "file:../react-din",
     "@xyflow/react": "^12.10.0",
     "lamejs": "^1.2.1",

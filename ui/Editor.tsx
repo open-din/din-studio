@@ -595,8 +595,16 @@ const EditorContent: FC<EditorProps> = ({ project }) => {
             await handleSaveActiveGraph();
             const graph = createGraph(graphName);
             const graphDoc = patchToGraphDocument(validation.patch);
-            initializeFromGraphData({ nodes: graphDoc.nodes as any, edges: graphDoc.edges });
-            await saveGraph({ ...graph, name: graphName, nodes: graphDoc.nodes as any, edges: graphDoc.edges });
+            initializeFromGraphData({
+                nodes: graphDoc.nodes as any,
+                edges: [...(graphDoc.edges as any)],
+            });
+            await saveGraph({
+                ...graph,
+                name: graphName,
+                nodes: graphDoc.nodes as any,
+                edges: [...(graphDoc.edges as any)],
+            });
             await saveActiveGraphId(graph.id);
         } catch (err) {
             window.alert(`Failed to import patch: ${err instanceof Error ? err.message : 'Unknown error'}`);

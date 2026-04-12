@@ -1,4 +1,6 @@
 import { generateCode } from '../ui/editor/CodeGenerator';
+import { buildFaustBundleFromGraph } from '../ui/editor/faust/graphFaustPipeline';
+import type { FaustCompileManifest } from '../ui/editor/faust/compileManifest';
 import type { GraphDocument } from '../ui/editor/store';
 import {
     graphDocumentToPatch,
@@ -50,4 +52,18 @@ export function generateCodeFromOfflinePatch(
 ): string {
     const graph = patchDocumentToStudioGraph(patch);
     return generateCode(graph.nodes, graph.edges, includeProvider, graphName ?? graph.name);
+}
+
+export interface OfflineFaustBundle {
+    faust: string;
+    manifest: FaustCompileManifest;
+    diagnostics: string[];
+}
+
+/**
+ * Faust DSP + compile manifest aligned with the same graph as {@link generateCodeFromOfflinePatch}.
+ */
+export function generateFaustBundleFromOfflinePatch(patch: PatchDocument, graphName?: string): OfflineFaustBundle {
+    const graph = patchDocumentToStudioGraph(patch);
+    return buildFaustBundleFromGraph(graph.nodes, graph.edges, graphName ?? graph.name);
 }

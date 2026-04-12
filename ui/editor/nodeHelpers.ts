@@ -403,9 +403,28 @@ export function isAudioConnection(
         && (connection.targetHandle === 'in' || /^in\d+$/.test(connection.targetHandle ?? ''));
 }
 
+/**
+ * Whether an audio input port may accept more than one upstream edge (fan-in).
+ * Per `v2/specs/07-graph-editor.md`, default FX `in` ports are single-writer.
+ */
+export function audioTargetAllowsFanIn(targetNode: Node<AudioNodeData>, targetHandle: string): boolean {
+    const t = targetNode.data.type;
+    if (t === 'mixer' || t === 'matrixMixer') {
+        return true;
+    }
+    if (t === 'switch') {
+        return true;
+    }
+    if (t === 'patch' && (targetHandle === 'in' || targetHandle.startsWith('in'))) {
+        return true;
+    }
+    return false;
+}
+
 export function canConnect(
     connection: GraphConnectionLike,
-    nodeById: Map<string, Node<AudioNodeData>>
+    nodeById: Map<string, Node<AudioNodeData>>,
+    existingEdges?: Edge[]
 ): boolean {
     if (!connection.source || !connection.target || !connection.targetHandle) return false;
     const sourceNode = nodeById.get(connection.source);
@@ -414,6 +433,17 @@ export function canConnect(
     if (connection.source === connection.target) return false;
 
     if (isAudioConnection(connection, nodeById)) {
+        if (existingEdges) {
+            const th = connection.targetHandle ?? '';
+            if (!audioTargetAllowsFanIn(targetNode, th)) {
+                const occupied = existingEdges.some(
+                    (e) => e.target === connection.target && e.targetHandle === th
+                );
+                if (occupied) {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
@@ -633,7 +663,8 @@ function mapHandleMatch(
 
 export function getCompatibleExistingHandleMatches(
     start: ConnectionAssistStart,
-    nodes: Node<AudioNodeData>[]
+    nodes: Node<AudioNodeData>[],
+    graphEdges?: Edge[]
 ): CompatibleHandleMatch[] {
     const nodeById = createNodeLookup(nodes);
     const expectedDirection: HandleDirection = start.handleType === 'source' ? 'target' : 'source';
@@ -648,7 +679,7 @@ export function getCompatibleExistingHandleMatches(
                     handleType: handle.direction,
                 });
 
-                if (!connection || !canConnect(connection, nodeById)) {
+                if (!connection || !canConnect(connection, nodeById, graphEdges)) {
                     return [];
                 }
 
@@ -905,7 +936,7 @@ export function migrateGraphEdges(
             return [];
         }
 
-        if (!canConnect(nextEdge, nodeById)) {
+        if (!canConnect(nextEdge, nodeById, edges.filter((e) => e.id !== edge.id))) {
             return [];
         }
 

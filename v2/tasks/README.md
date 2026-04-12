@@ -6,7 +6,7 @@ English only. See `project/skills/v2-studio-node-codegen-refactor/SKILL.md` and 
 
 | Folder | Meaning |
 |--------|---------|
-| `todo/` | Ready to implement |
+| `todo/` | Ready to implement (empty when all slices are archived to `../features/`) |
 | `doing/` | Work in progress (prefer one task per branch) |
 | `done/` | Implemented and validated; awaiting final `docs_v2` sync before archive |
 | `../v2/features/` | Completed tasks (permanent Gherkin archive) |

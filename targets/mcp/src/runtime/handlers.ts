@@ -16,7 +16,7 @@ import type {
     BridgePreviewOperationsRequest,
 } from '../../../../bridge/protocol';
 import type { EditorOperation, EditorOperationResult, EditorSessionState, EditorSessionSummary } from '../../../../core';
-import { generateCodeFromOfflinePatch } from '../../../../core';
+import { generateCodeFromOfflinePatch, generateFaustBundleFromOfflinePatch } from '../../../../core';
 import type { Logger } from '../logger';
 import type { SessionRegistry } from '../sessionRegistry';
 import type { McpToolResult } from './types';
@@ -222,11 +222,15 @@ function buildOfflinePatchHandlers(context: RuntimeHandlerContext): Record<strin
             if (inputPath || inputText) {
                 const { path, validation } = await readPatchValidation(input);
                 const code = generateCodeFromOfflinePatch(validation.patch, validation.patch.name, includeProvider);
+                const faust = generateFaustBundleFromOfflinePatch(validation.patch, validation.patch.name);
                 return toolSuccess(path ? `Generated code from offline patch "${path}".` : 'Generated code from patch text.', {
                     path,
                     includeProvider,
                     summary: validation.summary,
                     code,
+                    faustDsp: faust.faust || undefined,
+                    faustManifest: faust.manifest,
+                    faustDiagnostics: faust.diagnostics,
                 });
             }
 
@@ -242,6 +246,8 @@ function buildOfflinePatchHandlers(context: RuntimeHandlerContext): Record<strin
                 includeProvider,
                 graphName: result.graphName,
                 code: result.code,
+                faustDsp: result.faustDsp,
+                faustManifestJson: result.faustManifestJson,
             });
         },
     };

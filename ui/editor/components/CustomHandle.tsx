@@ -8,6 +8,7 @@ export const CustomHandle = memo((props: HandleProps) => {
     const nodeId = useNodeId();
     const connectionAssist = useAudioGraphStore((s) => s.connectionAssist);
     const nodes = useAudioGraphStore((s) => s.nodes);
+    const edges = useAudioGraphStore((s) => s.edges);
     
     const isCompatible = useMemo(() => {
         if (!connectionAssist || !nodeId) return false;
@@ -26,8 +27,8 @@ export const CustomHandle = memo((props: HandleProps) => {
 
         // Use a lookup for nodes for the canConnect check
         const nodeById = new Map(nodes.map(n => [n.id, n]));
-        return canConnect(connection, nodeById);
-    }, [connectionAssist, nodeId, handleId, handleType, nodes]);
+        return canConnect(connection, nodeById, edges);
+    }, [connectionAssist, nodeId, handleId, handleType, nodes, edges]);
 
     return (
         <Handle

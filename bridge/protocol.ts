@@ -95,6 +95,10 @@ export interface BridgePatchExportResponse {
 export interface BridgeCodegenResponse {
     code: string;
     graphName: string;
+    /** Single-process Faust (v2 codegen); empty when the subgraph has no supported DSP primitives. */
+    faustDsp?: string;
+    /** JSON manifest (`compileManifest.ts`) for host parameter binding. */
+    faustManifestJson?: string;
 }
 
 export interface BridgeAssetListItem {

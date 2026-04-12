@@ -3,6 +3,8 @@ import { graphDocumentToPatch } from '@open-din/react/patch';
 import { audioEngine } from '../ui/editor/AudioEngine';
 import { editorMidiRuntime } from '../ui/editor/midiRuntime';
 import { generateCode } from '../ui/editor/CodeGenerator';
+import { serializeCompileManifest } from '../ui/editor/faust/compileManifest';
+import { buildFaustBundleFromGraph } from '../ui/editor/faust/graphFaustPipeline';
 import { addAssetFromBlob, getAssetObjectUrl, listAssets } from '../ui/editor/audioLibrary';
 import { useAudioGraphStore } from '../ui/editor/store';
 import { getActiveProjectController, getProjectRepository } from '../project';
@@ -267,9 +269,14 @@ async function handleRequest(
                 return;
             }
 
+            const faustBundle = buildFaustBundleFromGraph(graph.nodes, graph.edges, graph.name);
             const response: BridgeCodegenResponse = {
                 graphName: graph.name,
                 code: generateCode(graph.nodes, graph.edges, Boolean(payload.includeProvider), graph.name),
+                faustDsp: faustBundle.faust || undefined,
+                faustManifestJson: faustBundle.faust
+                    ? serializeCompileManifest(faustBundle.manifest)
+                    : undefined,
             };
             respond(socket, envelope.type, sessionId, requestId, response);
             return;

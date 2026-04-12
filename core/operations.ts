@@ -248,7 +248,7 @@ function createStyledEdge(
     connection: ConnectionDraft,
 ): Edge | null {
     const nodeById = new Map(nodes.map((node) => [node.id, node]));
-    if (!canConnect(connection, nodeById)) return null;
+    if (!canConnect(connection, nodeById, edges)) return null;
 
     const audioConnection = isAudioConnection(connection, nodeById);
     const id = connection.id ?? createEdgeId(connection);
