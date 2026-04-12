@@ -1,25 +1,45 @@
-# Task: Studio node UI JSON catalog
+# Task 10 — Studio node UI JSON catalog
 
-## Scope
+Normative contract: `v2/specs/09-ui-components.md` section 10. This page summarizes how din-studio implements that contract in code.
 
-Define and implement the **Studio-only** node catalog JSON contract (palette, React Flow ports, inspector copy, optional Faust `dsp` string). This is **not** DinDocument / `.din` interchange; it complements persisted graph data in the editor.
+## Purpose
 
-## Normative spec
+The Studio node catalog describes **palette and React Flow UI** for editor nodes. It is **not** the DinDocument interchange model (`v2/specs/03-node-model.md`). Persisted graph instances and `.din` payloads stay separate.
 
-- `v2/specs/09-ui-components.md` — §10 Studio node catalog JSON (UI contract)
-- `v2/specs/03-node-model.md` — §8 Studio node UI JSON vs `.din` persistence
+## Source files
 
-## Goals
+| Area | Location |
+|------|----------|
+| Types | `ui/editor/studioNodeCatalog/types.ts` |
+| JSON defaults on load | `ui/editor/studioNodeCatalog/normalize.ts` |
+| §10.5 validation | `ui/editor/studioNodeCatalog/validate.ts` |
+| Merged loader (legacy bootstrap + JSON overrides) | `ui/editor/studioNodeCatalog/catalog.ts` |
+| Optional overrides | `ui/editor/studioNodeCatalog/studio-node-catalog.json` (array; may be empty) |
+| Legacy → Studio rows | `ui/editor/studioNodeCatalog/legacyBootstrap.ts` |
+| Default title / humanize `name` | `ui/editor/studioNodeCatalog/title.ts` |
+| React Flow handle ids = port `name`s | `ui/editor/studioNodeCatalog/handles.ts` |
+| Public barrel | `ui/editor/studioNodeCatalog/index.ts` |
+| Palette UI | `ui/editor/components/NodePalette.tsx` |
 
-1. **Types** — `StudioNodeDefinition`, `StudioNodePortSchema`, `StudioNodeType`, `StudioNodePortValueType`, `StudioNodePortInterface`; independent from `AudioNodeData` and DinDocument types.
-2. **Loader** — Single normalizer over JSON definitions with defaults (`label: null`, `customComponent: null`, `tags: []`, `inputs: []`, `outputs: []`).
-3. **UI** — Handles from `inputs`/`outputs`; palette from `category` / `subcategory` / `tags`; default title `label ?? humanize(name)`; `customComponent` → existing registry.
-4. **Migration** — Replace split catalog tables (`EDITOR_NODE_CATALOG`, default handles, ad hoc taxonomy) without changing instance-level inspector label behavior or `.din` shapes.
+## Loader behavior
 
-## Public surfaces (when implemented)
+1. `legacyBootstrapStudioDefinitions()` builds one `StudioNodeDefinition` per legacy `EDITOR_NODE_CATALOG` row (handles from `DEFAULT_HANDLES_BY_TYPE`).
+2. Entries from `studio-node-catalog.json` are normalized, validated, and merged **by `name`**, replacing bootstrap rows when valid.
+3. `loadStudioNodeCatalog()` memoizes the result. Call `resetStudioNodeCatalogCache()` in tests to reset.
 
-Document exports and module paths here as APIs land (per agent workflow: JSDoc + this page).
+## Faust `dsp` field
 
-## Task file
+- Only rows with `type === 'dsp'` may carry a non-empty `dsp` string (plain Faust source for Studio hints/codegen).
+- Selectors such as `getStudioDspSource` / `getStudioDspHintForEditorType` read this field only; they do **not** define DinDocument `engine` persistence.
 
-- `tasks/todo/10-studio-node-ui-json-catalog.feature` — Gherkin acceptance scenarios
+## `customComponent`
+
+`resolveStudioCustomComponentKey` returns `null` for the shared default shell, or a **registry key** string. The key is intended to align with the Studio UI registry (`nodeUiRegistry` / inspector patterns). Wiring the canvas node body to that key is a separate integration step; the catalog only carries the key.
+
+## Instance labels vs catalog
+
+Catalog `label` (or derived title from `name`) is the default for new nodes. Inspector edits to a **node instance** label update runtime/patch state only and **must not** rewrite catalog JSON definitions.
+
+## Tests
+
+Unit coverage: `tests/unit/studio-node-catalog.spec.ts` (normalization, validation, handle ids, titles, DSP rules).

@@ -4,11 +4,16 @@
     "shared_sources": [
       "ui/editor/nodeCatalog.ts",
       "ui/editor/types.ts",
-      "ui/editor/nodeUiRegistry.ts"
+      "ui/editor/nodeUiRegistry.ts",
+      "ui/editor/studioNodeCatalog/types.ts",
+      "ui/editor/studioNodeCatalog/catalog.ts",
+      "ui/editor/studioNodeCatalog/studio-node-catalog.json",
+      "ui/editor/components/NodePalette.tsx"
     ],
     "shared_tests": [
       "tests/unit/nodes-ui.spec.tsx",
-      "tests/unit/store-and-codegen.spec.ts"
+      "tests/unit/store-and-codegen.spec.ts",
+      "tests/unit/studio-node-catalog.spec.ts"
     ]
   },
   "items": [
